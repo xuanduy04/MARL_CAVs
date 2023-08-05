@@ -11,7 +11,7 @@ import highway_env
 MAX_EPISODES = 20000
 EPISODES_BEFORE_TRAIN = 10
 EVAL_EPISODES = 3
-EVAL_INTERVAL = 50
+EVAL_INTERVAL = 10
 
 # max steps in each episode, prevent from running too long
 MAX_STEPS = 100
