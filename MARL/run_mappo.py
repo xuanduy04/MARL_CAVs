@@ -73,7 +73,7 @@ def train(args):
     critic_lr = config.getfloat('TRAIN_CONFIG', 'critic_lr')
     MAX_EPISODES = config.getint('TRAIN_CONFIG', 'MAX_EPISODES')
     EPISODES_BEFORE_TRAIN = config.getint('TRAIN_CONFIG', 'EPISODES_BEFORE_TRAIN')
-    EVAL_INTERVAL = 50
+    EVAL_INTERVAL = config.getint('TRAIN_CONFIG', 'EVAL_INTERVAL')
     EVAL_EPISODES = config.getint('TRAIN_CONFIG', 'EVAL_EPISODES')
     reward_scale = config.getfloat('TRAIN_CONFIG', 'reward_scale')
 
