@@ -253,7 +253,6 @@ class MAPPO:
         steps = []
         vehicle_speed = []
         vehicle_position = []
-        Recorded_frames = []
         video_recorder = None
         seeds = [int(s) for s in self.test_seeds.split(',')]
 
@@ -262,6 +261,7 @@ class MAPPO:
             step = 0
             rewards_i = []
             infos_i = []
+            Recorded_frames = []
             done = False
             if is_train:
                 if self.traffic_density == 1:
@@ -277,7 +277,7 @@ class MAPPO:
             rendered_frame = env.render(mode="rgb_array")
             video_filename = os.path.join(output_dir,
                                           "testing_episode{}".format(self.n_episodes + 1) + '_{}'.format(i) +
-                                          '.mp4')
+                                          '.gif')
             # Init video recording
             if video_filename is not None:
                 print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape,
@@ -301,7 +301,11 @@ class MAPPO:
 
                 rewards_i.append(reward)
                 infos_i.append(info)
-      
+
+            rendered_frame = env.render(mode="rgb_array")
+            if video_filename is not None:
+                Recorded_frames.append(rendered_frame)
+
             vehicle_speed.append(info["vehicle_speed"])
             vehicle_position.append(info["vehicle_position"])
             rewards.append(rewards_i)
@@ -311,9 +315,10 @@ class MAPPO:
 
             if video_filename is not None:
                 # video_recorder.release()
-                imageio.mimsave("./results/mappo.gif", [np.array(frame) for i, frame in enumerate(Recorded_frames) if i%2 == 0], fps=3)
+                imageio.mimsave(video_filename, [np.array(frame) for i, frame in enumerate(Recorded_frames)], fps=5)
+	
         env.close()
-      
+   
         return rewards, (vehicle_speed, vehicle_position), steps, avg_speeds
 
     # discount roll out rewards
