@@ -4,3 +4,4 @@ gym==0.21.0
 matplotlib
 opencv-python==3.3.0.10
 pygame
+imageio
