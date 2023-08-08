@@ -19,7 +19,7 @@ def parse_args():
         + easy: globalR
         + seed = 0
     """
-    default_base_dir = "content/drive/MyDrive/MAPPO_results/"
+    default_base_dir = "/content/drive/MyDrive/MAPPO_results/"
     default_config_dir = 'configs/configs_ppo.ini'
     parser = argparse.ArgumentParser(description=('Train or evaluate policy on RL environment '
                                                   'using mappo'))
