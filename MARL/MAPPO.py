@@ -38,7 +38,7 @@ class MAPPO:
                  max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
                  use_cuda=True, traffic_density=1, reward_type="global_R"):
 
-        assert traffic_density in [1, 2, 3]
+        assert traffic_density in [1, 2, 3, 4]
         assert reward_type in ["regionalR", "global_R"]
         self.reward_type = reward_type
         self.env = env
