@@ -177,6 +177,15 @@ class MergeEnv(AbstractEnv):
             else:
                 num_CAV = num_CAV
             num_HDV = np.random.choice(np.arange(3, 6), 1)[0]
+
+        elif self.config["traffic_density"] == 4:
+            # easy+2 mode: 3-5 CAVs + 3-5 HDVs
+            if num_CAV == 0:
+                num_CAV = np.random.choice(np.arange(3, 5), 1)[0]
+            else:
+                num_CAV = num_CAV
+            num_HDV = np.random.choice(np.arange(3, 5), 1)[0]
+            
         self._make_vehicles(num_CAV, num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
