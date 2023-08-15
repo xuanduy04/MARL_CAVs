@@ -270,6 +270,8 @@ class MAPPO:
                     state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 2)
                 elif self.traffic_density == 3:
                     state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 4)
+		elif self.traffic_density == 4:
+                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 3)
             else:
                 state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i])
 
