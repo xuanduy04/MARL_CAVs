@@ -43,7 +43,7 @@ class MergeEnv(AbstractEnv):
             "centering_position": [0.3, 0.5],
             "scaling": 3,
             "simulation_frequency": 15,  # [Hz]
-            "duration": 20,  # time step
+            "duration": 40,  # time step
             "policy_frequency": 5,  # [Hz]
             "reward_speed_range": [10, 30],
             "COLLISION_REWARD": 200,  # default=200
