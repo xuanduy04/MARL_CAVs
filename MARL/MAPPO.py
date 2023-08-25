@@ -279,7 +279,7 @@ class MAPPO:
             rendered_frame = env.render(mode="rgb_array")
             video_filename = os.path.join(output_dir,
                                           "testing_episode{}".format(self.n_episodes + 1) + '_{}'.format(i) +
-                                          '.gif')
+                                          '.gif') if i >= max(eval_episodes-2,0) else None
             # Init video recording
             if video_filename is not None:
                 print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape,
@@ -304,8 +304,8 @@ class MAPPO:
                 rewards_i.append(reward)
                 infos_i.append(info)
 
-            rendered_frame = env.render(mode="rgb_array")
             if video_filename is not None:
+                rendered_frame = env.render(mode="rgb_array")
                 Recorded_frames.append(rendered_frame)
 
             vehicle_speed.append(info["vehicle_speed"])
