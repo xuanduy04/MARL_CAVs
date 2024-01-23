@@ -261,7 +261,7 @@ class MAPPO:
             step = 0
             rewards_i = []
             infos_i = []
-            # Recorded_frames = []
+            Recorded_frames = []
             done = False
             if is_train:
                 if self.traffic_density == 1:
@@ -284,12 +284,7 @@ class MAPPO:
             if video_filename is not None:
                 print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape,
                                                                       5))
-                video_recorder = VideoRecorder(video_filename,
-                                               frame_size=rendered_frame.shape, fps=5)
-                video_recorder.add_frame(rendered_frame)
-                # Recorded_frames.append(rendered_frame)
-            # else:
-            #     video_recorder = None
+                Recorded_frames.append(rendered_frame)
 
             while not done:
                 step += 1
@@ -299,16 +294,14 @@ class MAPPO:
                 
                 if video_filename is not None:
                     rendered_frame = env.render(mode="rgb_array")
-                    video_recorder.add_frame(rendered_frame)
-                    # Recorded_frames.append(rendered_frame)
+                    Recorded_frames.append(rendered_frame)
                     
                 rewards_i.append(reward)
                 infos_i.append(info)
 
             if video_filename is not None:
                 rendered_frame = env.render(mode="rgb_array")
-                video_recorder.add_frame(rendered_frame)
-                # Recorded_frames.append(rendered_frame)
+                Recorded_frames.append(rendered_frame)
 
             vehicle_speed.append(info["vehicle_speed"])
             vehicle_position.append(info["vehicle_position"])
@@ -318,8 +311,11 @@ class MAPPO:
             avg_speeds.append(avg_speed / step)
 
             if video_filename is not None:
-                video_recorder.release()
                 # imageio.mimsave(video_filename, [np.array(frame) for i, frame in enumerate(Recorded_frames)], fps=5)
+                writer = imageio.get_writer('test.mp4', fps=20)
+                for frame in Recorded_frames:
+                    writer.append_data(np.array(frame))
+                writer.close()
 	
         env.close()
    
