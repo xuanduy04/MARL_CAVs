@@ -279,7 +279,7 @@ class MAPPO:
             rendered_frame = env.render(mode="rgb_array")
             video_filename = os.path.join(output_dir,
                                           "testing_episode{}".format(self.n_episodes + 1) + '_{}'.format(i) +
-                                          '.gif') if i >= max(eval_episodes-2,0) else None
+                                          '.mp4') if i >= max(eval_episodes-2,0) else None
             # Init video recording
             if video_filename is not None:
                 print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape,
@@ -312,7 +312,7 @@ class MAPPO:
 
             if video_filename is not None:
                 # imageio.mimsave(video_filename, [np.array(frame) for i, frame in enumerate(Recorded_frames)], fps=5)
-                writer = imageio.get_writer(video_filename, fps=20)
+                writer = imageio.get_writer(video_filename, fps=5)
                 for frame in Recorded_frames:
                     writer.append_data(np.array(frame))
                 writer.close()
