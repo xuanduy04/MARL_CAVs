@@ -312,7 +312,7 @@ class MAPPO:
 
             if video_filename is not None:
                 # imageio.mimsave(video_filename, [np.array(frame) for i, frame in enumerate(Recorded_frames)], fps=5)
-                writer = imageio.get_writer('test.mp4', fps=20)
+                writer = imageio.get_writer(video_filename, fps=20)
                 for frame in Recorded_frames:
                     writer.append_data(np.array(frame))
                 writer.close()
