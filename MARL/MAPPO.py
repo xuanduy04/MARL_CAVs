@@ -261,7 +261,7 @@ class MAPPO:
             step = 0
             rewards_i = []
             infos_i = []
-            Recorded_frames = []
+            # Recorded_frames = []
             done = False
             if is_train:
                 if self.traffic_density == 1:
@@ -286,27 +286,29 @@ class MAPPO:
                                                                       5))
                 video_recorder = VideoRecorder(video_filename,
                                                frame_size=rendered_frame.shape, fps=5)
-                # video_recorder.add_frame(rendered_frame)
-                Recorded_frames.append(rendered_frame)
-            else:
-                video_recorder = None
+                video_recorder.add_frame(rendered_frame)
+                # Recorded_frames.append(rendered_frame)
+            # else:
+            #     video_recorder = None
 
             while not done:
                 step += 1
                 action = self.action(state, n_agents)
                 state, reward, done, info = env.step(action)
                 avg_speed += info["average_speed"]
-                rendered_frame = env.render(mode="rgb_array")
+                
                 if video_filename is not None:
-                    # video_recorder.add_frame(rendered_frame)
-                    Recorded_frames.append(rendered_frame)
-
+                    rendered_frame = env.render(mode="rgb_array")
+                    video_recorder.add_frame(rendered_frame)
+                    # Recorded_frames.append(rendered_frame)
+                    
                 rewards_i.append(reward)
                 infos_i.append(info)
 
             if video_filename is not None:
                 rendered_frame = env.render(mode="rgb_array")
-                Recorded_frames.append(rendered_frame)
+                video_recorder.add_frame(rendered_frame)
+                # Recorded_frames.append(rendered_frame)
 
             vehicle_speed.append(info["vehicle_speed"])
             vehicle_position.append(info["vehicle_position"])
@@ -316,8 +318,8 @@ class MAPPO:
             avg_speeds.append(avg_speed / step)
 
             if video_filename is not None:
-                # video_recorder.release()
-                imageio.mimsave(video_filename, [np.array(frame) for i, frame in enumerate(Recorded_frames)], fps=5)
+                video_recorder.release()
+                # imageio.mimsave(video_filename, [np.array(frame) for i, frame in enumerate(Recorded_frames)], fps=5)
 	
         env.close()
    
