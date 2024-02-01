@@ -278,7 +278,7 @@ class MAPPO:
             n_agents = len(env.controlled_vehicles)
             rendered_frame = env.render(mode="rgb_array")
             video_filename = os.path.join(output_dir,
-                                          "testing_episode{}".format(self.n_episodes + 1) + '_{}'.format(i) +
+                                          "testing_episode{}".format(self.n_episodes + 1) + '_{}'.format(i + 1) +
                                           '.mp4') if i >= max(eval_episodes-2,0) else None
             # Init video recording
             if video_filename is not None:
