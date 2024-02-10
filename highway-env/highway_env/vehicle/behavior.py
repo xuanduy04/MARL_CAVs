@@ -369,10 +369,8 @@ class PriorityIDMVehicle(IDMVehicle):
                          enable_lane_change, timer, is_priority)
 
 
-class LinearVehicle(IDMVehicle):
-    """Depricated?"""
-    """A Vehicle whose longitudinal and lateral controllers are linear with respect to parameters."""
-    raise NotImplementedError
+# class LinearVehicle(IDMVehicle):
+#     """A Vehicle whose longitudinal and lateral controllers are linear with respect to parameters."""
 
 #     ACCELERATION_PARAMETERS = [0.3, 0.3, 2.0]
 #     STEERING_PARAMETERS = [ControlledVehicle.KP_HEADING, ControlledVehicle.KP_HEADING * ControlledVehicle.KP_LATERAL]
