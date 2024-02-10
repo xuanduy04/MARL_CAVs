@@ -234,8 +234,11 @@ class MergePriorityEnv(AbstractEnv):
         """Spawn points for PV"""
         # for now, PV always spawn on straight road....
         # Hmmmm. maybe multilane is actually required...
-        #  NAH. Just implement it first, will see behaviour later.
-        spawn_point_pv = np.random.choice(spawn_points_s, num_PV, replace=False)[0]
+        #  NAH. Just implement it first, we will see it's behaviour later.
+        if self.config["priority_vehicle_can_spawn_first"]:
+            spawn_point_pv = np.random.choice(spawn_points_s, num_PV, replace=False)[0]
+        else:
+            spawn_point_pv = np.random.choice(spawn_points_s[1:], num_PV, replace=False)[0]
         spawn_points_s.remove(spawn_point_pv)
 
         """Spawn points for CAV"""
