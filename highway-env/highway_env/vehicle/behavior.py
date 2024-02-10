@@ -206,7 +206,7 @@ class IDMVehicle(ControlledVehicle):
             if self.lane_index[:2] == self.target_lane_index[:2]:
                 # - the priority vehicle in your rear wants that line.
                 if priority_vehicle_in_rear \
-                        and v.target_lane_index == priority_vehicle_target_lane_index:
+                        and self.target_lane_index == priority_vehicle_target_lane_index:
                     self.target_lane_index = self.lane_index 
                 else:
                     for v in self.road.vehicles:
