@@ -78,7 +78,7 @@ def train(args):
     reward_scale = config.getfloat('TRAIN_CONFIG', 'reward_scale')
 
     # init env
-    env = gym.make('merge-multi-agent-v0')
+    env = gym.make('merge-priority-multi-agent-v0')
     env.config['seed'] = config.getint('ENV_CONFIG', 'seed')
     env.config['simulation_frequency'] = config.getint('ENV_CONFIG', 'simulation_frequency')
     env.config['duration'] = config.getint('ENV_CONFIG', 'duration')
@@ -94,7 +94,7 @@ def train(args):
 
     assert env.T % ROLL_OUT_N_STEPS == 0
 
-    env_eval = gym.make('merge-multi-agent-v0')
+    env_eval = gym.make('merge-priority-multi-agent-v0')
     env_eval.config['seed'] = config.getint('ENV_CONFIG', 'seed') + 1
     env_eval.config['simulation_frequency'] = config.getint('ENV_CONFIG', 'simulation_frequency')
     env_eval.config['duration'] = config.getint('ENV_CONFIG', 'duration')
