@@ -154,7 +154,15 @@ class MergeEnv(AbstractEnv):
     def _reset(self, num_CAV=0) -> None:
         self._make_road()
 
-        if self.config["traffic_density"] == 1:
+        if self.config["traffic_density"] == 0:
+            # test mode: 1 CAVs + 7-9 HDVs
+            if num_CAV == 0:
+                num_CAV = 1
+            else:
+                num_CAV = num_CAV
+            num_HDV = np.random.choice(np.arange(7, 10), 1)[0]
+
+        elif self.config["traffic_density"] == 1:
             # easy mode: 1-3 CAVs + 1-3 HDVs
             if num_CAV == 0:
                 num_CAV = np.random.choice(np.arange(1, 4), 1)[0]
@@ -174,14 +182,6 @@ class MergeEnv(AbstractEnv):
             # hard mode: 4-6 CAVs + 3-5 HDVs
             if num_CAV == 0:
                 num_CAV = np.random.choice(np.arange(4, 7), 1)[0]
-            else:
-                num_CAV = num_CAV
-            num_HDV = np.random.choice(np.arange(3, 6), 1)[0]
-
-        elif self.config["traffic_density"] == 4:
-            # easy+2 mode: 3-5 CAVs + 3-5 HDVs
-            if num_CAV == 0:
-                num_CAV = np.random.choice(np.arange(3, 6), 1)[0]
             else:
                 num_CAV = num_CAV
             num_HDV = np.random.choice(np.arange(3, 6), 1)[0]
