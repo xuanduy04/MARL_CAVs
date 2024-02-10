@@ -322,7 +322,7 @@ class PriorityIDMVehicle(IDMVehicle):
     # Desired maximum acceleration.
     COMFORT_ACC_MAX = 6.0  # [m/s2] (Priority vehicle wants to reach destination as fast as possible)
     # Desired minimum deceleration.
-    COMFORT_ACC_MIN = 0.0  # [m/s2] (Priority vehicle never wants to slow down)
+    COMFORT_ACC_MIN = -0.01  # [m/s2] (Priority vehicle never wants to slow down)
     # Desired jam distance to the front vehicle.
     DISTANCE_WANTED = 5.0 + ControlledVehicle.LENGTH  # [m] (safety-related, unchanged)
     # Desired time gap to the front vehicle.
