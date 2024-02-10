@@ -191,31 +191,55 @@ class IDMVehicle(ControlledVehicle):
 
         Based on:
         - frequency;
+        - priority vehicle;
         - closeness of the target lane;
         - MOBIL model.
         """
+
+        #  TODO: put this in a function. (Pretty sure will help optimize the code).
+        # Which lane does the priority vehicle want?
+        priority_vehicle_target_lane_index = None
+        priority_vehicle_lane_index = None
+        if not self.is_priority:
+            for v in self.road.vehicles:
+                if v.is_priority:
+                    priority_vehicle_target_lane_index = v.target_lane_index
+                    priority_vehicle_lane_index = v.lane_index
+                    break
+        
+        # Is the priority vehicle in this vehicle's rear?
+        # TODO: Optimize the code. You most likely should.
+        if priority_vehicle_lane_index is not None:
+            _, rear_vehicles = self.road.neighbour_vehicles(self, priority_vehicle_lane_index)
+            priority_vehicle_in_rear = any(v.is_priority for v in rear_vehicles)
+        else:
+            priority_vehicle_in_rear = False
+        
+        # Note: variable `priority_vehicle_in_rear` is True iff:
+            # - self.is_priority == False
+            # - priority vehicle exists
+            # - priority vehicle is NOT in front of the current vehicle.
+
         # If a lane change already ongoing
         if self.lane_index != self.target_lane_index:
             # If we are on correct route but bad lane: abort it if 
             if self.lane_index[:2] == self.target_lane_index[:2]:
-                for v in self.road.vehicles:
-                    # - someone else is already changing into the same lane
-                    if v is not self \
-                            and v.lane_index != self.target_lane_index \
-                            and isinstance(v, ControlledVehicle) \
-                            and v.target_lane_index == self.target_lane_index:
-                        d = self.lane_distance_to(v)
-                        d_star = self.desired_gap(self, v)
-                        if 0 < d < d_star:
-                            self.target_lane_index = self.lane_index
-                            break
-                    # - priority vehicle wants that line.
-                        # TODO: optimize the logic?
-                    if not self.is_priority \
-                            and v.is_priority \
-                            and v.target_lane_index == self.target_lane_index:
-                        self.target_lane_index = self.lane_index
-                        break
+                # - the priority vehicle in your rear wants that line.
+                if priority_vehicle_in_rear \
+                        and v.target_lane_index == priority_vehicle_target_lane_index:
+                    self.target_lane_index = self.lane_index 
+                else:
+                    for v in self.road.vehicles:
+                        # - someone else is already changing into the same lane
+                        if v is not self \
+                                and v.lane_index != self.target_lane_index \
+                                and isinstance(v, ControlledVehicle) \
+                                and v.target_lane_index == self.target_lane_index:
+                            d = self.lane_distance_to(v)
+                            d_star = self.desired_gap(self, v)
+                            if 0 < d < d_star:
+                                self.target_lane_index = self.lane_index
+                                break
             return
 
         # else, at a given frequency,
@@ -223,19 +247,11 @@ class IDMVehicle(ControlledVehicle):
             return
         self.timer = 0
 
-        # decide to make a lane change
-        # Which lane does the priority vehicle want?
-        priority_vehicle_target_lane_index = None
-        if not self.is_priority:
-            for v in self.road.vehicles:
-                if v.is_priority:
-                    priority_vehicle_target_lane_index = v.target_lane_index
-                    break
-        
+        # decide to make a lane change        
         for lane_index in self.road.network.side_lanes(self.lane_index):
-            # TODO:
-            # Does the priority vehicle want that lane?
-            if priority_vehicle_target_lane_index == lane_index:
+            # Is the priority vehicle in your rear? Does it also want that lane?
+            if priority_vehicle_in_rear \
+                    and priority_vehicle_target_lane_index == lane_index:
                 continue
             # Is the candidate lane close enough?
             if not self.road.network.get_lane(lane_index).is_reachable_from(self.position):
@@ -320,13 +336,14 @@ class PriorityIDMVehicle(IDMVehicle):
     # Maximum acceleration.
     ACC_MAX = 6.0  # [m/s2]
     # Desired maximum acceleration.
-    COMFORT_ACC_MAX = 6.0  # [m/s2] (Priority vehicle wants to reach destination as fast as possible)
+    COMFORT_ACC_MAX = 6.0  # [m/s2]  (Priority vehicle wants to reach destination as fast as possible).
     # Desired minimum deceleration.
-    COMFORT_ACC_MIN = -0.01  # [m/s2] (Priority vehicle never wants to slow down)
+    COMFORT_ACC_MIN = -0.01  # [m/s2]  (Priority vehicle never wants to slow down).
+            # [small negative number to avoid zero division].
     # Desired jam distance to the front vehicle.
-    DISTANCE_WANTED = 5.0 + ControlledVehicle.LENGTH  # [m] (safety-related, unchanged)
+    DISTANCE_WANTED = 5.0 + ControlledVehicle.LENGTH  # [m]  (safety-related, unchanged).
     # Desired time gap to the front vehicle.
-    TIME_WANTED = 1.5  # [s] (safety-related, unchanged)
+    TIME_WANTED = 1.5  # [s]  (safety-related, unchanged)
     # Exponent of the velocity term.
     DELTA = 4.0  # []
 
@@ -334,8 +351,8 @@ class PriorityIDMVehicle(IDMVehicle):
     POLITENESS = 0.  # in [0, 1]
     LANE_CHANGE_MIN_ACC_GAIN = 0.1  # [m/s2]
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
-    LANE_CHANGE_DELAY = 0.9  # [s] (Consider changing lanes more frequently).
-    # Though preferably it never wants to change lanes.
+    LANE_CHANGE_DELAY = 0.9  # [s]  (Consider changing lanes more frequently).
+    # Though it will most likely never actually need to change lanes.
 
     def __init__(self,
                  road: Road,
@@ -353,10 +370,9 @@ class PriorityIDMVehicle(IDMVehicle):
 
 
 class LinearVehicle(IDMVehicle):
-    """Depricated?
-
-    (A Vehicle whose longitudinal and lateral controllers are linear with respect to parameters.)"""
-    pass
+    """Depricated?"""
+    """A Vehicle whose longitudinal and lateral controllers are linear with respect to parameters."""
+    raise NotImplementedError
 
 #     ACCELERATION_PARAMETERS = [0.3, 0.3, 2.0]
 #     STEERING_PARAMETERS = [ControlledVehicle.KP_HEADING, ControlledVehicle.KP_HEADING * ControlledVehicle.KP_LATERAL]
