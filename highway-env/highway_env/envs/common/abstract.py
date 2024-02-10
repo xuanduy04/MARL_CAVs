@@ -12,7 +12,7 @@ from highway_env.envs.common.action import action_factory, Action, DiscreteMetaA
 from highway_env.envs.common.observation import observation_factory, ObservationType
 from highway_env.envs.common.finite_mdp import finite_mdp
 from highway_env.envs.common.graphics import EnvViewer
-from highway_env.vehicle.behavior import IDMVehicle, LinearVehicle
+from highway_env.vehicle.behavior import IDMVehicle
 from highway_env.vehicle.controller import MDPVehicle
 from highway_env.vehicle.kinematics import Vehicle
 from highway_env.envs.common.idm_controller import idm_controller, generate_actions
@@ -124,7 +124,7 @@ class AbstractEnv(gym.Env):
             "real_time_rendering": False,
             "n_step": 5,  # do n step prediction
             "seed": 0,
-            "action_masking": True
+            "action_masking": True # Note: you may wish to consider making this false.
         }
 
     def seed(self, seeding: int = None) -> List[int]:
