@@ -111,6 +111,7 @@ class AbstractEnv(gym.Env):
             "simulation_frequency": 15,  # [Hz]
             "policy_frequency": 1,  # [Hz]
             "other_vehicles_type": "highway_env.vehicle.behavior.IDMVehicle",
+            "priority_vehicles_type": "highway_env.vehicle.behavior.PriorityIDMVehicle",
             "screen_width": 600,  # [px]
             "screen_height": 150,  # [px]
             "centering_position": [0.3, 0.5],
