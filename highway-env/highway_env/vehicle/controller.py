@@ -35,11 +35,13 @@ class ControlledVehicle(Vehicle):
                  speed: float = 0,
                  target_lane_index: LaneIndex = None,
                  target_speed: float = None,
-                 route: Route = None):
+                 route: Route = None,
+                 is_priority: bool = False):
         super().__init__(road, position, heading, speed)
         self.target_lane_index = target_lane_index or self.lane_index
         self.target_speed = target_speed or self.speed
         self.route = route
+        self.is_priority = is_priority
 
     @classmethod
     def create_from(cls, vehicle: "ControlledVehicle") -> "ControlledVehicle":
@@ -53,7 +55,7 @@ class ControlledVehicle(Vehicle):
         """
         v = cls(vehicle.road, vehicle.position, heading=vehicle.heading, speed=vehicle.speed,
                 target_lane_index=vehicle.target_lane_index, target_speed=vehicle.target_speed,
-                route=vehicle.route)
+                route=vehicle.route, is_priority = vehicle.is_priority)
         return v
 
     def plan_route_to(self, destination: str) -> "ControlledVehicle":
@@ -211,7 +213,8 @@ class MDPVehicle(ControlledVehicle):
                  target_lane_index: LaneIndex = None,
                  target_speed: float = None,
                  route: Route = None) -> None:
-        super().__init__(road, position, heading, speed, target_lane_index, target_speed, route)
+        super().__init__(road, position, heading, speed, target_lane_index, target_speed, route,
+                         is_priority=False)
         self.speed_index = self.speed_to_index(self.target_speed)
         self.target_speed = self.index_to_speed(self.speed_index)
 
