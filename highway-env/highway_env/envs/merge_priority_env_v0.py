@@ -235,10 +235,13 @@ class MergePriorityEnv(AbstractEnv):
         # for now, PV always spawn on straight road....
         # Hmmmm. maybe multilane is actually required...
         #  NAH. Just implement it first, we will see it's behaviour later.
+        assert self.config["priority_vehicle_can_spawn_first"] is not None
+        
         if self.config["priority_vehicle_can_spawn_first"]:
             spawn_point_pv = np.random.choice(spawn_points_s, num_PV, replace=False)[0]
         else:
             spawn_point_pv = np.random.choice(spawn_points_s[1:], num_PV, replace=False)[0]
+            assert spawn_point_pv != min(spawn_points_s)
         spawn_points_s.remove(spawn_point_pv)
 
         """Spawn points for CAV"""
@@ -273,8 +276,7 @@ class MergePriorityEnv(AbstractEnv):
         """spawn the PV"""
         road.vehicles.append(
             priority_vehicles_type(road, road.network.get_lane(("a", "b", 0)).position(
-                spawn_point_pv + loc_noise.pop(0), 0),
-                                speed=initial_speed.pop(0)))
+                spawn_point_pv + loc_noise.pop(0), 0), speed=initial_speed.pop(0)))
 
         """spawn the CAV on the straight road first"""
         for _ in range(num_CAV // 2):
@@ -282,6 +284,7 @@ class MergePriorityEnv(AbstractEnv):
                 spawn_point_s_c.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
             self.controlled_vehicles.append(ego_vehicle)
             road.vehicles.append(ego_vehicle)
+
         """spawn the rest CAV on the merging road"""
         for _ in range(num_CAV - num_CAV // 2):
             ego_vehicle = self.action_type.vehicle_class(road, road.network.get_lane(("j", "k", 0)).position(
