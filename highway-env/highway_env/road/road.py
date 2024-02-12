@@ -379,15 +379,16 @@ class Road(object):
     
     def priority_vehicle_relative_position(self, vehicle: 'kinematics.Vehicle', 
                                            get_target_lane_index: bool) \
-        -> Tuple[bool, object]:
+        -> Tuple[bool, Optional[object]]:
         """
         Find the relative position of the priority vehicle with respect to a given vehicle
         :param vehicle: the vehicle we wish to look from.
         :param get_target_lane_index: whether we want the priority vehicle's target_lane_index instead
         :return: 
             - (bool) `True` if the priority vehicle is in the given vehicle's rear, `False` otherwise.
-            - (object) The priority vehicle, or, it's target_lane_index.
+            - (object) The priority vehicle, it's target_lane_index, or `None` if priority vehicle doesn't exist.
         """
+        """Note: only works as intended if there's at most 1 priority vehicle"""
         if vehicle.is_priority:
             return False, vehicle.target_lane_index if get_target_lane_index else vehicle
 
