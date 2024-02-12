@@ -377,34 +377,30 @@ class Road(object):
                     v_rear = v
         return v_front, v_rear
     
-    def priority_vehicle_relative_position(self, vehicle: 'kinematics.Vehicle') \
-            -> Tuple[bool, Optional[LaneIndex]]:
+    def priority_vehicle_relative_position(self, vehicle: 'kinematics.Vehicle', 
+                                           get_target_lane_index: bool) \
+        -> Tuple[bool, object]:
         """
         Find the relative position of the priority vehicle with respect to a given vehicle
         :param vehicle: the vehicle we wish to look from.
+        :param get_target_lane_index: whether we want the priority vehicle's target_lane_index instead
         :return: 
             - (bool) `True` if the priority vehicle is in the given vehicle's rear, `False` otherwise.
-            - (LaneIndex) The target_lane_index of the priority vehicle (if such a vehicle exists).
+            - (object) The priority vehicle, or, it's target_lane_index.
         """
         if vehicle.is_priority:
-            return False, vehicle.target_lane_index
-        
-        priority_vehicle_in_rear = False
-        priority_vehicle_target_lane_index = None
+            return False, vehicle.target_lane_index if get_target_lane_index else vehicle
 
         for v in self.vehicles + self.objects:
             if not isinstance(v, Landmark) and v.is_priority:  # self.network.is_connected_road(v.lane_index,
                 # lane_index, same_lane=True):
                 lane = self.network.get_lane(v.lane_index)
-                # `s` stands for `longitude`
-                # s = lane.local_coordinates(vehicle.position)[0]
-                # s_v = lane.local_coordinates(v.position)[0]
-                
-                priority_vehicle_target_lane_index = v.target_lane_index
-                if lane.local_coordinates(v.position)[0] < lane.local_coordinates(vehicle.position)[0]:
-                    priority_vehicle_in_rear = True
-                break
-        return priority_vehicle_in_rear, priority_vehicle_target_lane_index
+                priority_vehicle_in_rear = \
+                    lane.local_coordinates(v.position)[0] < lane.local_coordinates(vehicle.position)[0]
+                    # comparing longitude coordinates 
+                return priority_vehicle_in_rear, v.target_lane_index if get_target_lane_index else v
+        # If there are no priority vehicles,
+        return False, None
 
     def __repr__(self):
         return self.vehicles.__repr__()

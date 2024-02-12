@@ -198,7 +198,8 @@ class IDMVehicle(ControlledVehicle):
         # Is the priority vehicle in this vehicle's rear?
             # And
         # Which lane does the priority vehicle want?
-        priority_vehicle_in_rear, priority_vehicle_target_lane_index = self.road.priority_vehicle_relative_position(self)
+        priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
+            self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
 
         # If a lane change already ongoing
         if self.lane_index != self.target_lane_index:
