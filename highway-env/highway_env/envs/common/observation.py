@@ -136,17 +136,19 @@ class KinematicObservation(ObservationType):
                  normalize: bool = True,
                  clip: bool = False,
                  see_behind: bool = True,
+                 see_priority_vehicle: bool = False,
                  observe_intentions: bool = False,
                  **kwargs: dict) -> None:
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
-        :param vehicles_count: Number of observed vehicles
+        :param vehicles_count: Number of observed vehicles (including a seperate field for the priority vehicle)
         :param absolute: Use absolute coordinates
         :param order: Order of observed vehicles. Values: sorted, shuffled
         :param normalize: Should the observation be normalized
         :param clip: Should the value be clipped in the desired range
-        :param see_behind: Should the observation contains the vehicles behind
+        :param see_behind: Should the observation contain the vehicles behind
+        :param see_priority_vehicle: Should the observation contain a seperate field for the priority vehicle
         :param observe_intentions: Observe the destinations of other vehicles
         """
         super().__init__(env)
@@ -158,6 +160,8 @@ class KinematicObservation(ObservationType):
         self.normalize = normalize
         self.clip = clip
         self.see_behind = see_behind
+        assert(see_priority_vehicle is not None, "`see_priority_vehicle = None` will result in undefined behaviour")
+        self.see_priority_vehicle = see_priority_vehicle
         self.observe_intentions = observe_intentions
 
     def space(self) -> spaces.Space:
@@ -194,9 +198,23 @@ class KinematicObservation(ObservationType):
     def observe(self) -> np.ndarray:
         if not self.env.road:
             return np.zeros(self.space().shape)
-
+        
         # Add ego-vehicle
         df = pd.DataFrame.from_records([self.observer_vehicle.to_dict()])[self.features]
+        # Add priority-vehicle
+        if self.see_priority_vehicle:
+            priority_vehicle_in_rear, priority_vehicle = \
+                self.env.road.priority_vehicle_relative_position( \
+                    self.observer_vehicle, get_target_lane_index=False)
+            if priority_vehicle_in_rear:
+                origin = self.observer_vehicle if not self.absolute else None
+                # TODO: confirm this line works as intended.
+                df = df.append(pd.DataFrame.from_records(
+                    [priority_vehicle.to_dict(origin, observe_intentions=self.observe_intentions)]
+                )[self.features], ignore_index=True)
+            else:
+                empty_row = np.zeros((1, len(self.features)))
+                df = df.append(pd.DataFrame(data=empty_row, columns=self.features), ignore_index=True)
         # Add nearby traffic
         # sort = self.order == "sorted"
         close_vehicles = self.env.road.close_vehicles_to(self.observer_vehicle,
@@ -215,7 +233,7 @@ class KinematicObservation(ObservationType):
         # Fill missing rows
         if df.shape[0] < self.vehicles_count:
             rows = np.zeros((self.vehicles_count - df.shape[0], len(self.features)))
-            df = df.append(pd.DataFrame(data=rows, columns=self.features), ignore_index=True)
+            df = df.append(pd.DataFrame(data=rows, columns=self.features), ignore_index=True)        
         # Reorder
         df = df[self.features]
         obs = df.values.copy()

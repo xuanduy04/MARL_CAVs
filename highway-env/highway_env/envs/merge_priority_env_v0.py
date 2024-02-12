@@ -32,7 +32,11 @@ class MergePriorityEnv(AbstractEnv):
         config = super().default_config()
         config.update({
             "observation": {
-                "type": "Kinematics"},
+                "type": "Kinematics",
+                "observation_config": {
+                    "see_priority_vehicle": True
+                }
+            },
             "action": {
                 "type": "DiscreteMetaAction",
                 "longitudinal": True,
@@ -325,7 +329,10 @@ class MergePriorityEnvMARL(MergePriorityEnv):
             "observation": {
                 "type": "MultiAgentObservation",
                 "observation_config": {
-                    "type": "Kinematics"
+                    "type": "Kinematics",
+                    "observation_config": {
+                        "see_priority_vehicle": True
+                    }
                 }},
             "controlled_vehicles": 4
         })
