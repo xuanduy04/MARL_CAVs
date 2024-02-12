@@ -194,18 +194,14 @@ class IDMVehicle(ControlledVehicle):
         - priority vehicle;
         - closeness of the target lane;
         - MOBIL model.
-        """        
-        # Is the priority vehicle in this vehicle's rear?
-            # And
-        # Which lane does the priority vehicle want?
-        priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
-            self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
-
+        """
         # If a lane change already ongoing
         if self.lane_index != self.target_lane_index:
             # If we are on correct route but bad lane: abort it if 
             if self.lane_index[:2] == self.target_lane_index[:2]:
                 # - the priority vehicle in your rear wants that line.
+                priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
+                    self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
                 if priority_vehicle_in_rear \
                         and self.target_lane_index == priority_vehicle_target_lane_index:
                     self.target_lane_index = self.lane_index 
@@ -229,6 +225,13 @@ class IDMVehicle(ControlledVehicle):
         self.timer = 0
 
         # decide to make a lane change.
+
+        # Is the priority vehicle in this vehicle's rear?
+            # And
+        # Which lane does the priority vehicle want?
+        priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
+            self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
+
         # Now we look at every lane...
         for lane_index in self.road.network.side_lanes(self.lane_index):
             # Is the priority vehicle in your rear? Does it also want that lane?
@@ -292,7 +295,7 @@ class IDMVehicle(ControlledVehicle):
         :param acceleration: desired acceleration from IDM
         :return: suggested acceleration to recover from being stuck
         """
-        # TODO: Surely there has to be a way to stop vehicles from needing to go in reverse.
+        assert(False, "why is this code ran?")
         stopped_speed = 5
         safe_distance = 200
         # Is the vehicle stopped on the wrong lane?
