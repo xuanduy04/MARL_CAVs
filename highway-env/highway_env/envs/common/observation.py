@@ -160,7 +160,7 @@ class KinematicObservation(ObservationType):
         self.normalize = normalize
         self.clip = clip
         self.see_behind = see_behind
-        assert(see_priority_vehicle is not None, "`see_priority_vehicle = None` will result in undefined behaviour")
+        assert see_priority_vehicle is not None, "`see_priority_vehicle = None` will result in undefined behaviour"
         self.see_priority_vehicle = see_priority_vehicle
         self.observe_intentions = observe_intentions
 
