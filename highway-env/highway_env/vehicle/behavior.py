@@ -295,7 +295,7 @@ class IDMVehicle(ControlledVehicle):
         :param acceleration: desired acceleration from IDM
         :return: suggested acceleration to recover from being stuck
         """
-        assert(False, "why is this code ran?")
+        assert False, "why is the `recover_from_stop` code ran? The vehicle should never be stuck."
         stopped_speed = 5
         safe_distance = 200
         # Is the vehicle stopped on the wrong lane?
