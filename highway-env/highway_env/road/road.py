@@ -238,21 +238,24 @@ class Road(object):
                  vehicles: List['kinematics.Vehicle'] = None,
                  road_objects: List['objects.RoadObject'] = None,
                  np_random: np.random.RandomState = None,
-                 record_history: bool = False) -> None:
+                 record_history: bool = False,
+                 priority_vehicle: 'kinematics.Vehicle' = None) -> None:
         """
         New road.
 
         :param network: the road network describing the lanes
-        :param vehicles: the vehicles driving on the road
+        :param vehicles: the vehicles driving on the road (including the priority vehicle)
         :param road_objects: the objects on the road including obstacles and landmarks
         :param np.random.RandomState np_random: a random number generator for vehicle behaviour
         :param record_history: whether the recent trajectories of vehicles should be recorded for display
+        :param priority_vehicle: the priority vehicle
         """
         self.network = network
         self.vehicles = vehicles or []
         self.objects = road_objects or []
         self.np_random = np_random if np_random else np.random.RandomState()
         self.record_history = record_history
+        self.priority_vehicle = priority_vehicle
 
     def close_vehicles_to(self, vehicle: 'kinematics.Vehicle', distance: float, count: int = None,
                           see_behind: bool = True) -> object:
@@ -392,14 +395,13 @@ class Road(object):
         if vehicle.is_priority:
             return False, vehicle.target_lane_index if get_target_lane_index else vehicle
 
-        for v in self.vehicles + self.objects:
-            if not isinstance(v, Landmark) and v.is_priority:  # self.network.is_connected_road(v.lane_index,
-                # lane_index, same_lane=True):
-                lane = self.network.get_lane(v.lane_index)
-                priority_vehicle_in_rear = \
-                    lane.local_coordinates(v.position)[0] < lane.local_coordinates(vehicle.position)[0]
-                    # comparing longitude coordinates 
-                return priority_vehicle_in_rear, v.target_lane_index if get_target_lane_index else v
+        if self.priority_vehicle:
+            lane = self.network.get_lane(self.priority_vehicle.lane_index)
+                # comparing longitude coordinates 
+            priority_vehicle_in_rear = \
+                lane.local_coordinates(self.priority_vehicle.position)[0] < lane.local_coordinates(vehicle.position)[0]
+            return priority_vehicle_in_rear, \
+                self.priority_vehicle.target_lane_index if get_target_lane_index else self.priority_vehicle
         # If there are no priority vehicles,
         return False, None
 
