@@ -386,10 +386,10 @@ class Road(object):
         """
         Find the relative position of the priority vehicle with respect to a given vehicle
         :param vehicle: the vehicle we wish to look from.
-        :param get_target_lane_index: whether we want the priority vehicle's target_lane_index instead
+        :param get_target_lane_index: whether we want the priority vehicle's `target_lane_index` instead of the priority vehicle
         :return: 
             - (bool) `True` if the priority vehicle is in the given vehicle's rear, `False` otherwise.
-            - (object) The priority vehicle, it's target_lane_index, or `None` if priority vehicle doesn't exist.
+            - (object) The priority vehicle / it's `target_lane_index`. Or `None` if priority vehicle doesn't exist.
         """
         """Note: only works as intended if there's at most 1 priority vehicle"""
         if vehicle.is_priority:
