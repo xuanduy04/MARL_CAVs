@@ -95,8 +95,8 @@ class MergePriorityEnv(AbstractEnv):
         reward = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed) \
                  + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, 0, 1)) \
                  + self.config["MERGING_LANE_COST"] * Merging_lane_cost \
-                 + self.config["HEADWAY_COST"] * (Headway_cost if Headway_cost < 0 else 0)
-        #        + priority_lane_cost
+                 + self.config["HEADWAY_COST"] * (Headway_cost if Headway_cost < 0 else 0) \
+                 + priority_lane_cost
         return reward
 
     def _regional_reward(self):
