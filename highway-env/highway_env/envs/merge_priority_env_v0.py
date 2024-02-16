@@ -55,6 +55,7 @@ class MergePriorityEnv(AbstractEnv):
             "HEADWAY_COST": 4,  # default=1
             "HEADWAY_TIME": 1.2,  # default=1.2[s]
             "MERGING_LANE_COST": 4,  # default=4
+            "PRIORITY_LANE_COST": 100,
             "traffic_density": 1,  # easy or hard modes
         })
         return config
