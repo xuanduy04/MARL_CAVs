@@ -279,7 +279,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             spawn_point_pv = np.random.choice(spawn_points_s1, num_PV, replace=False)[0]
             spawn_points_s1.remove(spawn_point_pv)
         else:
-            raise NotImplementedError, "Spawning priority vehicle on Merging road not implemented"
+            raise NotImplementedError
             # spawn_lane_pv = ("j", "k", 0)
         
         """Spawn points for CAV"""
