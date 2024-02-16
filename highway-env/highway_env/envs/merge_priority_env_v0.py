@@ -61,16 +61,18 @@ class MergePriorityEnv(AbstractEnv):
 
     def _reward(self, action: int) -> float:
         # Cooperative multi-agent reward
-        return sum(self._agent_reward(action, vehicle) for vehicle in self.controlled_vehicles) \
+        return sum(self._agent_reward(action, vehicle, priority_vehicle=self.road.priority_vehicle) \
+                   for vehicle in self.controlled_vehicles) \
                / len(self.controlled_vehicles)
 
-    def _agent_reward(self, action: int, vehicle: Vehicle) -> float:
+    def _agent_reward(self, action: int, vehicle: Vehicle, priority_vehicle: Vehicle) -> float:
         """
             The vehicle is rewarded for driving with high speed on lanes to the right and avoiding collisions
             But an additional altruistic penalty is also suffered if any vehicle on the merging lane has a low speed.
             :param action: the action performed
             :return: the reward of the state-action transition
        """
+        assert priority_vehicle is not None
         # the optimal reward is 0
         scaled_speed = utils.lmap(vehicle.speed, self.config["reward_speed_range"], [0, 1])
         # compute cost for staying on the merging lane
@@ -84,11 +86,17 @@ class MergePriorityEnv(AbstractEnv):
         headway_distance = self._compute_headway_distance(vehicle)
         Headway_cost = np.log(
             headway_distance / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
+        
+        # compute cost for staying in the same lane as the priority vehicle
+        priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
+            if vehicle.lane_index == priority_vehicle.lane_index else 0
+
         # compute overall reward
         reward = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed) \
                  + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, 0, 1)) \
                  + self.config["MERGING_LANE_COST"] * Merging_lane_cost \
                  + self.config["HEADWAY_COST"] * (Headway_cost if Headway_cost < 0 else 0)
+        #        + priority_lane_cost
         return reward
 
     def _regional_reward(self):
@@ -231,6 +239,7 @@ class MergePriorityEnv(AbstractEnv):
         other_vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         priority_vehicles_type = utils.class_from_path(self.config["priority_vehicles_type"])
         self.controlled_vehicles = []
+        road.priority_vehicle = None
 
         spawn_points_s = [10, 50, 90, 130, 170, 210, 250]
         spawn_points_m = [5, 45, 85, 125, 165, 205]
@@ -275,9 +284,11 @@ class MergePriorityEnv(AbstractEnv):
         loc_noise = list(loc_noise)
 
         """spawn the PV"""
-        road.vehicles.append(
+        road.priority_vehicle = \
             priority_vehicles_type(road, road.network.get_lane(("a", "b", 0)).position(
-                spawn_point_pv + loc_noise.pop(0), 0), speed=initial_speed.pop(0)))
+                spawn_point_pv + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
+        road.vehicles.append(road.priority_vehicle)
+        assert road.priority_vehicle.is_priority == True
 
         """spawn the CAV on the straight road first"""
         for _ in range(num_CAV // 2):
