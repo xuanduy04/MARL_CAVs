@@ -167,12 +167,12 @@ class MergePriorityEnv(AbstractEnv):
         self._make_road()
 
         if self.config["traffic_density"] == 0:
-            # test mode: 1 CAVs + 7-9 HDVs
+            # test mode: 2 CAVs + 4-6 HDVs
             if num_CAV == 0:
-                num_CAV = 1
+                num_CAV = 2
             else:
                 num_CAV = num_CAV
-            num_HDV = np.random.choice(np.arange(7, 10), 1)[0]
+            num_HDV = np.random.choice(np.arange(4, 7), 1)[0]
 
         elif self.config["traffic_density"] == 1:
             # easy mode: 1-3 CAVs + 1-3 HDVs
@@ -251,7 +251,7 @@ class MergePriorityEnv(AbstractEnv):
         if self.config["priority_vehicle_can_spawn_first"]:
             spawn_point_pv = np.random.choice(spawn_points_s, num_PV, replace=False)[0]
         else:
-            spawn_point_pv = np.random.choice(spawn_points_s[:-1], num_PV, replace=False)[0]
+            spawn_point_pv = np.random.choice(spawn_points_s[1 :-1], num_PV, replace=False)[0]
         spawn_points_s.remove(spawn_point_pv)
 
         """Spawn points for CAV"""
