@@ -197,33 +197,32 @@ class IDMVehicle(ControlledVehicle):
         """
         # If a lane change already ongoing
         if self.lane_index != self.target_lane_index:
+            # Abort immediately if the priority vehicle in your rear wants that line.
+            priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
+                self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
+            if priority_vehicle_in_rear \
+                    and self.target_lane_index == priority_vehicle_target_lane_index:
+                self.target_lane_index = self.lane_index
+
             # If we are on correct route but bad lane: abort it if 
+                # someone else is already changing into the same lane 
             if self.lane_index[:2] == self.target_lane_index[:2]:
-                # - the priority vehicle in your rear wants that line.
-                priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
-                    self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
-                if priority_vehicle_in_rear \
-                        and self.target_lane_index == priority_vehicle_target_lane_index:
-                    self.target_lane_index = self.lane_index 
-                else:
-                    for v in self.road.vehicles:
-                        # - someone else is already changing into the same lane
-                        if v is not self \
-                                and v.lane_index != self.target_lane_index \
-                                and isinstance(v, ControlledVehicle) \
-                                and v.target_lane_index == self.target_lane_index:
-                            d = self.lane_distance_to(v)
-                            d_star = self.desired_gap(self, v)
-                            if 0 < d < d_star:
-                                self.target_lane_index = self.lane_index
-                                break
+                for v in self.road.vehicles:
+                    if v is not self \
+                            and v.lane_index != self.target_lane_index \
+                            and isinstance(v, ControlledVehicle) \
+                            and v.target_lane_index == self.target_lane_index:
+                        d = self.lane_distance_to(v)
+                        d_star = self.desired_gap(self, v)
+                        if 0 < d < d_star:
+                            self.target_lane_index = self.lane_index
+                            break
             return
 
         # else, at a given frequency,
         if not utils.do_every(self.LANE_CHANGE_DELAY, self.timer):
             return
         self.timer = 0
-
         # decide to make a lane change.
 
         # Is the priority vehicle in this vehicle's rear?
