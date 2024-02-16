@@ -397,7 +397,7 @@ class Road(object):
 
         if self.priority_vehicle:
             lane = self.network.get_lane(self.priority_vehicle.lane_index)
-                # comparing longitude coordinates 
+            # comparing longitude coordinates 
             priority_vehicle_in_rear = \
                 lane.local_coordinates(self.priority_vehicle.position)[0] < lane.local_coordinates(vehicle.position)[0]
             return priority_vehicle_in_rear, \
