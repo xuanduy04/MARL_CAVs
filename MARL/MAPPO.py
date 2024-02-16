@@ -265,7 +265,7 @@ class MAPPO:
             done = False
             if is_train:
                 if self.traffic_density == 0:
-                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=1)
+                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=2)
                 if self.traffic_density == 1:
                     state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 1)
                 elif self.traffic_density == 2:
