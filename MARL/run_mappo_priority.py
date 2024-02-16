@@ -130,6 +130,7 @@ def train(args):
     env.seed = env.config['seed']
     env.unwrapped.seed = env.config['seed']
     eval_rewards = []
+    evaluated_episodes = []
 
     while mappo.n_episodes < MAX_EPISODES:
         mappo.interact()
@@ -140,6 +141,7 @@ def train(args):
             rewards_mu, rewards_std = agg_double_list(rewards)
             print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
             eval_rewards.append(rewards_mu)
+            evaluated_episodes.append(mappo.n_episodes + 1)
             # save the model
             mappo.save(dirs['models'], mappo.n_episodes + 1)
 
@@ -152,6 +154,9 @@ def train(args):
     plt.ylabel("Average Reward")
     plt.legend(["MAPPO"])
     plt.show()
+    print("Evaluated episodes:", evaluated_episodes,
+          "Average rewards:", eval_rewards, 
+          sep='\n')
 
 
 def evaluate(args):
