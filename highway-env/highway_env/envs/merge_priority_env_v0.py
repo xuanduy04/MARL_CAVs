@@ -51,8 +51,8 @@ class MergePriorityEnv(AbstractEnv):
             "policy_frequency": 5,  # [Hz]
             "reward_speed_range": [10, 30],
             "COLLISION_REWARD": 200,  # default=200
-            "HIGH_SPEED_REWARD": 1,  # default=0.5
-            "HEADWAY_COST": 4,  # default=1
+            "HIGH_SPEED_REWARD": 1,  # default=1
+            "HEADWAY_COST": 4,  # default=4
             "HEADWAY_TIME": 1.2,  # default=1.2[s]
             "MERGING_LANE_COST": 4,  # default=4
             "PRIORITY_LANE_COST": 100,
