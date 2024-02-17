@@ -263,8 +263,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         """Spawn points for PV"""
         # for now, PV always spawn on straight road....
         #  NAH. Just implement it first, we will see it's behaviour later.
-        if not self.config["priority_vehicle_can_spawn_first"]:
-            print("priority_vehicle_can_spawn_first setting is currently unimplemented")
+        # if not self.config["priority_vehicle_can_spawn_first"]:
+            # print("priority_vehicle_can_spawn_first setting is currently unimplemented")
 
         # priority_vehicle's spawn lane & spawn point index
         spawn_lane_pv = np.random.choice(np.arange(0, 2), 1)[0]
