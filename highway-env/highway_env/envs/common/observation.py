@@ -204,11 +204,9 @@ class KinematicObservation(ObservationType):
         # Add priority-vehicle
         if self.see_priority_vehicle:
             priority_vehicle_in_rear, priority_vehicle = \
-                self.env.road.priority_vehicle_relative_position( \
-                    self.observer_vehicle, get_target_lane_index=False)
+                self.env.road.priority_vehicle_relative_position(self.observer_vehicle)
             if priority_vehicle_in_rear:
                 origin = self.observer_vehicle if not self.absolute else None
-                # TODO: confirm this line works as intended.
                 df = df.append(pd.DataFrame.from_records(
                     [priority_vehicle.to_dict(origin, observe_intentions=self.observe_intentions)]
                 )[self.features], ignore_index=True)

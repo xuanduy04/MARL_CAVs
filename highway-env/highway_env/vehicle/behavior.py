@@ -198,10 +198,9 @@ class IDMVehicle(ControlledVehicle):
         # If a lane change already ongoing
         if self.lane_index != self.target_lane_index:
             # Abort immediately if the priority vehicle in your rear wants that line.
-            priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
-                self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
+            priority_vehicle_in_rear, priority_vehicle = self.road.priority_vehicle_relative_position(self)
             if priority_vehicle_in_rear \
-                    and self.target_lane_index == priority_vehicle_target_lane_index:
+                    and self.target_lane_index == priority_vehicle.target_lane_index:
                 self.target_lane_index = self.lane_index
 
             # If we are on correct route but bad lane: abort it if 
@@ -228,14 +227,13 @@ class IDMVehicle(ControlledVehicle):
         # Is the priority vehicle in this vehicle's rear?
             # And
         # Which lane does the priority vehicle want?
-        priority_vehicle_in_rear, priority_vehicle_target_lane_index = \
-            self.road.priority_vehicle_relative_position(self, get_target_lane_index=True)
+        priority_vehicle_in_rear, priority_vehicle = self.road.priority_vehicle_relative_position(self)
 
         # Now we look at every lane...
         for lane_index in self.road.network.side_lanes(self.lane_index):
             # Is the priority vehicle in your rear? Does it also want that lane?
             if priority_vehicle_in_rear \
-                    and priority_vehicle_target_lane_index == lane_index:
+                    and priority_vehicle.target_lane_index == lane_index:
                 continue
             # Is the candidate lane close enough?
             if not self.road.network.get_lane(lane_index).is_reachable_from(self.position):
@@ -319,24 +317,21 @@ class PriorityIDMVehicle(IDMVehicle):
 
     """Longitudinal policy parameters"""
     # Maximum acceleration.
-    ACC_MAX = 6.0  # [m/s2]
+    ACC_MAX = 12.0  # [m/s2]
     # Desired maximum acceleration.
-    COMFORT_ACC_MAX = 6.0  # [m/s2]  (Priority vehicle wants to reach destination as fast as possible).
+    COMFORT_ACC_MAX = ACC_MAX  # [m/s2]  (Wants to reach destination as fast as possible).
     # Desired minimum deceleration.
-    COMFORT_ACC_MIN = -0.01  # [m/s2]  (Priority vehicle never wants to slow down).
+    COMFORT_ACC_MIN = -0.01  # [m/s2]  (Never wants to slow down).
             # [small negative number to avoid zero division].
+    #   The following are safety related so unchanged:
     # Desired jam distance to the front vehicle.
-    DISTANCE_WANTED = 5.0 + ControlledVehicle.LENGTH  # [m]  (safety-related, unchanged).
     # Desired time gap to the front vehicle.
-    TIME_WANTED = 1.5  # [s]  (safety-related, unchanged)
-    # Exponent of the velocity term.
-    DELTA = 4.0  # []
 
     """Lateral policy parameters"""
     POLITENESS = 0.  # in [0, 1]
-    LANE_CHANGE_MIN_ACC_GAIN = 0.1  # [m/s2]
+    LANE_CHANGE_MIN_ACC_GAIN = 1.0  # [m/s2] # (Only change lanes if super necessary)
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
-    LANE_CHANGE_DELAY = 0.9  # [s]  (Consider changing lanes more frequently).
+    LANE_CHANGE_DELAY = 0.7  # [s]  (Consider changing lanes more frequently).
     # Though it will most likely never actually need to change lanes.
 
     def __init__(self,

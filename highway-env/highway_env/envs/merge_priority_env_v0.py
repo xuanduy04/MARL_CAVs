@@ -87,7 +87,7 @@ class MergePriorityEnv(AbstractEnv):
             headway_distance / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
         
         # compute cost for blocking the priority vehicle's path
-        priority_vehicle_in_rear, priority_vehicle = self.road.priority_vehicle_relative_position(vehicle, False)
+        priority_vehicle_in_rear, priority_vehicle = self.road.priority_vehicle_relative_position(vehicle)
         assert priority_vehicle is not None
         priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
             if priority_vehicle_in_rear and vehicle.lane_index == priority_vehicle.lane_index else 0
