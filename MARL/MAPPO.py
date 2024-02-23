@@ -253,7 +253,6 @@ class MAPPO:
         steps = []
         vehicle_speed = []
         vehicle_position = []
-        video_recorder = None
         seeds = [int(s) for s in self.test_seeds.split(',')]
 
         for i in range(eval_episodes):
@@ -265,7 +264,7 @@ class MAPPO:
             done = False
             if is_train:
                 if self.traffic_density == 0:
-                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=2)
+                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i])
                 if self.traffic_density == 1:
                     state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 1)
                 elif self.traffic_density == 2:
@@ -284,8 +283,6 @@ class MAPPO:
             if video_filename is not None:
                 print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape,
                                                                       5))
-                Recorded_frames.append(rendered_frame)
-
             while not done:
                 step += 1
                 action = self.action(state, n_agents)
