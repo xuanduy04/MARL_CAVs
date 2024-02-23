@@ -381,27 +381,28 @@ class Road(object):
         return v_front, v_rear
     
     def priority_vehicle_relative_position(self, vehicle: 'kinematics.Vehicle') \
-        -> Tuple[bool, Optional['kinematics.Vehicle']]:
+        -> Tuple[float, Optional['kinematics.Vehicle']]:
         """
         Find the relative position of the priority vehicle with respect to a given vehicle
         :param vehicle: the vehicle we wish to look from.
         :param get_target_lane_index: whether we want the priority vehicle's `target_lane_index` instead of the priority vehicle
         :return: 
-            - (bool) `True` if the priority vehicle is in the given vehicle's rear, `False` otherwise.
+            - (float) Relative distance between given vehicle and priority vehicle 
+            (value is `< 0` if priority vehicle is behind the vehicle)
             - (Vehicle) The priority vehicle or `None` if priority vehicle doesn't exist.
         """
         """Note: only works as intended if there's at most 1 priority vehicle"""
         if vehicle.is_priority:
-            return False, vehicle
+            return 0, vehicle
 
         if self.priority_vehicle:
             lane = self.network.get_lane(self.priority_vehicle.lane_index)
             # comparing longitude coordinates 
-            priority_vehicle_in_rear = \
-                lane.local_coordinates(self.priority_vehicle.position)[0] < lane.local_coordinates(vehicle.position)[0]
-            return priority_vehicle_in_rear, self.priority_vehicle
+            priority_vehicle_dist = \
+                lane.local_coordinates(self.priority_vehicle.position)[0] - lane.local_coordinates(vehicle.position)[0]
+            return priority_vehicle_dist, self.priority_vehicle
         # If there are no priority vehicles,
-        return False, None
+        return 0xfff, None
 
     def __repr__(self):
         return self.vehicles.__repr__()
