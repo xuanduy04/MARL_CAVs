@@ -38,7 +38,7 @@ class IDMVehicle(ControlledVehicle):
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
     LANE_CHANGE_DELAY = 1.0  # [s]
     # Begin dodging priority vehicle within this distance.
-    PRIORITY_DODGE_DISTANCE = 2 * DISTANCE_WANTED # [m]
+    PRIORITY_DODGE_DISTANCE = 4 * DISTANCE_WANTED # [m]
 
     def __init__(self,
                  road: Road,
@@ -201,7 +201,7 @@ class IDMVehicle(ControlledVehicle):
         if self.lane_index != self.target_lane_index:
             # Abort immediately if the priority vehicle in your rear wants that line.
             priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(self)
-            if priority_vehicle_dist < -self.PRIORITY_DODGE_DISTANCE \
+            if -self.PRIORITY_DODGE_DISTANCE < priority_vehicle_dist \
                     and self.target_lane_index == priority_vehicle.target_lane_index:
                 self.target_lane_index = self.lane_index
 
@@ -234,7 +234,7 @@ class IDMVehicle(ControlledVehicle):
         # Now we look at every lane...
         for lane_index in self.road.network.side_lanes(self.lane_index):
             # Is the priority vehicle in your rear? Does it also want that lane?
-            if priority_vehicle_dist < -self.PRIORITY_DODGE_DISTANCE \
+            if -self.PRIORITY_DODGE_DISTANCE < priority_vehicle_dist \
                     and (priority_vehicle.target_lane_index == lane_index \
                          or priority_vehicle.lane_index == lane_index):
                 continue
