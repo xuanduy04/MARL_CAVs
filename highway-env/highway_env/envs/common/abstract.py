@@ -124,7 +124,7 @@ class AbstractEnv(gym.Env):
             "real_time_rendering": False,
             "n_step": 5,  # do n step prediction
             "seed": 0,
-            "action_masking": True,  # Note: you may wish to consider making this false.
+            "action_masking": True,
             "priority_vehicle_can_spawn_first": False
         }
 
