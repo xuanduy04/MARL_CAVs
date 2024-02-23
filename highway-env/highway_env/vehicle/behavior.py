@@ -37,6 +37,8 @@ class IDMVehicle(ControlledVehicle):
     LANE_CHANGE_MIN_ACC_GAIN = 0.1  # [m/s2]
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
     LANE_CHANGE_DELAY = 1.0  # [s]
+    # Begin dodging priority vehicle within this distance.
+    PRIORITY_DODGE_DISTANCE = 2 * DISTANCE_WANTED # [m]
 
     def __init__(self,
                  road: Road,
@@ -198,8 +200,8 @@ class IDMVehicle(ControlledVehicle):
         # If a lane change already ongoing
         if self.lane_index != self.target_lane_index:
             # Abort immediately if the priority vehicle in your rear wants that line.
-            priority_vehicle_in_rear, priority_vehicle = self.road.priority_vehicle_relative_position(self)
-            if priority_vehicle_in_rear \
+            priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(self)
+            if priority_vehicle_dist < -self.PRIORITY_DODGE_DISTANCE \
                     and self.target_lane_index == priority_vehicle.target_lane_index:
                 self.target_lane_index = self.lane_index
 
@@ -227,13 +229,14 @@ class IDMVehicle(ControlledVehicle):
         # Is the priority vehicle in this vehicle's rear?
             # And
         # Which lane does the priority vehicle want?
-        priority_vehicle_in_rear, priority_vehicle = self.road.priority_vehicle_relative_position(self)
+        priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(self)
 
         # Now we look at every lane...
         for lane_index in self.road.network.side_lanes(self.lane_index):
             # Is the priority vehicle in your rear? Does it also want that lane?
-            if priority_vehicle_in_rear \
-                    and priority_vehicle.target_lane_index == lane_index:
+            if priority_vehicle_dist < -self.PRIORITY_DODGE_DISTANCE \
+                    and (priority_vehicle.target_lane_index == lane_index \
+                         or priority_vehicle.lane_index == lane_index):
                 continue
             # Is the candidate lane close enough?
             if not self.road.network.get_lane(lane_index).is_reachable_from(self.position):
@@ -321,18 +324,17 @@ class PriorityIDMVehicle(IDMVehicle):
     # Desired maximum acceleration.
     COMFORT_ACC_MAX = ACC_MAX  # [m/s2]  (Wants to reach destination as fast as possible).
     # Desired minimum deceleration.
-    COMFORT_ACC_MIN = -0.01  # [m/s2]  (Never wants to slow down).
-            # [small negative number to avoid zero division].
+    COMFORT_ACC_MIN = 0.01  # [m/s2]  (Never wants to slow down).
+            # [small number to avoid zero division].
     #   The following are safety related so unchanged:
     # Desired jam distance to the front vehicle.
     # Desired time gap to the front vehicle.
 
     """Lateral policy parameters"""
     POLITENESS = 0.  # in [0, 1]
-    LANE_CHANGE_MIN_ACC_GAIN = 1.0  # [m/s2] # (Only change lanes if super necessary)
+    LANE_CHANGE_MIN_ACC_GAIN = 0.1  # [m/s2]
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
-    LANE_CHANGE_DELAY = 0.7  # [s]  (Consider changing lanes more frequently).
-    # Though it will most likely never actually need to change lanes.
+    LANE_CHANGE_DELAY = 9999 # [s]  (Never change lanes).
 
     def __init__(self,
                  road: Road,
