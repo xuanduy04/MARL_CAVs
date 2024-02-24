@@ -30,12 +30,14 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
     TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
 
+    use_attention_module = config.getboolean('MODEL_CONFIG','use_attention_module')
+
     # train configs
     actor_lr = config.getfloat('TRAIN_CONFIG', 'actor_lr')
     critic_lr = config.getfloat('TRAIN_CONFIG', 'critic_lr')
     EPISODES_BEFORE_TRAIN = config.getint('TRAIN_CONFIG', 'EPISODES_BEFORE_TRAIN')
     reward_scale = config.getfloat('TRAIN_CONFIG', 'reward_scale')
-    use_attention_module = config.getboolean('MODEL_CONFIG','use_attention_module')
+    
 
     state_dim = env.n_s
     action_dim = env.n_a
@@ -149,8 +151,20 @@ def train(args):
 
     # initialize model
     mappo = create_model(config=config, env=env)
+    use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
+
+    if use_xavier_initialization:
+        from torch import nn
+        for name, param in mappo.named_parameters():
+            if 'linear' in name:
+                if 'weight' in name:
+                    nn.init.xavier_uniform_(param)
+                elif 'bias' in name:
+                    nn.init.zeros_(param)
+
     model_type_name = "MAPPO" + (" with attention" if isinstance(mappo, MAPPO_attention) else "")
-    print(f"{model_type_name} initialized")
+    init_method = "using xavier_uniform_" if use_xavier_initialization else "randomly"
+    print(f"{model_type_name} model initialized {init_method}")
 
     # load the model if exist
     mappo.load(model_dir, train_mode=True)
