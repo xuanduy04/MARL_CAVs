@@ -209,7 +209,7 @@ class KinematicObservation(ObservationType):
                 origin = self.observer_vehicle if not self.absolute else None
                 df = df.append(pd.DataFrame.from_records(
                     [priority_vehicle.to_dict(origin, observe_intentions=self.observe_intentions)]
-                )[self.features], ignore_index=True)
+                    )[self.features], ignore_index=True)
             else:
                 empty_row = np.zeros((1, len(self.features)))
                 df = df.append(pd.DataFrame(data=empty_row, columns=self.features), ignore_index=True)
@@ -217,13 +217,13 @@ class KinematicObservation(ObservationType):
         # sort = self.order == "sorted"
         close_vehicles = self.env.road.close_vehicles_to(self.observer_vehicle,
                                                          self.env.PERCEPTION_DISTANCE,
-                                                         count=self.vehicles_count - 1,
+                                                         count=self.vehicles_count - 2,
                                                          see_behind=self.see_behind)
         if close_vehicles:
             origin = self.observer_vehicle if not self.absolute else None
             df = df.append(pd.DataFrame.from_records(
                 [v.to_dict(origin, observe_intentions=self.observe_intentions)
-                 for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
+                 for v in close_vehicles[-self.vehicles_count + 2:]])[self.features],
                            ignore_index=True)
         # Normalize and clip
         if self.normalize:
