@@ -144,7 +144,8 @@ class MAPPO_attention(MAPPO):
 
         softmax_action = []
         for agent_id in range(n_agents):
-            softmax_action_var, attn = torch.exp(self.actor(state_var[:, agent_id, :]))
+            softmax_action_var, attn = self.actor(state_var[:, agent_id, :])
+            softmax_action_var = torch.exp(softmax_action_var)
 
             if self.use_cuda:
                 softmax_action.append(softmax_action_var.data.cpu().numpy()[0])
