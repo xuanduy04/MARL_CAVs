@@ -1,4 +1,5 @@
 from MAPPO import MAPPO
+from MAPPO_attention import MAPPO_attention
 from common.utils import agg_double_list, copy_file_ppo, init_dir
 import sys
 sys.path.append("../highway-env")
@@ -11,6 +12,65 @@ import argparse
 import configparser
 import os
 from datetime import datetime
+
+
+def create_model(args, env) -> MAPPO:
+    config_dir = args.config_dir
+    config = configparser.ConfigParser()
+    config.read(config_dir)
+
+    # model configs
+    BATCH_SIZE = config.getint('MODEL_CONFIG', 'BATCH_SIZE')
+    MEMORY_CAPACITY = config.getint('MODEL_CONFIG', 'MEMORY_CAPACITY')
+    ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
+    reward_gamma = config.getfloat('MODEL_CONFIG', 'reward_gamma')
+    actor_hidden_size = config.getint('MODEL_CONFIG', 'actor_hidden_size')
+    critic_hidden_size = config.getint('MODEL_CONFIG', 'critic_hidden_size')
+    MAX_GRAD_NORM = config.getfloat('MODEL_CONFIG', 'MAX_GRAD_NORM')
+    ENTROPY_REG = config.getfloat('MODEL_CONFIG', 'ENTROPY_REG')
+    reward_type = config.get('MODEL_CONFIG', 'reward_type')
+    TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
+    TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
+
+    # train configs
+    actor_lr = config.getfloat('TRAIN_CONFIG', 'actor_lr')
+    critic_lr = config.getfloat('TRAIN_CONFIG', 'critic_lr')
+    EPISODES_BEFORE_TRAIN = config.getint('TRAIN_CONFIG', 'EPISODES_BEFORE_TRAIN')
+    reward_scale = config.getfloat('TRAIN_CONFIG', 'reward_scale')
+    use_attention_module = config.getboolean('MODEL_CONFIG','use_attention_module')
+
+    state_dim = env.n_s
+    action_dim = env.n_a
+    test_seeds = args.evaluation_seeds
+    traffic_density = config.getint('ENV_CONFIG', 'traffic_density')
+
+    if use_attention_module:
+        num_heads = config.getint('MODEL_CONFIG','num_heads')
+        dropout_p = config.getfloat('MODEL_CONFIG','dropout_p')
+        return MAPPO_attention(env=env, memory_capacity=MEMORY_CAPACITY,
+                    num_heads=num_heads, dropout_p=dropout_p,
+                    state_dim=state_dim, action_dim=action_dim,
+                    batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
+                    roll_out_n_steps=ROLL_OUT_N_STEPS,
+                    actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
+                    actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
+                    target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
+                    reward_gamma=reward_gamma, reward_type=reward_type,
+                    max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
+                    episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
+                    )
+    else:
+        return MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
+                    state_dim=state_dim, action_dim=action_dim,
+                    batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
+                    roll_out_n_steps=ROLL_OUT_N_STEPS,
+                    actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
+                    actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
+                    target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
+                    reward_gamma=reward_gamma, reward_type=reward_type,
+                    max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
+                    episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
+                    )
 
 
 def parse_args():
@@ -55,27 +115,11 @@ def train(args):
     else:
         model_dir = dirs['models']
 
-    # model configs
-    BATCH_SIZE = config.getint('MODEL_CONFIG', 'BATCH_SIZE')
-    MEMORY_CAPACITY = config.getint('MODEL_CONFIG', 'MEMORY_CAPACITY')
-    ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
-    reward_gamma = config.getfloat('MODEL_CONFIG', 'reward_gamma')
-    actor_hidden_size = config.getint('MODEL_CONFIG', 'actor_hidden_size')
-    critic_hidden_size = config.getint('MODEL_CONFIG', 'critic_hidden_size')
-    MAX_GRAD_NORM = config.getfloat('MODEL_CONFIG', 'MAX_GRAD_NORM')
-    ENTROPY_REG = config.getfloat('MODEL_CONFIG', 'ENTROPY_REG')
-    reward_type = config.get('MODEL_CONFIG', 'reward_type')
-    TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
-    TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
-
     # train configs
-    actor_lr = config.getfloat('TRAIN_CONFIG', 'actor_lr')
-    critic_lr = config.getfloat('TRAIN_CONFIG', 'critic_lr')
     MAX_EPISODES = config.getint('TRAIN_CONFIG', 'MAX_EPISODES')
     EPISODES_BEFORE_TRAIN = config.getint('TRAIN_CONFIG', 'EPISODES_BEFORE_TRAIN')
     EVAL_INTERVAL = config.getint('TRAIN_CONFIG', 'EVAL_INTERVAL')
     EVAL_EPISODES = config.getint('TRAIN_CONFIG', 'EVAL_EPISODES')
-    reward_scale = config.getfloat('TRAIN_CONFIG', 'reward_scale')
 
     # init env
     env = gym.make('merge-multilane-priority-multi-agent-v0')
@@ -91,9 +135,9 @@ def train(args):
     env.config['PRIORITY_LANE_COST'] = config.getfloat('ENV_CONFIG', 'PRIORITY_LANE_COST')
     env.config['LANE_CHANGE_COST'] = config.getfloat('ENV_CONFIG', 'LANE_CHANGE_COST')
     env.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
-    traffic_density = config.getint('ENV_CONFIG', 'traffic_density')
     env.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
 
+    ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
     assert env.T % ROLL_OUT_N_STEPS == 0
 
     env_eval = gym.make('merge-multilane-priority-multi-agent-v0')
@@ -111,21 +155,7 @@ def train(args):
     env_eval.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
     env_eval.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
 
-    state_dim = env.n_s
-    action_dim = env.n_a
-    test_seeds = args.evaluation_seeds
-
-    mappo = MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
-                  state_dim=state_dim, action_dim=action_dim,
-                  batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
-                  roll_out_n_steps=ROLL_OUT_N_STEPS,
-                  actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
-                  actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
-                  target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                  reward_gamma=reward_gamma, reward_type=reward_type,
-                  max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                  episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
-                  )
+    mappo = create_model(args, env)
 
     # load the model if exist
     mappo.load(model_dir, train_mode=True)
@@ -172,25 +202,6 @@ def evaluate(args):
 
     video_dir = args.model_dir + '/eval_videos'
 
-    # model configs
-    BATCH_SIZE = config.getint('MODEL_CONFIG', 'BATCH_SIZE')
-    MEMORY_CAPACITY = config.getint('MODEL_CONFIG', 'MEMORY_CAPACITY')
-    ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
-    reward_gamma = config.getfloat('MODEL_CONFIG', 'reward_gamma')
-    actor_hidden_size = config.getint('MODEL_CONFIG', 'actor_hidden_size')
-    critic_hidden_size = config.getint('MODEL_CONFIG', 'critic_hidden_size')
-    MAX_GRAD_NORM = config.getfloat('MODEL_CONFIG', 'MAX_GRAD_NORM')
-    ENTROPY_REG = config.getfloat('MODEL_CONFIG', 'ENTROPY_REG')
-    reward_type = config.get('MODEL_CONFIG', 'reward_type')
-    TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
-    TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
-
-    # train configs
-    actor_lr = config.getfloat('TRAIN_CONFIG', 'actor_lr')
-    critic_lr = config.getfloat('TRAIN_CONFIG', 'critic_lr')
-    EPISODES_BEFORE_TRAIN = config.getint('TRAIN_CONFIG', 'EPISODES_BEFORE_TRAIN')
-    reward_scale = config.getfloat('TRAIN_CONFIG', 'reward_scale')
-
     # init env
     env = gym.make('merge-multilane-priority-multi-agent-v0')
     env.config['seed'] = config.getint('ENV_CONFIG', 'seed')
@@ -204,26 +215,15 @@ def evaluate(args):
     env.config['MERGING_LANE_COST'] = config.getint('ENV_CONFIG', 'MERGING_LANE_COST')
     env.config['PRIORITY_LANE_COST'] = config.getint('ENV_CONFIG', 'PRIORITY_LANE_COST')
     env.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
-    traffic_density = config.getint('ENV_CONFIG', 'traffic_density')
     env.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
 
+    ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
     assert env.T % ROLL_OUT_N_STEPS == 0
-    state_dim = env.n_s
-    action_dim = env.n_a
+
     test_seeds = args.evaluation_seeds
     seeds = [int(s) for s in test_seeds.split(',')]
 
-    mappo = MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
-                  state_dim=state_dim, action_dim=action_dim,
-                  batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
-                  roll_out_n_steps=ROLL_OUT_N_STEPS,
-                  actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
-                  actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
-                  target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                  reward_gamma=reward_gamma, reward_type=reward_type,
-                  max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                  episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
-                  )
+    mappo = create_model(args, env)
 
     # load the model if exist
     mappo.load(model_dir, train_mode=False)
