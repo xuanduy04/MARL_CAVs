@@ -69,6 +69,7 @@ class MAPPO_attention(MAPPO):
             initialize_linear(self.critic)
 
         self.actor  = Attention_Feed_Forward(self.attention, self.actor)
+        self.critic = Attention_Feed_Forward(self.attention, self.critic)
 
         # to ensure target network and learning network has the same weights
         self.actor_target = deepcopy(self.actor)
@@ -101,7 +102,8 @@ class MAPPO_attention(MAPPO):
         for agent_id in range(self.n_agents):
             # update actor network
             self.actor_optimizer.zero_grad()
-            values= self.critic_target(states_var[:, agent_id, :], actions_var[:, agent_id, :]).detach()
+            values, attn = self.critic_target(states_var[:, agent_id, :], actions_var[:, agent_id, :])
+            values = values.detach()
             advantages = rewards_var[:, agent_id, :] - values
 
             action_log_probs, attn = self.actor(states_var[:, agent_id, :])
@@ -122,7 +124,7 @@ class MAPPO_attention(MAPPO):
             # update critic network
             self.critic_optimizer.zero_grad()
             target_values = rewards_var[:, agent_id, :]
-            values = self.critic(states_var[:, agent_id, :], actions_var[:, agent_id, :])
+            values, attn = self.critic(states_var[:, agent_id, :], actions_var[:, agent_id, :])
             if self.critic_loss == "huber":
                 critic_loss = nn.functional.smooth_l1_loss(values, target_values)
             else:
@@ -162,7 +164,7 @@ class MAPPO_attention(MAPPO):
 
         values = [0] * self.n_agents
         for agent_id in range(self.n_agents):
-            value_var = self.critic(state_var[:, agent_id, :], action_var[:, agent_id, :])
+            value_var, attn = self.critic(state_var[:, agent_id, :], action_var[:, agent_id, :])
 
             if self.use_cuda:
                 values[agent_id] = value_var.data.cpu().numpy()[0]
