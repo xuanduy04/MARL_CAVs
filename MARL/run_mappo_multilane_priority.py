@@ -1,3 +1,5 @@
+from typing import Union
+
 from MAPPO import MAPPO
 from MAPPO_attention import MAPPO_attention
 from common.utils import agg_double_list, copy_file_ppo, init_dir
@@ -14,11 +16,7 @@ import os
 from datetime import datetime
 
 
-def create_model(args, env) -> MAPPO:
-    config_dir = args.config_dir
-    config = configparser.ConfigParser()
-    config.read(config_dir)
-
+def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     # model configs
     BATCH_SIZE = config.getint('MODEL_CONFIG', 'BATCH_SIZE')
     MEMORY_CAPACITY = config.getint('MODEL_CONFIG', 'MEMORY_CAPACITY')
@@ -73,6 +71,23 @@ def create_model(args, env) -> MAPPO:
                     )
 
 
+def init_env(config, env):
+    env.config['seed'] = config.getint('ENV_CONFIG', 'seed')
+    env.config['simulation_frequency'] = config.getint('ENV_CONFIG', 'simulation_frequency')
+    env.config['duration'] = config.getint('ENV_CONFIG', 'duration')
+    env.config['policy_frequency'] = config.getint('ENV_CONFIG', 'policy_frequency')
+    env.config['COLLISION_REWARD'] = config.getfloat('ENV_CONFIG', 'COLLISION_REWARD')
+    env.config['HIGH_SPEED_REWARD'] = config.getfloat('ENV_CONFIG', 'HIGH_SPEED_REWARD')
+    env.config['HEADWAY_COST'] = config.getfloat('ENV_CONFIG', 'HEADWAY_COST')
+    env.config['HEADWAY_TIME'] = config.getfloat('ENV_CONFIG', 'HEADWAY_TIME')
+    env.config['MERGING_LANE_COST'] = config.getfloat('ENV_CONFIG', 'MERGING_LANE_COST')
+    env.config['PRIORITY_LANE_COST'] = config.getfloat('ENV_CONFIG', 'PRIORITY_LANE_COST')
+    env.config['LANE_CHANGE_COST'] = config.getfloat('ENV_CONFIG', 'LANE_CHANGE_COST')
+    env.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
+    env.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
+    return env
+
+
 def parse_args():
     """
     Description for this experiment:
@@ -123,39 +138,19 @@ def train(args):
 
     # init env
     env = gym.make('merge-multilane-priority-multi-agent-v0')
-    env.config['seed'] = config.getint('ENV_CONFIG', 'seed')
-    env.config['simulation_frequency'] = config.getint('ENV_CONFIG', 'simulation_frequency')
-    env.config['duration'] = config.getint('ENV_CONFIG', 'duration')
-    env.config['policy_frequency'] = config.getint('ENV_CONFIG', 'policy_frequency')
-    env.config['COLLISION_REWARD'] = config.getfloat('ENV_CONFIG', 'COLLISION_REWARD')
-    env.config['HIGH_SPEED_REWARD'] = config.getfloat('ENV_CONFIG', 'HIGH_SPEED_REWARD')
-    env.config['HEADWAY_COST'] = config.getfloat('ENV_CONFIG', 'HEADWAY_COST')
-    env.config['HEADWAY_TIME'] = config.getfloat('ENV_CONFIG', 'HEADWAY_TIME')
-    env.config['MERGING_LANE_COST'] = config.getfloat('ENV_CONFIG', 'MERGING_LANE_COST')
-    env.config['PRIORITY_LANE_COST'] = config.getfloat('ENV_CONFIG', 'PRIORITY_LANE_COST')
-    env.config['LANE_CHANGE_COST'] = config.getfloat('ENV_CONFIG', 'LANE_CHANGE_COST')
-    env.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
-    env.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
+    env = init_env(config=config, env=env)
 
     ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
     assert env.T % ROLL_OUT_N_STEPS == 0
 
     env_eval = gym.make('merge-multilane-priority-multi-agent-v0')
+    env_eval = init_env(config=config, env=env_eval)
     env_eval.config['seed'] = config.getint('ENV_CONFIG', 'seed') + 1
-    env_eval.config['simulation_frequency'] = config.getint('ENV_CONFIG', 'simulation_frequency')
-    env_eval.config['duration'] = config.getint('ENV_CONFIG', 'duration')
-    env_eval.config['policy_frequency'] = config.getint('ENV_CONFIG', 'policy_frequency')
-    env_eval.config['COLLISION_REWARD'] = config.getfloat('ENV_CONFIG', 'COLLISION_REWARD')
-    env_eval.config['HIGH_SPEED_REWARD'] = config.getfloat('ENV_CONFIG', 'HIGH_SPEED_REWARD')
-    env_eval.config['HEADWAY_COST'] = config.getfloat('ENV_CONFIG', 'HEADWAY_COST')
-    env_eval.config['HEADWAY_TIME'] = config.getfloat('ENV_CONFIG', 'HEADWAY_TIME')
-    env_eval.config['MERGING_LANE_COST'] = config.getfloat('ENV_CONFIG', 'MERGING_LANE_COST')
-    env_eval.config['PRIORITY_LANE_COST'] = config.getfloat('ENV_CONFIG', 'PRIORITY_LANE_COST')
-    env_eval.config['LANE_CHANGE_COST'] = config.getfloat('ENV_CONFIG', 'LANE_CHANGE_COST')
-    env_eval.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
-    env_eval.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
 
-    mappo = create_model(args, env)
+    # initialize model
+    mappo = create_model(config=config, env=env)
+    model_type_name = "MAPPO" + (" with attention" if isinstance(mappo, MAPPO_attention) else "")
+    print(f"{model_type_name} initialized")
 
     # load the model if exist
     mappo.load(model_dir, train_mode=True)
@@ -184,7 +179,7 @@ def train(args):
     plt.plot(eval_rewards)
     plt.xlabel("Episode")
     plt.ylabel("Average Reward")
-    plt.legend(["MAPPO"])
+    plt.legend([model_type_name])
     plt.show()
     print("Evaluated episodes:", evaluated_episodes,
           "Average rewards:", eval_rewards, 
@@ -204,18 +199,7 @@ def evaluate(args):
 
     # init env
     env = gym.make('merge-multilane-priority-multi-agent-v0')
-    env.config['seed'] = config.getint('ENV_CONFIG', 'seed')
-    env.config['simulation_frequency'] = config.getint('ENV_CONFIG', 'simulation_frequency')
-    env.config['duration'] = config.getint('ENV_CONFIG', 'duration')
-    env.config['policy_frequency'] = config.getint('ENV_CONFIG', 'policy_frequency')
-    env.config['COLLISION_REWARD'] = config.getint('ENV_CONFIG', 'COLLISION_REWARD')
-    env.config['HIGH_SPEED_REWARD'] = config.getint('ENV_CONFIG', 'HIGH_SPEED_REWARD')
-    env.config['HEADWAY_COST'] = config.getint('ENV_CONFIG', 'HEADWAY_COST')
-    env.config['HEADWAY_TIME'] = config.getfloat('ENV_CONFIG', 'HEADWAY_TIME')
-    env.config['MERGING_LANE_COST'] = config.getint('ENV_CONFIG', 'MERGING_LANE_COST')
-    env.config['PRIORITY_LANE_COST'] = config.getint('ENV_CONFIG', 'PRIORITY_LANE_COST')
-    env.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
-    env.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
+    env = init_env(config=config, env=env)
 
     ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
     assert env.T % ROLL_OUT_N_STEPS == 0
