@@ -60,10 +60,9 @@ class MultiHeadAttention(nn.Module):
         - dropout_p (float): probability of dropout
 
     Inputs:
-        - query (batch, seq_len, d_model):
-        - key   (batch, seq_len, d_model):
-        - value (batch, seq_len, d_model):
-        - mask ():
+        - query (batch, seq_len, d_model)
+        - key   (batch, seq_len, d_model)
+        - value (batch, seq_len, d_model)
 
     Output: (Tensor, Tensor):
         - context ()
@@ -96,19 +95,18 @@ class MultiHeadAttention(nn.Module):
         query: Tensor,
         key: Tensor,
         value: Tensor,
-        mask: Optional[Tensor] = None,
     ) -> Tuple[Tensor, Tensor]:
         batch_size = query.shape[0]
 
         # original: (batch, seq_len, d_model) 
-        # --forward--> (batch, seq_len, d_model) 
+        # --forward--> (batch, seq_len, d_model)
         # --view--> (batch, seq_len, num_heads, d_head) 
         # --transpose--> (batch, num_heads, seq_len, d_head)
         query = self.W_query(query).view(batch_size, -1, self.num_heads, self.d_head).transpose(1,2)
         key   =     self.W_key(key).view(batch_size, -1, self.num_heads, self.d_head).transpose(1,2)
         value = self.W_value(value).view(batch_size, -1, self.num_heads, self.d_head).transpose(1,2)
         
-        context, attn = self.scaled_dot_attn(query, key, value, mask)
+        context, attn = self.scaled_dot_attn(query, key, value)
 
         # (batch, num_heads, seq_len, d_head)
         # --transpose--> (batch, seq_len, num_heads, d_head)
