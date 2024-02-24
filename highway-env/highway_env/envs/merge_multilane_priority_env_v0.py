@@ -58,6 +58,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "PRIORITY_LANE_COST": 100,
             "LANE_CHANGE_COST": 2,  # default=0.5
             "traffic_density": 1,  # easy or hard modes
+            "flatten_obs": False, # set this to False for attention to work
         })
         return config
 
@@ -158,7 +159,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         self._regional_reward()
         info["regional_rewards"] = tuple(vehicle.regional_reward for vehicle in self.controlled_vehicles)
 
-        obs = np.asarray(obs).reshape((len(obs), -1))
+        if self.flatten_obs:
+            obs = np.asarray(obs).reshape((len(obs), -1))
         return obs, reward, done, info
 
     def _is_terminal(self) -> bool:

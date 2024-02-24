@@ -59,6 +59,7 @@ class AbstractEnv(gym.Env):
         self.observation_type = None
         self.observation_space = None
         self.define_spaces()
+        self.flatten_obs = self.config["flatten_obs"] if self.config["flatten_obs"] is not None else False
 
         # Running
         self.time = 0  # Simulation time
@@ -125,7 +126,8 @@ class AbstractEnv(gym.Env):
             "n_step": 5,  # do n step prediction
             "seed": 0,
             "action_masking": True,
-            "priority_vehicle_can_spawn_first": False
+            "priority_vehicle_can_spawn_first": False,
+            "flatten_obs": True, 
         }
 
     def seed(self, seeding: int = None) -> List[int]:
@@ -205,7 +207,7 @@ class AbstractEnv(gym.Env):
                     available_actions[i][a] = 1
         else:
             available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
-        return np.asarray(obs).reshape((len(obs), -1)), np.array(available_actions)
+        return np.asarray(obs).reshape((len(obs), -1)) if self.flatten_obs else obs, np.array(available_actions)
 
     def _reset(self, num_CAV=1) -> None:
         """
