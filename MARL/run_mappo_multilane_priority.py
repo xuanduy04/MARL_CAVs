@@ -45,10 +45,12 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     traffic_density = config.getint('ENV_CONFIG', 'traffic_density')
 
     if use_attention_module:
+        use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
         num_heads = config.getint('MODEL_CONFIG','num_heads')
         dropout_p = config.getfloat('MODEL_CONFIG','dropout_p')
         return MAPPO_attention(env=env, memory_capacity=MEMORY_CAPACITY,
-                    num_heads=num_heads, dropout_p=dropout_p,
+                    num_heads=num_heads, dropout_p=dropout_p, 
+                    use_xavier_initialization=use_xavier_initialization,
                     state_dim=state_dim, action_dim=action_dim,
                     batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
                     roll_out_n_steps=ROLL_OUT_N_STEPS,
@@ -152,19 +154,12 @@ def train(args):
     # initialize model
     mappo = create_model(config=config, env=env)
     use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
-
-    if use_xavier_initialization:
-        from torch import nn
-        for name, param in mappo.named_parameters():
-            if 'linear' in name:
-                if 'weight' in name:
-                    nn.init.xavier_uniform_(param)
-                elif 'bias' in name:
-                    nn.init.zeros_(param)
-
     model_type_name = "MAPPO" + (" with attention" if isinstance(mappo, MAPPO_attention) else "")
     init_method = "using xavier_uniform_" if use_xavier_initialization else "randomly"
-    print(f"{model_type_name} model initialized {init_method}")
+    if model_type_name == "MAPPO" and use_xavier_initialization:
+        print(f"Note: xavier initialization for normal MAPPO not implemented. Model initialized randomly.")
+    else:
+        print(f"{model_type_name} model initialized {init_method}")
 
     # load the model if exist
     mappo.load(model_dir, train_mode=True)

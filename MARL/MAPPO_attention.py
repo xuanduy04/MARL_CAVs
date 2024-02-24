@@ -16,7 +16,6 @@ from torch.optim import Adam, RMSprop
 from MAPPO import MAPPO
 
 import numpy as np
-import os, logging
 from copy import deepcopy
 from single_agent.Attention_Feed_Forward import Attention_Feed_Forward
 from single_agent.Attention import MultiHeadAttention
@@ -31,7 +30,7 @@ class MAPPO_attention(MAPPO):
     """
     def __init__(self,
                  env, state_dim, action_dim,
-                 num_heads, dropout_p,
+                 num_heads, dropout_p, use_xavier_initialization = False,
                  memory_capacity=10000, max_steps=None,
                  roll_out_n_steps=1, target_tau=1.,
                  target_update_steps=5, clip_param=0.2,
@@ -56,6 +55,19 @@ class MAPPO_attention(MAPPO):
                  use_cuda, traffic_density, reward_type)
         
         self.attention = MultiHeadAttention(d_model=state_dim, num_heads=num_heads, dropout_p=dropout_p)
+
+        if use_xavier_initialization:
+            def initialize_linear(module: nn.Module):
+                for name, param in module.named_parameters():
+                    if 'weight' in name:
+                        nn.init.xavier_uniform_(param)
+                    elif 'bias' in name:
+                        nn.init.zeros_(param)
+        
+            initialize_linear(self.attention)
+            initialize_linear(self.actor)
+            initialize_linear(self.critic)
+
         self.actor  = Attention_Feed_Forward(self.attention, self.actor)
         self.critic = Attention_Feed_Forward(self.attention, self.critic)
 
@@ -75,6 +87,7 @@ class MAPPO_attention(MAPPO):
             self.critic.cuda()
             self.actor_target.cuda()
             self.critic_target.cuda()
+
 
     # train on a roll out batch
     def train(self):
@@ -124,6 +137,7 @@ class MAPPO_attention(MAPPO):
             self._soft_update_target(self.actor_target, self.actor)
             self._soft_update_target(self.critic_target, self.critic)
 
+
     # predict softmax action based on state
     def _softmax_action(self, state, n_agents):
         state_var = to_tensor_var([state], self.use_cuda)
@@ -137,6 +151,7 @@ class MAPPO_attention(MAPPO):
             else:
                 softmax_action.append(softmax_action_var.data.numpy()[0])
         return softmax_action
+
 
     # evaluate value for a state-action pair
     def value(self, state, action):
