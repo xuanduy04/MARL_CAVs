@@ -2,7 +2,7 @@ from typing import Tuple
 
 from torch import nn
 from torch import Tensor
-from Attention import MultiHeadAttention
+from single_agent.Attention import MultiHeadAttention
 
 
 class Attention_Feed_Forward(nn.Module):
