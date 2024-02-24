@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 from torch import nn
 from torch import Tensor
@@ -35,7 +35,7 @@ class Attention_Feed_Forward(nn.Module):
         self.attention_prenorm = nn.LayerNorm(self.d_model)
         self.feed_forward_prenorm = nn.LayerNorm(self.d_model)
 
-    def forward(self, inputs: Tensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, states: Tensor, actions: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
         """
         Forward propagates
 
@@ -43,17 +43,20 @@ class Attention_Feed_Forward(nn.Module):
             outputs (torch.FloatTensor): output
             attn (torch.FloatTensor): attention
         """
-        inputs.unsqueeze_(0)
+        states.unsqueeze_(0)
         # NOTE: !!!!IMPORTANT!!!! remove the squeeze codes when you run multiple batch sizes.
-        residual = inputs
-        inputs = self.attention_prenorm(inputs)
-        outputs, attn = self.self_attention(inputs, inputs, inputs)
+        residual = states
+        states = self.attention_prenorm(states)
+        outputs, attn = self.self_attention(states, states, states)
         outputs += residual
 
         outputs.squeeze_(0)
-
         outputs = self.feed_forward_prenorm(outputs)
-        outputs = self.feed_forward(outputs)
+
+        if actions is not None:
+            outputs = self.feed_forward(outputs, actions)
+        else:
+            outputs = self.feed_forward(outputs)
 
         return outputs, attn
 
