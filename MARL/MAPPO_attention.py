@@ -102,12 +102,14 @@ class MAPPO_attention(MAPPO):
         for agent_id in range(self.n_agents):
             # update actor network
             self.actor_optimizer.zero_grad()
-            values, attn = self.critic_target(states_var[:, agent_id, :], actions_var[:, agent_id, :]).detach()
+            values, attn = self.critic_target(states_var[:, agent_id, :], actions_var[:, agent_id, :])
+            values = values.detach()
             advantages = rewards_var[:, agent_id, :] - values
 
             action_log_probs, attn = self.actor(states_var[:, agent_id, :])
             action_log_probs = torch.sum(action_log_probs * actions_var[:, agent_id, :], 1)
-            old_action_log_probs, attn = self.actor_target(states_var[:, agent_id, :]).detach()
+            old_action_log_probs, attn = self.actor_target(states_var[:, agent_id, :])
+            old_action_log_probs.detach()
             old_action_log_probs = torch.sum(old_action_log_probs * actions_var[:, agent_id, :], 1)
             ratio = torch.exp(action_log_probs - old_action_log_probs)
             surr1 = ratio * advantages
