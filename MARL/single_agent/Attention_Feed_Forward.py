@@ -43,14 +43,14 @@ class Attention_Feed_Forward(nn.Module):
             outputs (torch.FloatTensor): output
             attn (torch.FloatTensor): attention
         """
-        states.unsqueeze_(0)
+        states = states.unsqueeze(0)
         # NOTE: !!!!IMPORTANT!!!! remove the squeeze codes when you run multiple batch sizes.
         residual = states
         states = self.attention_prenorm(states)
         outputs, attn = self.self_attention(states, states, states)
         outputs += residual
 
-        outputs.squeeze_(0)
+        outputs = outputs.squeeze(0)
         outputs = self.feed_forward_prenorm(outputs)
 
         if actions is not None:
