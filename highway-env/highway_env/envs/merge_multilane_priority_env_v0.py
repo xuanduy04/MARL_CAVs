@@ -389,7 +389,6 @@ class MergeMultilanePriorityEnvMARL(MergeMultilanePriorityEnv):
                 "observation_config": {
                     "type": "Kinematics",
                     "observation_config": {
-                        "vehicles_count": 6,
                         "see_priority_vehicle": True
                     }
                 }},
