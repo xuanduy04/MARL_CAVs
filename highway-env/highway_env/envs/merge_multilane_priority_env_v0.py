@@ -24,9 +24,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
     It is rewarded for maintaining a high speed and avoiding collisions, but also making room for merging
     vehicles.
     """
-    n_a = 5
-    n_s = 25
+
     n_obs_features = 6
+    n_a = 5
+    n_s = n_obs_features * 5
 
     @classmethod
     def default_config(cls) -> dict:
