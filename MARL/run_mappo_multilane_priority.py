@@ -46,10 +46,11 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
 
     if use_attention_module:
         use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
+        d_model = env.n_obs_features
         num_heads = config.getint('MODEL_CONFIG','num_heads')
         dropout_p = config.getfloat('MODEL_CONFIG','dropout_p')
         return MAPPO_attention(env=env, memory_capacity=MEMORY_CAPACITY,
-                    num_heads=num_heads, dropout_p=dropout_p, 
+                    d_model=d_model, num_heads=num_heads, dropout_p=dropout_p, 
                     use_xavier_initialization=use_xavier_initialization,
                     state_dim=state_dim, action_dim=action_dim,
                     batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,

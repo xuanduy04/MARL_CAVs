@@ -26,6 +26,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
     """
     n_a = 5
     n_s = 25
+    n_obs_features = 6
 
     @classmethod
     def default_config(cls) -> dict:

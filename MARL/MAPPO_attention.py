@@ -29,7 +29,7 @@ class MAPPO_attention(MAPPO):
     Input states are passed through an attention layer before going through the actor/ critic.
     """
     def __init__(self,
-                 env, state_dim, action_dim,
+                 env, state_dim, action_dim, d_model,
                  num_heads, dropout_p, use_xavier_initialization = False,
                  memory_capacity=10000, max_steps=None,
                  roll_out_n_steps=1, target_tau=1.,
@@ -54,7 +54,7 @@ class MAPPO_attention(MAPPO):
                  max_grad_norm, batch_size, episodes_before_train,
                  use_cuda, traffic_density, reward_type)
         
-        self.attention = MultiHeadAttention(d_model=state_dim, num_heads=num_heads, dropout_p=dropout_p)
+        self.attention = MultiHeadAttention(d_model=d_model, num_heads=num_heads, dropout_p=dropout_p)
 
         if use_xavier_initialization:
             def initialize_linear(module: nn.Module):
