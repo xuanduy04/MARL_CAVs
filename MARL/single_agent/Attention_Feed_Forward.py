@@ -24,9 +24,6 @@ class Attention_Feed_Forward(nn.Module):
         feed_forward_layer: nn.Module,
     ) -> None:
         super(Attention_Feed_Forward, self).__init__()
-        assert attention_layer.d_model == feed_forward_layer.in_features, \
-            "dimention mismatch between Attention and Feed-forward layer"
-
         self.self_attention = attention_layer
         self.feed_forward = feed_forward_layer
         
@@ -49,6 +46,8 @@ class Attention_Feed_Forward(nn.Module):
         outputs += residual
 
         outputs = self.feed_forward_prenorm(outputs)
+
+        # Flatten
         outputs = outputs.view(outputs.size(0), -1)
 
         if actions is not None:
