@@ -37,11 +37,10 @@ class ControlledVehicle(Vehicle):
                  target_speed: float = None,
                  route: Route = None,
                  is_priority: bool = False):
-        super().__init__(road, position, heading, speed)
+        super().__init__(road, position, heading, speed, is_priority)
         self.target_lane_index = target_lane_index or self.lane_index
         self.target_speed = target_speed or self.speed
         self.route = route
-        self.is_priority = is_priority
 
     @classmethod
     def create_from(cls, vehicle: "ControlledVehicle") -> "ControlledVehicle":

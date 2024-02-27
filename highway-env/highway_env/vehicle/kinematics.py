@@ -37,11 +37,13 @@ class Vehicle(object):
                  road: Road,
                  position: Vector,
                  heading: float = 0,
-                 speed: float = 0):
+                 speed: float = 0,
+                 is_priority: bool = False,):
         self.road = road
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.speed = speed
+        self.is_priority = is_priority
         self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
         self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
         self.action = {'steering': 0, 'acceleration': 0}
@@ -241,6 +243,7 @@ class Vehicle(object):
     def to_dict(self, origin_vehicle: "Vehicle" = None, observe_intentions: bool = True) -> dict:
         d = {
             'presence': 1,
+            'priority': int(self.is_priority),
             'x': self.position[0],
             'y': self.position[1],
             'vx': self.velocity[0],
