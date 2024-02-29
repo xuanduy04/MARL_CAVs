@@ -59,7 +59,8 @@ class AbstractEnv(gym.Env):
         self.observation_type = None
         self.observation_space = None
         self.define_spaces()
-        self.flatten_obs = self.config["flatten_obs"] if self.config["flatten_obs"] is not None else False
+        assert self.config["flatten_obs"] is not None, "Do we flatten the observation or not?"
+        self.flatten_obs = self.config["flatten_obs"]
 
         # Running
         self.time = 0  # Simulation time
