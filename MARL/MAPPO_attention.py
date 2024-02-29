@@ -53,6 +53,14 @@ class MAPPO_attention(MAPPO):
                  optimizer_type, entropy_reg,
                  max_grad_norm, batch_size, episodes_before_train,
                  use_cuda, traffic_density, reward_type)
+
+        print(env.observation_space.shape)
+
+        assert env.flatten_obs == False
+        assert env.observation_space.shape[1] == d_model
+
+        self.d_model = d_model
+        self.seq_len, _ = env.observation_space.shape
         
         self.attention = MultiHeadAttention(d_model=d_model, num_heads=num_heads, dropout_p=dropout_p)
 
@@ -95,20 +103,20 @@ class MAPPO_attention(MAPPO):
             pass
 
         batch = self.memory.sample(self.batch_size)
-        states_var = to_tensor_var(batch.states, self.use_cuda).view(-1, self.n_agents, self.state_dim)
+        states_var = to_tensor_var(batch.states, self.use_cuda).view(-1, self.n_agents, self.seq_len, self.d_model)
         actions_var = to_tensor_var(batch.actions, self.use_cuda).view(-1, self.n_agents, self.action_dim)
         rewards_var = to_tensor_var(batch.rewards, self.use_cuda).view(-1, self.n_agents, 1)
 
         for agent_id in range(self.n_agents):
             # update actor network
             self.actor_optimizer.zero_grad()
-            values, attn = self.critic_target(states_var[:, agent_id, :], actions_var[:, agent_id, :])
+            values, attn = self.critic_target(states_var[:, agent_id, :, :], actions_var[:, agent_id, :])
             values = values.detach()
             advantages = rewards_var[:, agent_id, :] - values
 
-            action_log_probs, attn = self.actor(states_var[:, agent_id, :])
+            action_log_probs, attn = self.actor(states_var[:, agent_id, :, :])
             action_log_probs = torch.sum(action_log_probs * actions_var[:, agent_id, :], 1)
-            old_action_log_probs, attn = self.actor_target(states_var[:, agent_id, :])
+            old_action_log_probs, attn = self.actor_target(states_var[:, agent_id, :, :])
             old_action_log_probs.detach()
             old_action_log_probs = torch.sum(old_action_log_probs * actions_var[:, agent_id, :], 1)
             ratio = torch.exp(action_log_probs - old_action_log_probs)
@@ -124,7 +132,7 @@ class MAPPO_attention(MAPPO):
             # update critic network
             self.critic_optimizer.zero_grad()
             target_values = rewards_var[:, agent_id, :]
-            values, attn = self.critic(states_var[:, agent_id, :], actions_var[:, agent_id, :])
+            values, attn = self.critic(states_var[:, agent_id, :, :], actions_var[:, agent_id, :])
             if self.critic_loss == "huber":
                 critic_loss = nn.functional.smooth_l1_loss(values, target_values)
             else:
@@ -146,7 +154,7 @@ class MAPPO_attention(MAPPO):
 
         softmax_action = []
         for agent_id in range(n_agents):
-            softmax_action_var, attn = self.actor(state_var[:, agent_id, :])
+            softmax_action_var, attn = self.actor(state_var[:, agent_id, :, :])
             softmax_action_var = torch.exp(softmax_action_var)
 
             if self.use_cuda:
@@ -164,7 +172,7 @@ class MAPPO_attention(MAPPO):
 
         values = [0] * self.n_agents
         for agent_id in range(self.n_agents):
-            value_var, attn = self.critic(state_var[:, agent_id, :], action_var[:, agent_id, :])
+            value_var, attn = self.critic(state_var[:, agent_id, :, :], action_var[:, agent_id, :])
 
             if self.use_cuda:
                 values[agent_id] = value_var.data.cpu().numpy()[0]
