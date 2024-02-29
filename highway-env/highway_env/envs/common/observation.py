@@ -142,7 +142,7 @@ class KinematicObservation(ObservationType):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
-        :param vehicles_count: Number of observed vehicles (including a seperate field for the priority vehicle)
+        :param vehicles_count: Number of observed vehicles (including seperate fields for self and the priority vehicle)
         :param absolute: Use absolute coordinates
         :param order: Order of observed vehicles. Values: sorted, shuffled
         :param normalize: Should the observation be normalized
