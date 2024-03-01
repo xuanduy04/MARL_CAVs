@@ -54,13 +54,13 @@ class MAPPO_attention(MAPPO):
                  max_grad_norm, batch_size, episodes_before_train,
                  use_cuda, traffic_density, reward_type)
 
-        print(env.observation_space.shape)
+        print(env.observation_space[0].shape)
 
         assert env.flatten_obs == False
-        assert env.observation_space.shape[1] == d_model
+        assert env.observation_space[0].shape[1] == d_model
 
         self.d_model = d_model
-        self.seq_len, _ = env.observation_space.shape
+        self.seq_len, _ = env.observation_space[0].shape
         
         self.attention = MultiHeadAttention(d_model=d_model, num_heads=num_heads, dropout_p=dropout_p)
 
