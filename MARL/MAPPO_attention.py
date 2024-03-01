@@ -43,6 +43,7 @@ class MAPPO_attention(MAPPO):
                  use_cuda=True, traffic_density=1, reward_type="global_R"):
 
         super().__init__(env, state_dim, action_dim,
+                 use_xavier_initialization,
                  memory_capacity, max_steps,
                  roll_out_n_steps, target_tau,
                  target_update_steps, clip_param,
