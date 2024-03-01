@@ -64,6 +64,7 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
                     )
     else:
         return MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
+                    use_xavier_initialization=use_xavier_initialization,
                     state_dim=state_dim, action_dim=action_dim,
                     batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
                     roll_out_n_steps=ROLL_OUT_N_STEPS,
@@ -144,6 +145,8 @@ def train(args):
     # init env
     env = gym.make('merge-multilane-priority-multi-agent-v0')
     env = init_env(config=config, env=env)
+    traffic_density = config.getint('ENV_CONFIG', 'traffic_density')
+    print(f"Env with traffic_density {traffic_density} initialized.")
 
     ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
     assert env.T % ROLL_OUT_N_STEPS == 0
@@ -157,10 +160,7 @@ def train(args):
     use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
     model_type_name = "MAPPO" + (" with attention" if isinstance(mappo, MAPPO_attention) else "")
     init_method = "using xavier_uniform_" if use_xavier_initialization else "randomly"
-    if model_type_name == "MAPPO" and use_xavier_initialization:
-        print(f"Note: xavier initialization for normal MAPPO not implemented. Model initialized randomly.")
-    else:
-        print(f"{model_type_name} model initialized {init_method}")
+    print(f"{model_type_name} model initialized {init_method}\n")
 
     # load the model if exist
     mappo.load(model_dir, train_mode=True)

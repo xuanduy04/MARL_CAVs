@@ -73,8 +73,6 @@ class MAPPO_attention(MAPPO):
                         nn.init.zeros_(param)
         
             initialize_linear(self.attention)
-            initialize_linear(self.actor)
-            initialize_linear(self.critic)
 
         self.actor  = Attention_Feed_Forward(self.attention, self.actor)
         self.critic = Attention_Feed_Forward(self.attention, self.critic)
