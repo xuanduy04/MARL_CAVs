@@ -260,9 +260,9 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         self.controlled_vehicles = []
         road.priority_vehicle = None
 
-        spawn_points_s1 = [10, 50, 90, 130, 170] # 210, 250]
-        spawn_points_s2 = [5, 45, 85, 125, 165] # 205, 245]
-        spawn_points_m = [5, 45, 85, 125, 165] #, 205]
+        spawn_points_s1 = [10, 50, 90, 130] #, 170, 210, 250]
+        spawn_points_s2 = [5, 45, 85, 125] #, 165, 205, 245]
+        spawn_points_m = [5, 45, 85, 125] #, 165, 205]
 
         """Spawn points for PV"""
         # for now, PV always spawn on straight road....
