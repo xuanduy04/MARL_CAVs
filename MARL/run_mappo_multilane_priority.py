@@ -89,8 +89,9 @@ def init_env(config, env):
     env.config['MERGING_LANE_COST'] = config.getfloat('ENV_CONFIG', 'MERGING_LANE_COST')
     env.config['PRIORITY_LANE_COST'] = config.getfloat('ENV_CONFIG', 'PRIORITY_LANE_COST')
     env.config['LANE_CHANGE_COST'] = config.getfloat('ENV_CONFIG', 'LANE_CHANGE_COST')
-    env.config['traffic_density'] = config.getint('ENV_CONFIG', 'traffic_density')
     env.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
+    env.config['num_CAV'] = config.getint('ENV_CONFIG', 'num_CAV')
+    env.config['num_HDV'] = config.getint('ENV_CONFIG', 'num_HDV')
     return env
 
 
@@ -145,8 +146,6 @@ def train(args):
     # init env
     env = gym.make('merge-multilane-priority-multi-agent-v0')
     env = init_env(config=config, env=env)
-    traffic_density = config.getint('ENV_CONFIG', 'traffic_density')
-    print(f"Env with traffic_density {traffic_density} initialized.")
 
     ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
     assert env.T % ROLL_OUT_N_STEPS == 0
@@ -155,12 +154,17 @@ def train(args):
     env_eval = init_env(config=config, env=env_eval)
     env_eval.config['seed'] = config.getint('ENV_CONFIG', 'seed') + 1
 
+    num_CAV = config.getint('ENV_CONFIG', 'num_CAV')
+    num_HDV = config.getint('ENV_CONFIG', 'num_HDV')
+
     # initialize model
     mappo = create_model(config=config, env=env)
     use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
     model_type_name = "MAPPO" + (" with attention" if isinstance(mappo, MAPPO_attention) else "")
     init_method = "using xavier_uniform_" if use_xavier_initialization else "randomly"
-    print(f"{model_type_name} model initialized {init_method}\n")
+
+    print(f"Environment initialized with {num_CAV} CAVs and {num_HDV} HDVs.")
+    print(f"{model_type_name} model initialized {init_method}.\n")
 
     # load the model if exist
     mappo.load(model_dir, train_mode=True)

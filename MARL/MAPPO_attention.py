@@ -40,7 +40,7 @@ class MAPPO_attention(MAPPO):
                  actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
                  optimizer_type="rmsprop", entropy_reg=0.01,
                  max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
-                 use_cuda=True, traffic_density=1, reward_type="global_R"):
+                 use_cuda=True, reward_type="global_R"):
 
         super().__init__(env, state_dim, action_dim,
                  use_xavier_initialization,
@@ -53,7 +53,7 @@ class MAPPO_attention(MAPPO):
                  actor_lr, critic_lr, test_seeds,
                  optimizer_type, entropy_reg,
                  max_grad_norm, batch_size, episodes_before_train,
-                 use_cuda, traffic_density, reward_type)
+                 use_cuda, reward_type)
 
         print(env.observation_space[0].shape)
 

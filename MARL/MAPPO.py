@@ -37,9 +37,8 @@ class MAPPO:
                  actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
                  optimizer_type="rmsprop", entropy_reg=0.01,
                  max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
-                 use_cuda=True, traffic_density=1, reward_type="global_R"):
+                 use_cuda=True, reward_type="global_R"):
 
-        assert traffic_density in [0, 1, 2, 3]
         assert reward_type in ["regionalR", "global_R"]
         self.reward_type = reward_type
         self.env = env
@@ -52,7 +51,6 @@ class MAPPO:
         self.test_seeds = test_seeds
         self.reward_gamma = reward_gamma
         self.reward_scale = reward_scale
-        self.traffic_density = traffic_density
         self.memory = OnPolicyReplayMemory(memory_capacity)
         self.actor_hidden_size = actor_hidden_size
         self.critic_hidden_size = critic_hidden_size
@@ -275,17 +273,7 @@ class MAPPO:
             infos_i = []
             Recorded_frames = []
             done = False
-            if is_train:
-                if self.traffic_density == 0:
-                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i])
-                if self.traffic_density == 1:
-                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 1)
-                elif self.traffic_density == 2:
-                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 2)
-                elif self.traffic_density == 3:
-                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 4)
-            else:
-                state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i])
+            state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i])
 
             n_agents = len(env.controlled_vehicles)
             rendered_frame = env.render(mode="rgb_array")

@@ -59,7 +59,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "MERGING_LANE_COST": 4,  # default=4
             "PRIORITY_LANE_COST": 100,
             "LANE_CHANGE_COST": 2,  # default=0.5
-            "traffic_density": 1,  # easy or hard modes
+            "num_CAV": 4,
+            "num_HDV": 4,
             "flatten_obs": False, # set this to False for attention to work
         })
         return config
@@ -95,7 +96,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         
         # compute cost for blocking the priority vehicle's path
         priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(vehicle)
-        assert priority_vehicle is not None
         priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
             if priority_vehicle_dist < 0 and vehicle.lane_index == priority_vehicle.lane_index else 0
 
@@ -175,42 +175,9 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         return vehicle.crashed \
                or self.steps >= self.config["duration"] * self.config["policy_frequency"]
 
-    def _reset(self, num_CAV=0) -> None:
+    def _reset(self) -> None:
         self._make_road()
-
-        if self.config["traffic_density"] == 0:
-            # test mode: 2 CAVs + 4-6 HDVs
-            if num_CAV == 0:
-                num_CAV = 2
-            else:
-                num_CAV = num_CAV
-            num_HDV = np.random.choice(np.arange(4, 7), 1)[0]
-
-        elif self.config["traffic_density"] == 1:
-            # easy mode: 1-3 CAVs + 1-3 HDVs
-            if num_CAV == 0:
-                num_CAV = np.random.choice(np.arange(1, 4), 1)[0]
-            else:
-                num_CAV = num_CAV
-            num_HDV = np.random.choice(np.arange(1, 4), 1)[0]
-
-        elif self.config["traffic_density"] == 2:
-            # hard mode: 2-4 CAVs + 2-4 HDVs
-            if num_CAV == 0:
-                num_CAV = np.random.choice(np.arange(2, 5), 1)[0]
-            else:
-                num_CAV = num_CAV
-            num_HDV = np.random.choice(np.arange(2, 5), 1)[0]
-
-        elif self.config["traffic_density"] == 3:
-            # hard mode: 4-6 CAVs + 3-5 HDVs
-            if num_CAV == 0:
-                num_CAV = np.random.choice(np.arange(4, 7), 1)[0]
-            else:
-                num_CAV = num_CAV
-            num_HDV = np.random.choice(np.arange(3, 6), 1)[0]
-
-        self._make_vehicles(num_CAV, num_HDV)
+        self._make_vehicles()
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
 
@@ -247,18 +214,20 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         road.objects.append(Obstacle(road, lbc.position(self.ends[2], 0)))
         self.road = road
 
-    def _make_vehicles(self, num_CAV=4, num_HDV=3, num_PV=1) -> None:
+    def _make_vehicles(self) -> None:
         """
         Populate a road with several vehicles on the highway and on the merging lane, as well as an ego-vehicle.
         :return: the ego-vehicle
         """
-        assert num_PV == 1, "spawning multiple Priority Vehicles not implemented"
-
         road = self.road
         other_vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         priority_vehicles_type = utils.class_from_path(self.config["priority_vehicles_type"])
         self.controlled_vehicles = []
         road.priority_vehicle = None
+
+        num_CAV = self.config["num_CAV"]
+        num_HDV = self.config["num_HDV"]
+        num_PV = 1
 
         spawn_points_s1 = [10, 50, 90, 130] #, 170, 210, 250]
         spawn_points_s2 = [5, 45, 85, 125] #, 165, 205, 245]
