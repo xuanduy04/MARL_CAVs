@@ -180,8 +180,8 @@ def train(args):
             rewards, _, _, _ = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
             rewards_mu, rewards_std = agg_double_list(rewards)
             print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
-            print(f"Current rewards list:\n{eval_rewards}")
             eval_rewards.append(rewards_mu)
+            print(f"Current rewards list:\n{eval_rewards}")
             evaluated_episodes.append(mappo.n_episodes + 1)
             # save the model
             mappo.save(dirs['models'], mappo.n_episodes + 1)
@@ -197,6 +197,7 @@ def train(args):
     plt.show()
     print("Evaluated episodes:", evaluated_episodes,
           "Average rewards:", eval_rewards, 
+          "Output_dir:", output_dir,
           sep='\n')
 
 
