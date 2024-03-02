@@ -175,7 +175,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         return vehicle.crashed \
                or self.steps >= self.config["duration"] * self.config["policy_frequency"]
 
-    def _reset(self) -> None:
+    def _reset(self, num_CAV=-1) -> None:
         self._make_road()
         self._make_vehicles()
         self.action_is_safe = True
