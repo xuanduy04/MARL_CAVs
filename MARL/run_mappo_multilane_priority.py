@@ -42,7 +42,6 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     state_dim = env.n_s
     action_dim = env.n_a
     test_seeds = args.evaluation_seeds
-    traffic_density = config.getint('ENV_CONFIG', 'traffic_density')
 
     if use_attention_module:
         use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
@@ -60,7 +59,7 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
                     target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
                     reward_gamma=reward_gamma, reward_type=reward_type,
                     max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                    episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
+                    episodes_before_train=EPISODES_BEFORE_TRAIN
                     )
     else:
         return MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
@@ -73,7 +72,7 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
                     target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
                     reward_gamma=reward_gamma, reward_type=reward_type,
                     max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                    episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
+                    episodes_before_train=EPISODES_BEFORE_TRAIN
                     )
 
 
@@ -181,6 +180,7 @@ def train(args):
             rewards, _, _, _ = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
             rewards_mu, rewards_std = agg_double_list(rewards)
             print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
+            print(f"Current rewards list:\n{eval_rewards}")
             eval_rewards.append(rewards_mu)
             evaluated_episodes.append(mappo.n_episodes + 1)
             # save the model
