@@ -127,7 +127,6 @@ class AbstractEnv(gym.Env):
             "n_step": 5,  # do n step prediction
             "seed": 0,
             "action_masking": True,
-            "priority_vehicle_can_spawn_first": False,
             "flatten_obs": True, 
         }
 
