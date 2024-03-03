@@ -18,6 +18,9 @@ class IDMVehicle(ControlledVehicle):
     - Lateral: the MOBIL model decides when to change lane by maximizing the acceleration of nearby vehicles.
     """
 
+    """ Maximum reachable speed [m/s] """
+    MAX_SPEED = 35.
+    
     """Longitudinal policy parameters"""
     # Maximum acceleration.
     ACC_MAX = 6.0  # [m/s2]
@@ -317,6 +320,9 @@ class PriorityIDMVehicle(IDMVehicle):
     - Longitudinal: the IDM model computes an acceleration given the preceding vehicle's distance and speed.
     - Lateral: the MOBIL model decides when to change lane by maximizing the acceleration of nearby vehicles.
     """
+
+    """ Maximum reachable speed [m/s] """
+    MAX_SPEED = 40.
 
     """Longitudinal policy parameters"""
     # Maximum acceleration.
