@@ -41,7 +41,7 @@ class IDMVehicle(ControlledVehicle):
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
     LANE_CHANGE_DELAY = 1.0  # [s]
     # Begin dodging priority vehicle within this distance.
-    PRIORITY_DODGE_DISTANCE = 4 * DISTANCE_WANTED # [m]
+    PRIORITY_DODGE_DISTANCE = 6 * DISTANCE_WANTED # [m]
 
     def __init__(self,
                  road: Road,
