@@ -52,12 +52,14 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "duration": 20,  # time step
             "policy_frequency": 5,  # [Hz]
             "reward_speed_range": [10, 30],
+            "priority_reward_speed_range": [10, 40],
             "COLLISION_REWARD": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
+            "PRIORITY_SPEED_REWARD": 2,
             "HEADWAY_COST": 4,  # default=4
             "HEADWAY_TIME": 1.2,  # default=1.2[s]
             "MERGING_LANE_COST": 4,  # default=4
-            "PRIORITY_LANE_COST": 100,
+            "PRIORITY_LANE_COST": 2,
             "LANE_CHANGE_COST": 2,  # default=0.5
             "num_CAV": 4,
             "num_HDV": 4,
@@ -77,7 +79,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             :param action: the action performed
             :return: the reward of the state-action transition
        """
-        # the optimal reward is 0
         scaled_speed = utils.lmap(vehicle.speed, self.config["reward_speed_range"], [0, 1])
         # compute cost for staying on the merging lane
         if vehicle.lane_index == ("b", "c", 2):
@@ -94,14 +95,20 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         Headway_cost = np.log(
             headway_distance / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
         
+        # -- Priority vehicle related --
         # compute cost for blocking the priority vehicle's path
         priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(vehicle)
         priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
             if priority_vehicle_dist < 0 and vehicle.lane_index == priority_vehicle.lane_index else 0
+        
+        # reward for priority_vehicle's speed
+        priority_scaled_speed = utils.lmap(priority_vehicle.speed, \
+            self.config["priority_reward_speed_range"], [0, 1]) if priority_vehicle_dist < 0 else 0
 
         # compute overall reward
         reward = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed) \
                  + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, 0, 1)) \
+                 + (self.config["PRIORITY_SPEED_REWARD"] * np.clip(priority_scaled_speed, 0, 1)) \
                  + self.config["MERGING_LANE_COST"] * Merging_lane_cost \
                  + self.config["HEADWAY_COST"] * (Headway_cost if Headway_cost < 0 else 0) \
                  + priority_lane_cost \
