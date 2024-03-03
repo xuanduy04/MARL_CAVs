@@ -308,7 +308,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             priority_vehicles_type(road, road.network.get_lane(spawn_lane_pv).position(
                 spawn_point_pv + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
         road.vehicles.append(road.priority_vehicle)
-        assert road.priority_vehicle.is_priority == True
 
         """spawn the CAV on the straight road first"""
         for _ in range(num_CAV // 3):
