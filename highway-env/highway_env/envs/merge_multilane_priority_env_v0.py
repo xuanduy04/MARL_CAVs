@@ -44,8 +44,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
                 "longitudinal": True,
                 "lateral": True},
             "controlled_vehicles": 1,
-            "screen_width": 600,
-            "screen_height": 120,
+            "screen_width": 608,
+            "screen_height": 128,
             "centering_position": [0.3, 0.5],
             "scaling": 3,
             "simulation_frequency": 15,  # [Hz]
