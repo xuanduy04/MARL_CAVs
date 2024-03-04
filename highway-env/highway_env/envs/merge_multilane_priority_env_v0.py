@@ -52,7 +52,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "duration": 20,  # time step
             "policy_frequency": 5,  # [Hz]
             "reward_speed_range": [10, 30],
-            "priority_reward_speed_range": [30, 40],
+            "priority_target_speed_range": [30, 40],
             "COLLISION_REWARD": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
             "PRIORITY_SPEED_REWARD": 2,
@@ -104,17 +104,18 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
             if priority_vehicle_dist < 0 and vehicle.lane_index == priority_vehicle.lane_index else 0
         
-        # reward for priority_vehicle's speed
-        priority_scaled_speed = utils.lmap(priority_vehicle.speed, \
-            self.config["priority_reward_speed_range"], [0, 1]) if priority_vehicle_dist < 0 else 1
-        # note: can be negative to further punish vehicles who slow the PriorityVehicle down.
+        # cost for slowing the priority vehicle.
+        priority_scaled_speed = \
+            utils.lmap(priority_vehicle.speed, self.config["priority_target_speed_range"], [0, 1]) \
+                if priority_vehicle_dist < 0 else 0
+        # Note, reward clipped to avoid rewarding vehicles that doesn't (need to) dodge the priority vehicle.
         
         # compute overall reward
         reward = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed) \
                  + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, 0, 1)) \
-                 + self.config["PRIORITY_SPEED_REWARD"] * priority_scaled_speed \
+                 + (self.config["PRIORITY_SPEED_REWARD"] * priority_scaled_speed if priority_scaled_speed < 0 else 0) \
                  + self.config["MERGING_LANE_COST"] * Merging_lane_cost \
-                 + self.config["HEADWAY_COST"] * (Headway_cost if Headway_cost < 0 else 0) \
+                 + (self.config["HEADWAY_COST"] * Headway_cost if Headway_cost < 0 else 0) \
                  + priority_lane_cost \
                  + lane_change_cost
         return reward
