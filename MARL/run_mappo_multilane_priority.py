@@ -181,9 +181,10 @@ def train(args):
         if mappo.episode_done and ((mappo.n_episodes + 1) % EVAL_INTERVAL == 0):
             rewards, _, _, avg_speed = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
             rewards_mu, rewards_std = agg_double_list(rewards)
+            avg_speed_mu, avg_speed_std = agg_double_list(avg_speed)
             print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
             eval_rewards.append(round(rewards_mu,2))
-            avg_speeds.append(round(avg_speed,2))
+            avg_speeds.append(round(avg_speed_mu,2))
             print("Average rewards:", eval_rewards,
                   "Average speeds:", avg_speeds,
                   sep='\n')
