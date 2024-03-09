@@ -27,7 +27,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
     n_obs_features = 6
     n_a = 5
-    n_s = n_obs_features * 5
+    n_s = n_obs_features * 6
 
     @classmethod
     def default_config(cls) -> dict:
@@ -36,7 +36,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "observation": {
                 "type": "Kinematics",
                 "observation_config": {
-                    "see_priority_vehicle": True
+                    "vehicles_count": 6,
+                    "see_priority_vehicle": True,
                 }
             },
             "action": {
