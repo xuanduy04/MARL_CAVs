@@ -104,6 +104,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
             if priority_vehicle_dist < 0 and vehicle.lane_index == priority_vehicle.lane_index else 0
         
+        # if you are in the process of dodging, I'll reduce the blocking cost.
+        if priority_lane_cost and (action == 0 or action == 2):
+            priority_lane_cost *= 0.5
+        
         # cost for slowing the priority vehicle.
         priority_scaled_speed = \
             utils.lmap(priority_vehicle.speed, self.config["priority_target_speed_range"], [0, 1]) \
