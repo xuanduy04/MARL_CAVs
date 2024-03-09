@@ -55,7 +55,7 @@ class MAPPO_attention(MAPPO):
                  max_grad_norm, batch_size, episodes_before_train,
                  use_cuda, reward_type)
 
-        print(env.observation_space[0].shape)
+        print("Environment observation shape: ", env.observation_space[0].shape, sep = '')
 
         assert env.flatten_obs == False
         assert env.observation_space[0].shape[1] == d_model
