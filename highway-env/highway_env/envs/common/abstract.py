@@ -126,7 +126,7 @@ class AbstractEnv(gym.Env):
             "real_time_rendering": False,
             "n_step": 5,  # do n step prediction
             "seed": 0,
-            "action_masking": True,
+            "action_masking": False,
             "flatten_obs": True, 
         }
 
