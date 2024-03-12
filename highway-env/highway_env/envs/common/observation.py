@@ -136,7 +136,7 @@ class KinematicObservation(ObservationType):
                  normalize: bool = True,
                  clip: bool = False,
                  see_behind: bool = True,
-                 see_priority_vehicle: bool = True,
+                 see_priority_vehicle: bool = False,
                  observe_intentions: bool = False,
                  **kwargs: dict) -> None:
         """
@@ -162,6 +162,7 @@ class KinematicObservation(ObservationType):
         self.see_behind = see_behind
         assert see_priority_vehicle is not None, "`see_priority_vehicle = None` will result in undefined behaviour"
         self.see_priority_vehicle = see_priority_vehicle
+        print(f'`see_priority_vehicle` is {see_priority_vehicle}')
         self.observe_intentions = observe_intentions
 
     def space(self) -> spaces.Space:
