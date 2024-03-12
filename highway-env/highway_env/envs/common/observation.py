@@ -136,7 +136,7 @@ class KinematicObservation(ObservationType):
                  normalize: bool = True,
                  clip: bool = False,
                  see_behind: bool = True,
-                 see_priority_vehicle: bool = False,
+                 see_priority_vehicle: bool = True,
                  observe_intentions: bool = False,
                  **kwargs: dict) -> None:
         """
