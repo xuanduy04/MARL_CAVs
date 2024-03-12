@@ -40,7 +40,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "action": {
                 "type": "DiscreteMetaAction",
                 "longitudinal": True,
-                "lateral": True},
+                "lateral": True
+            },
             "controlled_vehicles": 1,
             "screen_width": 608,
             "screen_height": 128,
@@ -374,9 +375,8 @@ class MergeMultilanePriorityEnvMARL(MergeMultilanePriorityEnv):
                 "type": "MultiAgentObservation",
                 "observation_config": {
                     "type": "Kinematics",
-                    "observation_config": {
-                        "see_priority_vehicle": True
-                    }
+                    "vehicles_count": 6, 
+                    "see_priority_vehicle": True,
                 }},
             "controlled_vehicles": 4
         })
