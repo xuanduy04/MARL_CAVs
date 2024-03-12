@@ -129,7 +129,7 @@ class KinematicObservation(ObservationType):
 
     def __init__(self, env: 'AbstractEnv',
                  features: List[str] = None,
-                 vehicles_count: int = 5,
+                 vehicles_count: int = 6,
                  features_range: Dict[str, List[float]] = None,
                  absolute: bool = False,
                  order: str = "sorted",

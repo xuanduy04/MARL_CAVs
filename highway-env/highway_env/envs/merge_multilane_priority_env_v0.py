@@ -36,7 +36,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "observation": {
                 "type": "Kinematics",
                 "observation_config": {
-                    "vehicles_count": 6,
                     "see_priority_vehicle": True,
                 }
             },
