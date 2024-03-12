@@ -35,9 +35,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         config.update({
             "observation": {
                 "type": "Kinematics",
-                "observation_config": {
-                    "see_priority_vehicle": True,
-                }
+                "see_priority_vehicle": True,
             },
             "action": {
                 "type": "DiscreteMetaAction",
