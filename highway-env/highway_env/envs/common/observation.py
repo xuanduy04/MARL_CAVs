@@ -161,7 +161,6 @@ class KinematicObservation(ObservationType):
         self.clip = clip
         self.see_behind = see_behind
         self.see_priority_vehicle = see_priority_vehicle
-        print(f'`see_priority_vehicle` is {self.see_priority_vehicle}')
         self.observe_intentions = observe_intentions
 
     def space(self) -> spaces.Space:
