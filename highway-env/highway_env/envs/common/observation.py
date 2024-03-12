@@ -129,7 +129,7 @@ class KinematicObservation(ObservationType):
 
     def __init__(self, env: 'AbstractEnv',
                  features: List[str] = None,
-                 vehicles_count: int = 6,
+                 vehicles_count: int = 5,
                  features_range: Dict[str, List[float]] = None,
                  absolute: bool = False,
                  order: str = "sorted",
@@ -160,9 +160,8 @@ class KinematicObservation(ObservationType):
         self.normalize = normalize
         self.clip = clip
         self.see_behind = see_behind
-        assert see_priority_vehicle is not None, "`see_priority_vehicle = None` will result in undefined behaviour"
         self.see_priority_vehicle = see_priority_vehicle
-        print(f'`see_priority_vehicle` is {see_priority_vehicle}')
+        print(f'`see_priority_vehicle` is {self.see_priority_vehicle}')
         self.observe_intentions = observe_intentions
 
     def space(self) -> spaces.Space:
