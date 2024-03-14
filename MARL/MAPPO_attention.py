@@ -30,7 +30,7 @@ class MAPPO_attention(MAPPO):
     """
     def __init__(self,
                  env, state_dim, action_dim, d_model,
-                 num_heads, dropout_p, use_xavier_initialization = False,
+                 num_heads, dropout_p, use_xavier_initialization,
                  memory_capacity=10000, max_steps=None,
                  roll_out_n_steps=1, target_tau=1.,
                  target_update_steps=5, clip_param=0.2,

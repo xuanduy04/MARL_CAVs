@@ -30,6 +30,7 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
     TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
 
+    use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
     use_attention_module = config.getboolean('MODEL_CONFIG','use_attention_module')
 
     # train configs
@@ -44,7 +45,6 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     test_seeds = args.evaluation_seeds
 
     if use_attention_module:
-        use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
         d_model = env.n_obs_features
         num_heads = config.getint('MODEL_CONFIG','num_heads')
         dropout_p = config.getfloat('MODEL_CONFIG','dropout_p')
