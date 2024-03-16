@@ -106,17 +106,21 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         # if you are in the process of dodging, I'll reduce the blocking cost.
         if priority_lane_cost and (action == 0 or action == 2):
             priority_lane_cost *= 0.5
+            # and nullify the lane change cost
+            lane_change_cost = 0
         
         # cost for slowing the priority vehicle.
-        priority_scaled_speed = \
-            utils.lmap(priority_vehicle.speed, self.config["priority_target_speed_range"], [0, 1]) \
-                if priority_vehicle_dist < 0 else 0
+        # priority_scaled_speed = \
+        #     utils.lmap(priority_vehicle.speed, self.config["priority_target_speed_range"], [0, 1]) \
+        #         if priority_vehicle_dist < 0 else 0
         # Note, reward clipped to avoid rewarding vehicles that doesn't (need to) dodge the priority vehicle.
+
+        # Add the below line iff you want to use the above cost.  
+        # + (self.config["PRIORITY_SPEED_COST"] * priority_scaled_speed if priority_scaled_speed < 0 else 0) \
         
         # compute overall reward
         reward = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed) \
                  + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, 0, 1)) \
-                 + (self.config["PRIORITY_SPEED_COST"] * priority_scaled_speed if priority_scaled_speed < 0 else 0) \
                  + self.config["MERGING_LANE_COST"] * Merging_lane_cost \
                  + (self.config["HEADWAY_COST"] * Headway_cost if Headway_cost < 0 else 0) \
                  + priority_lane_cost \
