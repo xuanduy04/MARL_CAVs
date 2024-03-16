@@ -106,8 +106,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         # if you are in the process of dodging, I'll reduce the blocking cost.
         if priority_lane_cost and (action == 0 or action == 2):
             priority_lane_cost *= 0.5
-            # and nullify the lane change cost
-            lane_change_cost = 0
+            # and nullify the lane change cost?
+            # lane_change_cost = 0
         
         # cost for slowing the priority vehicle.
         # priority_scaled_speed = \
