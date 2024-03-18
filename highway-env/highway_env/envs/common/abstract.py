@@ -174,7 +174,7 @@ class AbstractEnv(gym.Env):
         """
         raise NotImplementedError
 
-    def reset(self, is_training=True, testing_seeds=0, num_CAV=0) -> Observation:
+    def reset(self, is_training=True, testing_seeds=0) -> Observation:
         """
         Reset the environment to it's initial configuration
 
@@ -192,7 +192,7 @@ class AbstractEnv(gym.Env):
         self.done = False
         self.vehicle_speed = []
         self.vehicle_pos = []
-        self._reset(num_CAV=num_CAV)
+        self._reset(is_training=is_training)
         self.define_spaces()  # Second, to link the obs and actions to the vehicles once the scene is created
         # set the vehicle id for visualizing
         for i, v in enumerate(self.road.vehicles):
@@ -209,7 +209,7 @@ class AbstractEnv(gym.Env):
             available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
         return np.asarray(obs).reshape((len(obs), -1)) if self.flatten_obs else obs, np.array(available_actions)
 
-    def _reset(self, num_CAV=1) -> None:
+    def _reset(self, is_training=False) -> None:
         """
         Reset the scene: roads and vehicles.
 

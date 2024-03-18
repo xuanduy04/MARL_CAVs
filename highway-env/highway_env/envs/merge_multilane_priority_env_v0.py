@@ -194,13 +194,21 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         return vehicle.crashed \
                or self.steps >= self.config["duration"] * self.config["policy_frequency"]
 
-    def _reset(self, num_CAV=-1) -> None:
+    def _reset(self, is_training=False) -> None:
         self._make_road()
-        self._make_vehicles()
+
+        num_CAV = self.config["num_CAV"]
+        num_HDV = self.config["num_HDV"]
+        if is_training:
+            # chance to train with less vehicles, simulates curriculum training, in a way.
+            num_CAV = np.random.choice(np.arange(max(1,num_CAV-2), num_CAV), 1)[0]
+            num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV), 1)[0]
+
+        self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
 
-    def _make_road(self, ) -> None:
+    def _make_road(self) -> None:
         """
         Make a road composed of a straight highway and a merging lane.
         :return: the road
@@ -233,7 +241,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         road.objects.append(Obstacle(road, lbc.position(self.ends[2], 0)))
         self.road = road
 
-    def _make_vehicles(self) -> None:
+    def _make_vehicles(self, num_CAV, num_HDV) -> None:
         """
         Populate a road with several vehicles on the highway and on the merging lane, as well as an ego-vehicle.
         :return: the ego-vehicle
@@ -244,8 +252,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         self.controlled_vehicles = []
         road.priority_vehicle = None
 
-        num_CAV = self.config["num_CAV"]
-        num_HDV = self.config["num_HDV"]
         num_PV = 1
 
         spawn_points_s1 = [10, 50, 90, 130] #, 170, 210, 250]
@@ -253,8 +259,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         spawn_points_m = [5, 45, 85, 125] #, 165, 205]
 
         """Spawn points for PV"""
-        # for now, PV always spawn on straight road....
-        #  NAH. Just implement it first, we will see it's behaviour later.
+        # for now, PV always spawn on straight road.
         # if not self.config["priority_vehicle_can_spawn_first"]:
             # print("priority_vehicle_can_spawn_first setting is currently unimplemented")
 
