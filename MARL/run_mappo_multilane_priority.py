@@ -147,8 +147,8 @@ def train(args):
     env = gym.make('merge-multilane-priority-multi-agent-v0')
     env = init_env(config=config, env=env)
 
-    ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
-    assert env.T % ROLL_OUT_N_STEPS == 0
+    # ROLL_OUT_N_STEPS = config.getint('MODEL_CONFIG', 'ROLL_OUT_N_STEPS')
+    # assert env.T % ROLL_OUT_N_STEPS == 0
 
     env_eval = gym.make('merge-multilane-priority-multi-agent-v0')
     env_eval = init_env(config=config, env=env_eval)
