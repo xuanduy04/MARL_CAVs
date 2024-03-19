@@ -50,16 +50,16 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "simulation_frequency": 15,  # [Hz]
             "duration": 20,  # time step
             "policy_frequency": 5,  # [Hz]
-            "reward_speed_range": [10, 30],
+            "reward_speed_range": [15, 30],
             "priority_target_speed_range": [30, 40],
             "COLLISION_REWARD": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
-            "PRIORITY_SPEED_COST": 2,
+            "PRIORITY_SPEED_COST": 1,
             "HEADWAY_COST": 4,  # default=4
             "HEADWAY_TIME": 1.2,  # default=1.2[s]
             "MERGING_LANE_COST": 4,  # default=4
-            "PRIORITY_LANE_COST": 2,
-            "LANE_CHANGE_COST": 2,  # default=0.5
+            "PRIORITY_LANE_COST": 1,
+            "LANE_CHANGE_COST": 0.5,  # default=0.5
             "num_CAV": 4,
             "num_HDV": 4,
             "flatten_obs": False, # set this to False for attention to work
