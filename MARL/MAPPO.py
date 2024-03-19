@@ -316,7 +316,6 @@ class MAPPO:
                 # writer.close()
 	
         env.close()
-   
         return rewards, (vehicle_speed, vehicle_position), steps, avg_speeds
 
     # discount roll out rewards
