@@ -50,7 +50,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "simulation_frequency": 15,  # [Hz]
             "duration": 20,  # time step
             "policy_frequency": 5,  # [Hz]
-            "reward_speed_range": [15, 30],
+            "reward_speed_range": [20, 30],
             "priority_target_speed_range": [30, 40],
             "COLLISION_REWARD": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
@@ -120,7 +120,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         
         # compute overall reward
         reward = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed) \
-                 + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, 0, 1)) \
+                 + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, -1, 1)) \
                  + self.config["MERGING_LANE_COST"] * Merging_lane_cost \
                  + (self.config["HEADWAY_COST"] * Headway_cost if Headway_cost < 0 else 0) \
                  + priority_lane_cost \
