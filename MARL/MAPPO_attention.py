@@ -38,7 +38,7 @@ class MAPPO_attention(MAPPO):
                  actor_hidden_size=128, critic_hidden_size=128,
                  actor_output_act=nn.functional.log_softmax, critic_loss="mse",
                  actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
-                 optimizer_type="rmsprop", entropy_reg=0.01,
+                 optimizer_type="adam", entropy_reg=0.01,
                  max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
                  use_cuda=True, reward_type="global_R"):
 
