@@ -92,6 +92,9 @@ def init_env(config, env):
     env.config['action_masking'] = config.getboolean('MODEL_CONFIG', 'action_masking')
     env.config['num_CAV'] = config.getint('ENV_CONFIG', 'num_CAV')
     env.config['num_HDV'] = config.getint('ENV_CONFIG', 'num_HDV')
+    
+    use_attention_module = config.getboolean('MODEL_CONFIG','use_attention_module')
+    env.config['flatten_obs'] = not use_attention_module
     return env
 
 
