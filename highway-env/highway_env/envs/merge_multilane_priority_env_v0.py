@@ -180,7 +180,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         self._regional_reward()
         info["regional_rewards"] = tuple(vehicle.regional_reward for vehicle in self.controlled_vehicles)
 
-        if self.flatten_obs:
+        if self.config["flatten_obs"]:
             obs = np.asarray(obs).reshape((len(obs), -1))
         return obs, reward, done, info
 

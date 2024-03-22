@@ -60,7 +60,6 @@ class AbstractEnv(gym.Env):
         self.observation_space = None
         self.define_spaces()
         assert self.config["flatten_obs"] is not None, "Do we flatten the observation or not?"
-        self.flatten_obs = self.config["flatten_obs"]
 
         # Running
         self.time = 0  # Simulation time
@@ -207,7 +206,8 @@ class AbstractEnv(gym.Env):
                     available_actions[i][a] = 1
         else:
             available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
-        return np.asarray(obs).reshape((len(obs), -1)) if self.flatten_obs else obs, np.array(available_actions)
+        return np.asarray(obs).reshape((len(obs), -1)) if self.config["flatten_obs"] else obs, \
+              np.array(available_actions)
 
     def _reset(self, is_training=False) -> None:
         """
