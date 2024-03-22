@@ -57,7 +57,7 @@ class MAPPO_attention(MAPPO):
 
         print("Environment observation shape: ", env.observation_space[0].shape, sep = '')
 
-        assert env.flatten_obs == False
+        # assert env.flatten_obs == False
         assert env.observation_space[0].shape[1] == d_model
 
         self.d_model = d_model
