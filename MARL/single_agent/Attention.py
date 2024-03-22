@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import Tensor
 
 
-"""Based on OpenSpeech's code"""
+"""Based on OpenSpeech: https://github.com/openspeech-team/openspeech"""
 
 class ScaledDotProductAttention(nn.Module):
     """
