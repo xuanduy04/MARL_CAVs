@@ -27,6 +27,8 @@ class MergeEnv(AbstractEnv):
     n_a = 5
     n_s = 25
 
+    raise DeprecationWarning("Deprecated, will not work")
+
     @classmethod
     def default_config(cls) -> dict:
         config = super().default_config()
