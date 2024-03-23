@@ -7,7 +7,7 @@ import torch.nn as nn
 
 
 def entropy(p):
-    return -th.sum(p * th.log(p), 1)
+    return -th.sum(p * th.log(p), 0)
 
 
 def kl_log_probs(log_p1, log_p2):
