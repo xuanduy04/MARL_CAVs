@@ -74,7 +74,7 @@ class MultiHeadAttention(nn.Module):
         self,
         d_model: int,
         num_heads: int,
-        dropout_p: int,
+        dropout_p: float,
     ) -> None:
         super(MultiHeadAttention, self).__init__()
 
