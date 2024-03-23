@@ -19,7 +19,7 @@ import numpy as np
 from copy import deepcopy
 from single_agent.Attention_Feed_Forward import Attention_Feed_Forward
 from single_agent.Attention import MultiHeadAttention
-from common.utils import index_to_one_hot, to_tensor_var
+from common.utils import entropy, index_to_one_hot, to_tensor_var
 
 
 class MAPPO_attention(MAPPO):
@@ -122,7 +122,8 @@ class MAPPO_attention(MAPPO):
             surr1 = ratio * advantages
             surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
             # PPO's pessimistic surrogate (L^CLIP)
-            actor_loss = -torch.mean(torch.min(surr1, surr2))
+            actor_loss = -torch.mean(torch.min(surr1, surr2)) \
+                - self.entropy_reg * torch.mean(entropy(torch.exp(action_log_probs)))
             actor_loss.backward()
             if self.max_grad_norm is not None:
                 nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)

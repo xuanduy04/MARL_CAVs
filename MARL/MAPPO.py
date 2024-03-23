@@ -18,7 +18,7 @@ import os, logging
 from copy import deepcopy
 from single_agent.Memory_common import OnPolicyReplayMemory
 from single_agent.Model_common import ActorNetwork, CriticNetwork
-from common.utils import index_to_one_hot, to_tensor_var, VideoRecorder
+from common.utils import entropy, index_to_one_hot, to_tensor_var
 
 
 class MAPPO:
@@ -186,7 +186,8 @@ class MAPPO:
             surr1 = ratio * advantages
             surr2 = th.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
             # PPO's pessimistic surrogate (L^CLIP)
-            actor_loss = -th.mean(th.min(surr1, surr2))
+            actor_loss = -th.mean(th.min(surr1, surr2)) \
+                - self.entropy_reg * th.mean(entropy(th.exp(action_log_probs)))
             actor_loss.backward()
             if self.max_grad_norm is not None:
                 nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
