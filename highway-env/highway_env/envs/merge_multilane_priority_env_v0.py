@@ -193,7 +193,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             obs = np.asarray(obs).reshape((len(obs), -1))
         else:
             obs = np.asarray(obs)
-        print(f"""obs.shape from env.step: {obs.shape}""")
+        # print(f"""obs.shape from env.step: {obs.shape}""")
         return obs, reward, done, info
 
     def _is_terminal(self) -> bool:

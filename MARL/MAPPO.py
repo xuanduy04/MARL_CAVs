@@ -13,6 +13,7 @@ th.backends.cudnn.deterministic = True
 
 from torch.optim import Adam, RMSprop
 
+import warnings
 import numpy as np
 import os, logging
 from copy import deepcopy
@@ -62,6 +63,8 @@ class MAPPO:
         self.entropy_reg = entropy_reg
         self.max_grad_norm = max_grad_norm
         self.batch_size = batch_size
+        if episodes_before_train != 1:
+            warnings.warn("episodes_before_train not equal to 1 may cause unexpected errors")
         self.episodes_before_train = episodes_before_train
         self.use_cuda = use_cuda and th.cuda.is_available()
         self.roll_out_n_steps = roll_out_n_steps
