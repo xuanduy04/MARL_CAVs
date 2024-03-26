@@ -18,7 +18,9 @@ class ReplayMemory(object):
     def _push_one(self, state: tuple, action, reward, next_state=None, done=None):
         if len(self.memory):
             assert len(self.memory[-1].states) == len(state), \
-            f"last_state's shape != new_state's shape\n{len(self.memory[-1].states)} != {len(state)}"
+            f"""last_state's shape != new_state's shape
+            \n{len(self.memory[-1].states)} != {len(state)}
+            \n{self.memory[-1].states}, {state}"""
         if len(self.memory) < self.capacity:
             self.memory.append(None)
         self.memory[self.position] = Experience(state, action, reward, next_state, done)
