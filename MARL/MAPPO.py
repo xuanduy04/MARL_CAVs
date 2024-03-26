@@ -119,6 +119,7 @@ class MAPPO:
         self.n_agents = len(self.env.controlled_vehicles)
         # take n steps
         for i in range(self.roll_out_n_steps):
+            print(i, self.env_state, "\n---------\n")
             states.append(self.env_state)
             action = self.exploration_action(self.env_state, self.n_agents)
             next_state, global_reward, done, info = self.env.step(tuple(action))

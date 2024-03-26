@@ -206,7 +206,7 @@ class AbstractEnv(gym.Env):
                     available_actions[i][a] = 1
         else:
             available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
-        return np.asarray(obs).reshape((len(obs), -1)) if self.config["flatten_obs"] else obs, \
+        return np.asarray(obs).reshape((len(obs), -1)) if self.config["flatten_obs"] else np.asarray(obs), \
               np.array(available_actions)
 
     def _reset(self, is_training=False) -> None:

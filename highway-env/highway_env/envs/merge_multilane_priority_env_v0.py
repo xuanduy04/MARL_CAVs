@@ -191,6 +191,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         if self.config["flatten_obs"]:
             obs = np.asarray(obs).reshape((len(obs), -1))
+        else:
+            obs = np.asarray(obs)
         return obs, reward, done, info
 
     def _is_terminal(self) -> bool:
