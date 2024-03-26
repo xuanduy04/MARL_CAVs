@@ -197,6 +197,7 @@ class AbstractEnv(gym.Env):
         for i, v in enumerate(self.road.vehicles):
             v.id = i
         obs = self.observation_type.observe()
+        print(f"""obs.shape from env.reset: {np.asarray(obs).shape}""")
         # get action masks
         if self.config["action_masking"]:
             available_actions = [[0] * self.n_a] * len(self.controlled_vehicles)
@@ -505,6 +506,7 @@ class AbstractEnv(gym.Env):
             pass
 
         # print(self.steps)
+        print(f"""obs.shape from env.super().step: {np.asarray(obs).shape}""")
         return obs, reward, terminal, info
 
     def _simulate(self, action: Optional[Action] = None) -> None:
