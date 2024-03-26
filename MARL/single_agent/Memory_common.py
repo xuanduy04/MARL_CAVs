@@ -52,10 +52,10 @@ class OnPolicyReplayMemory(ReplayMemory):
     Replay memory buffer
     """
     def __init__(self, capacity):
-        super.__init__(capacity)
+        super().__init__(capacity)
 
     def sample(self, batch_size):
-        batch = super.sample(batch_size=batch_size)
+        batch = super().sample(batch_size=batch_size)
 
         # reset the memory
         self.memory = []
