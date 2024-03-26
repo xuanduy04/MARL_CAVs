@@ -468,6 +468,7 @@ class AbstractEnv(gym.Env):
         obs = self.observation_type.observe()
         print(f"""obs.shape from env.super().step: {np.asarray(obs).shape}""")
         reward = self._reward(action)
+        print(f"""reward.shape from env.super().step: {np.asarray(reward).shape}""")
         terminal = self._is_terminal()
 
         # get action masks
