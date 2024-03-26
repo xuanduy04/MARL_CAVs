@@ -466,6 +466,7 @@ class AbstractEnv(gym.Env):
         self._simulate(self.new_action)
 
         obs = self.observation_type.observe()
+        print(f"""obs.shape from env.super().step: {np.asarray(obs).shape}""")
         reward = self._reward(action)
         terminal = self._is_terminal()
 
@@ -505,8 +506,7 @@ class AbstractEnv(gym.Env):
         except NotImplementedError:
             pass
 
-        # print(self.steps)
-        print(f"""obs.shape from env.super().step: {np.asarray(obs).shape}""")
+        # print(self.steps)    
         return obs, reward, terminal, info
 
     def _simulate(self, action: Optional[Action] = None) -> None:
