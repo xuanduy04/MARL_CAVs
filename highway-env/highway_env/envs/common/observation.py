@@ -233,6 +233,7 @@ class KinematicObservation(ObservationType):
             df = df.append(pd.DataFrame(data=rows, columns=self.features), ignore_index=True)        
         # Reorder
         df = df[self.features]
+        print(f"df.shape before copy() to obs: {df.shape}")
         obs = df.values.copy()
         if self.order == "shuffled":
             self.env.np_random.shuffle(obs[1:])

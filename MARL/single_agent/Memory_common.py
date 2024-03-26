@@ -15,12 +15,12 @@ class ReplayMemory(object):
         self.memory = []
         self.position = 0
 
-    def _push_one(self, state: tuple, action, reward, next_state=None, done=None):
+    def _push_one(self, state, action, reward, next_state=None, done=None):
         if len(self.memory):
-            assert len(self.memory[-1].states) == len(state), \
+            assert self.memory[-1].states.shape == state.shape, \
             f"""last_state's shape != new_state's shape
-            \n{len(self.memory[-1].states)} != {len(state)}
-            \n{self.memory[-1].states}, {state}"""
+            \n{self.memory[-1].states.shape} != {state.shape}
+            \n{self.memory[-1].states}\n{state}"""
         if len(self.memory) < self.capacity:
             self.memory.append(None)
         self.memory[self.position] = Experience(state, action, reward, next_state, done)
