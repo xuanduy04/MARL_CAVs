@@ -399,7 +399,8 @@ class Road(object):
             lane = self.network.get_lane(self.priority_vehicle.lane_index)
             # comparing longitude coordinates 
             priority_vehicle_dist = \
-                lane.local_coordinates(self.priority_vehicle.position)[0] - lane.local_coordinates(vehicle.position)[0]
+                lane.local_coordinates(self.priority_vehicle.position)[0] \
+                    - lane.local_coordinates(vehicle.position)[0]
             return priority_vehicle_dist, self.priority_vehicle
         # If there are no priority vehicles,
         return 0xfff, None
