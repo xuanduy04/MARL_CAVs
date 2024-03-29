@@ -92,6 +92,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         if vehicle.lane_index == ("b", "c", 2):
             Merging_lane_cost = - np.exp(-(vehicle.position[0] - sum(self.ends[:3])) ** 2 / (
                     10 * self.ends[2]))
+            if self._is_terminal():
+                Merging_lane_cost *= 2
         else:
             Merging_lane_cost = 0
 
