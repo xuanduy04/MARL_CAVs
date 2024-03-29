@@ -80,13 +80,12 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             :return: the reward of the state-action transition
        """
         # 10 is the vehicle's minimum speed, while 30 is the maximum.
-        if vehicle.speed < self.config["reward_speed_cap"]:
-            # sigmoid
+        # "if" statement is here for code speedup
+        if self.config["reward_speed_cap"] is not 20:
             mean = 10 + 0.5 * (self.config["reward_speed_cap"] - 10)
-            scaled_speed = 0.95 / (1 + np.exp(-vehicle.speed + mean))
+            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + mean))
         else:
-            # shallow-slope linear
-            scaled_speed = 0.95 + utils.lmap(vehicle.speed, [self.config["reward_speed_cap"], 30], [0, 0.05])
+            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + 15))
 
         # compute cost for staying on the merging lane
         if vehicle.lane_index == ("b", "c", 2):
