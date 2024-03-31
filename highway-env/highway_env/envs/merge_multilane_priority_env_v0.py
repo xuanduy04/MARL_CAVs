@@ -110,8 +110,12 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # compute cost for blocking the priority vehicle's path
         priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(vehicle)
+        
+        # Add (not self.viewer.sim_surface.is_visible(priority_vehicle.position)) 
+        #   if you want to only begin couting when the vehicle is visible.
         priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
-            if priority_vehicle_dist < 0 and vehicle.lane_index == priority_vehicle.lane_index else 0
+            if priority_vehicle_dist < 0 \
+                and vehicle.lane_index == priority_vehicle.lane_index else 0
         
         # if you are in the process of dodging, I'll reduce the blocking cost.
         if priority_lane_cost and (action == 0 or action == 2):

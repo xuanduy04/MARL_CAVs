@@ -392,6 +392,7 @@ class Road(object):
             - (Vehicle) The priority vehicle or `None` if priority vehicle doesn't exist.
         """
         """Note: only works as intended if there's at most 1 priority vehicle"""
+        # TODO: priority vehicle not showing up on the screen may cause error in this function.
         if vehicle.is_priority:
             return 0, vehicle
 
