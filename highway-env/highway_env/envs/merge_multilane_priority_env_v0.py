@@ -42,10 +42,9 @@ class MergeMultilanePriorityEnv(AbstractEnv):
                 "longitudinal": True,
                 "lateral": True
             },
-            "controlled_vehicles": 1,
-            "screen_width": 608,
+            "screen_width": 1504,
             "screen_height": 128,
-            "centering_position": [0.3, 0.5],
+            "centering_position": [0.5875, 0.5], # [width, height] - increase = go right
             "scaling": 3,
             "simulation_frequency": 15,  # [Hz]
             "duration": 20,  # time step
@@ -61,7 +60,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "MERGING_LANE_COST": 4,  # default=4
             "PRIORITY_LANE_COST": 1,
             "LANE_CHANGE_COST": 0.5,  # default=0.5
-            "num_CAV": 4,
+            "num_CAV": 1,
             "num_HDV": 4,
             "flatten_obs": False, # set this to False for attention to work
         })
@@ -272,6 +271,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         num_PV = 1
 
+        # small numbers spawn later.
         spawn_points_s1 = [10, 50, 90, 130] #, 170, 210, 250]
         spawn_points_s2 = [5, 45, 85, 125] #, 165, 205, 245]
         spawn_points_m = [5, 45, 85, 125] #, 165, 205]
@@ -405,7 +405,8 @@ class MergeMultilanePriorityEnvMARL(MergeMultilanePriorityEnv):
                     "vehicles_count": 6, 
                     "see_priority_vehicle": True,
                 }},
-            "controlled_vehicles": 4
+            "num_CAV": 4,
+            "num_HDV": 4,
         })
         return config
 
