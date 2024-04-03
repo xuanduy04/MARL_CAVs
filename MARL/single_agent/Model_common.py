@@ -19,7 +19,9 @@ class ActorNetwork(nn.Module):
     def __call__(self, state):
         out = nn.functional.relu(self.fc1(state))
         out = nn.functional.relu(self.fc2(out))
-        out = self.output_act(self.fc3(out))
+        out = self.output_act(self.fc3(out), -1) 
+        # -1 for the last layer, as what is previously done.
+        # "-1" added to remove UserWarning.
         return out
 
 

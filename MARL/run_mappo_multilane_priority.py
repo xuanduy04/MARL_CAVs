@@ -187,15 +187,15 @@ def train(args):
             rewards, _, _, avg_speed = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
             rewards_mu, rewards_std = agg_double_list(rewards)
             avg_speed_mu, avg_speed_std = agg_double_list(avg_speed)
-            print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
             eval_rewards.append(round(rewards_mu,2))
             avg_speeds.append(round(avg_speed_mu,2))
-            print("Average rewards:", eval_rewards,
-                  "Average speeds:", avg_speeds,
-                  sep='\n')
             evaluated_episodes.append(mappo.n_episodes + 1)
             # save the model
             mappo.save(dirs['models'], mappo.n_episodes + 1)
+            # Outputs:
+            print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
+            print("Average rewards:", eval_rewards)
+            print( "Average speeds:", avg_speeds)
 
     # save the model
     mappo.save(dirs['models'], MAX_EPISODES + 2)
