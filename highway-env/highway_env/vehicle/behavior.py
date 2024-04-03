@@ -322,19 +322,21 @@ class PriorityIDMVehicle(IDMVehicle):
     """
 
     """ Maximum reachable speed [m/s] """
-    MAX_SPEED = 40.
+    MAX_SPEED = 50.
 
     """Longitudinal policy parameters"""
     # Maximum acceleration.
-    ACC_MAX = 18.0  # [m/s2] (triple the normal value)
+    ACC_MAX = 12.0  # [m/s2] (double the normal value)
     # Desired maximum acceleration.
     COMFORT_ACC_MAX = ACC_MAX  # [m/s2]  (Wants to reach destination as fast as possible).
     # Desired minimum deceleration.
     COMFORT_ACC_MIN = -0.01  # [m/s2]  (Never wants to slow down).
             # [small negative number to avoid zero division and NaN].
-    #   The following are safety related so unchanged:
+    #   The following are safety related
     # Desired jam distance to the front vehicle.
+    DISTANCE_WANTED = (5.0 + ControlledVehicle.LENGTH) / 2  # [m]
     # Desired time gap to the front vehicle.
+    TIME_WANTED = 1.5 / 2  # [s]
 
     """Lateral policy parameters"""
     POLITENESS = 0.  # in [0, 1]
