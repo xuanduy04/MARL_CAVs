@@ -78,8 +78,16 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             :param action: the action performed
             :return: the reward of the state-action transition
        """
+        # ACTIONS_ALL = {
+        #     0: 'LANE_LEFT',
+        #     1: 'IDLE',
+        #     2: 'LANE_RIGHT',
+        #     3: 'FASTER',
+        #     4: 'SLOWER'
+        # } 
+       
         # NOTE: I'm not sure if vehicle.crashed would mean that vehicle.speed is reset to 0.
-        collision_cost = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed * vehicle.speed)
+        collision_cost = vehicle.crashed * -1 * self.config["COLLISION_REWARD"] * (vehicle.speed ** 2)
 
         # 10 is the vehicle's minimum speed, while 30 is the maximum.
         # "if" statement is here for code speedup
@@ -88,13 +96,14 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             mean = 10 + 0.5 * (self.config["reward_speed_cap"] - 10)
             scaled_speed = 1 / (1 + np.exp(-vehicle.speed + mean))
         else:
-            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + 15))
             # scaled_speed = 2 / (1 + np.exp((10-vehicle.speed)*0.5)) -1
+            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + 15))
 
         # compute cost for staying on the merging lane
         if vehicle.lane_index == ("b", "c", 2):
             Merging_lane_cost = - np.exp(-(vehicle.position[0] - sum(self.ends[:3])) ** 2 / (
                     10 * self.ends[2]))
+            # punish for staying in merging lane at terminal state
             if self._is_terminal():
                 Merging_lane_cost *= 2
         else:
@@ -102,6 +111,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # lane change cost to avoid unnecessary/frequent lane changes
         lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] if action == 0 or action == 2 else 0
+        # TODO????: stack the lane change cost?
 
         # compute headway cost
         headway_distance = self._compute_headway_distance(vehicle)
@@ -124,7 +134,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         if priority_lane_cost and (action == 0 or action == 2):
             priority_lane_cost *= 0.5
             # and nullify the lane change cost
-            lane_change_cost = 0
+            # lane_change_cost = 0
         
         # cost for slowing the priority vehicle.
         # priority_scaled_speed = \
