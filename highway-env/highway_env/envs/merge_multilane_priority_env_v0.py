@@ -68,10 +68,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
     def _reward(self, action: int) -> float:
         # Cooperative multi-agent reward
-        return sum(self._agent_reward(action[idx], vehicle) for idx, vehicle in enumerate(self.controlled_vehicles)) \
+        return sum(self._agent_reward(action[idx], vehicle, idx) for idx, vehicle in enumerate(self.controlled_vehicles)) \
                / len(self.controlled_vehicles)
 
-    def _agent_reward(self, action: int, vehicle: Vehicle) -> float:
+    def _agent_reward(self, action: int, vehicle: Vehicle, vehicle_idx: int) -> float:
         """
             The vehicle is rewarded for driving with high speed on lanes to the right and avoiding collisions
             But an additional altruistic penalty is also suffered if any vehicle on the merging lane has a low speed.
@@ -84,10 +84,9 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         #     2: 'LANE_RIGHT',
         #     3: 'FASTER',
         #     4: 'SLOWER'
-        # } 
-       
+        # }        
         # NOTE: I'm not sure if vehicle.crashed would mean that vehicle.speed is reset to 0.
-        collision_cost = vehicle.crashed * -1 * self.config["COLLISION_REWARD"] * (vehicle.speed ** 2)
+        collision_cost = vehicle.crashed * -1 * self.config["COLLISION_REWARD"] * vehicle.speed
 
         # 10 is the vehicle's minimum speed, while 30 is the maximum.
         # "if" statement is here for code speedup
@@ -97,21 +96,26 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             scaled_speed = 1 / (1 + np.exp(-vehicle.speed + mean))
         else:
             # scaled_speed = 2 / (1 + np.exp((10-vehicle.speed)*0.5)) -1
-            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + 15))
+            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + 15.))
 
         # compute cost for staying on the merging lane
         if vehicle.lane_index == ("b", "c", 2):
-            Merging_lane_cost = - np.exp(-(vehicle.position[0] - sum(self.ends[:3])) ** 2 / (
-                    10 * self.ends[2]))
+            Merging_lane_cost = - np.exp(-(vehicle.position[0] - sum(self.ends[:3])) ** 2. / (
+                    10. * self.ends[2]))
             # punish for staying in merging lane at terminal state
             if self._is_terminal():
-                Merging_lane_cost *= 2
+                Merging_lane_cost *= 2.
         else:
             Merging_lane_cost = 0
 
-        # lane change cost to avoid unnecessary/frequent lane changes
-        lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] if action == 0 or action == 2 else 0
-        # TODO????: stack the lane change cost?
+        # lane change cost to avoid unnecessary & frequent lane changes
+        if action == 0 or action == 2:
+            self.continous_lane_change[vehicle_idx] += self.continous_lane_change[vehicle_idx] + 1
+            lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] * self.continous_lane_change[vehicle_idx]
+        else:
+            self.continous_lane_change[vehicle_idx] = 0
+            lane_change_cost = 0
+        # idea: stack the lane change cost
 
         # compute headway cost
         headway_distance = self._compute_headway_distance(vehicle)
@@ -233,7 +237,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             # Simulates curriculum training, in a way.
             num_CAV = np.random.choice(np.arange(max(1,num_CAV-2), num_CAV+1), 1)[0]
             num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
-
+        
+        self.continous_lane_change = [0 for i in num_CAV]
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
