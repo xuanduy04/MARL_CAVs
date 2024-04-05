@@ -238,7 +238,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             num_CAV = np.random.choice(np.arange(max(1,num_CAV-2), num_CAV+1), 1)[0]
             num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
         
-        self.continous_lane_change = [0 for i in num_CAV]
+        self.continous_lane_change = [0 for i in range(num_CAV)]
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
