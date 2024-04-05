@@ -110,10 +110,11 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # lane change cost to avoid unnecessary & frequent lane changes
         if action == 0 or action == 2:
-            self.continous_lane_change[vehicle_idx] += self.continous_lane_change[vehicle_idx] + 1
-            lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] * self.continous_lane_change[vehicle_idx]
+            lane_change_dist = np.linalg.norm(self.lane_change_pos[vehicle_idx] - self.position) \
+                if self.lane_change_pos[vehicle_idx] != 0 else 1
+            lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] / lane_change_dist
+            self.lane_change_pos[vehicle_idx] = vehicle.position
         else:
-            self.continous_lane_change[vehicle_idx] = 0
             lane_change_cost = 0
         # idea: stack the lane change cost
 
@@ -202,8 +203,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             agent_info.append([v.position[0], v.position[1], v.speed])
         info["agents_info"] = agent_info
 
-        # for vehicle in self.controlled_vehicles:
-        #     vehicle.local_reward = self._agent_reward(action, vehicle)
+        # for idx, vehicle in enumerate(self.controlled_vehicles):
+        #     vehicle.local_reward = self._agent_reward(action, vehicle, idx)
         # local reward
         # info["agents_rewards"] = tuple(vehicle.local_reward for vehicle in self.controlled_vehicles)
         # regional reward
@@ -238,7 +239,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             num_CAV = np.random.choice(np.arange(max(1,num_CAV-2), num_CAV+1), 1)[0]
             num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
         
-        self.continous_lane_change = [0 for i in range(num_CAV)]
+        self.lane_change_pos = [0 for i in range(num_CAV)]
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
