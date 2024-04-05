@@ -110,7 +110,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # lane change cost to avoid unnecessary & frequent lane changes
         if action == 0 or action == 2:
-            lane_change_dist = np.linalg.norm(self.lane_change_pos[vehicle_idx] - self.position) \
+            lane_change_dist = np.linalg.norm(self.lane_change_pos[vehicle_idx] - self.position) ** 2. \
                 if isinstance(self.lane_change_pos[vehicle_idx], list) else 1
             lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] / lane_change_dist
             self.lane_change_pos[vehicle_idx] = vehicle.position
