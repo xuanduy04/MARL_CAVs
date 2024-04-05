@@ -202,13 +202,13 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             agent_info.append([v.position[0], v.position[1], v.speed])
         info["agents_info"] = agent_info
 
-        for vehicle in self.controlled_vehicles:
-            vehicle.local_reward = self._agent_reward(action, vehicle)
+        # for vehicle in self.controlled_vehicles:
+        #     vehicle.local_reward = self._agent_reward(action, vehicle)
         # local reward
-        info["agents_rewards"] = tuple(vehicle.local_reward for vehicle in self.controlled_vehicles)
+        # info["agents_rewards"] = tuple(vehicle.local_reward for vehicle in self.controlled_vehicles)
         # regional reward
-        self._regional_reward()
-        info["regional_rewards"] = tuple(vehicle.regional_reward for vehicle in self.controlled_vehicles)
+        # self._regional_reward()
+        # info["regional_rewards"] = tuple(vehicle.regional_reward for vehicle in self.controlled_vehicles)
 
         if self.config["flatten_obs"]:
             obs = np.asarray(obs).reshape((len(obs), -1))
