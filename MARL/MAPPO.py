@@ -1,4 +1,4 @@
-import torch as th
+import torch
 from torch import nn
 import configparser
 import imageio
@@ -7,9 +7,9 @@ config_dir = 'configs/configs_ppo.ini'
 config = configparser.ConfigParser()
 config.read(config_dir)
 torch_seed = config.getint('MODEL_CONFIG', 'torch_seed')
-th.manual_seed(torch_seed)
-th.backends.cudnn.benchmark = False
-th.backends.cudnn.deterministic = True
+torch.manual_seed(torch_seed)
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
 
 from torch.optim import Adam, RMSprop
 
@@ -66,7 +66,7 @@ class MAPPO:
         if episodes_before_train != 1:
             warnings.warn("episodes_before_train not equal to 1 may cause unexpected errors")
         self.episodes_before_train = episodes_before_train
-        self.use_cuda = use_cuda and th.cuda.is_available()
+        self.use_cuda = use_cuda and torch.cuda.is_available()
         self.roll_out_n_steps = roll_out_n_steps
         self.target_tau = target_tau
         self.target_update_steps = target_update_steps
@@ -129,10 +129,10 @@ class MAPPO:
             actions.append([index_to_one_hot(a, self.action_dim) for a in action])
             self.episode_rewards[-1] += global_reward
             self.epoch_steps[-1] += 1
-            if self.reward_type == "regionalR":
-                reward = info["regional_rewards"]
-            elif self.reward_type == "global_R":
+            if self.reward_type == "global_R":
                 reward = [global_reward] * self.n_agents
+            elif self.reward_type == "regionalR":
+                reward = info["regional_rewards"]
             rewards.append(reward)
             average_speed += info["average_speed"]
             final_state = next_state
@@ -183,15 +183,15 @@ class MAPPO:
             advantages = rewards_var[:, agent_id, :] - values
 
             action_log_probs = self.actor(states_var[:, agent_id, :])
-            action_log_probs = th.sum(action_log_probs * actions_var[:, agent_id, :], 1)
+            action_log_probs = torch.sum(action_log_probs * actions_var[:, agent_id, :], 1)
             old_action_log_probs = self.actor_target(states_var[:, agent_id, :]).detach()
-            old_action_log_probs = th.sum(old_action_log_probs * actions_var[:, agent_id, :], 1)
-            ratio = th.exp(action_log_probs - old_action_log_probs)
+            old_action_log_probs = torch.sum(old_action_log_probs * actions_var[:, agent_id, :], 1)
+            ratio = torch.exp(action_log_probs - old_action_log_probs)
             surr1 = ratio * advantages
-            surr2 = th.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
+            surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
             # PPO's pessimistic surrogate (L^CLIP)
-            actor_loss = -th.mean(th.min(surr1, surr2)) \
-                - self.entropy_reg * th.mean(entropy(th.exp(action_log_probs)))
+            actor_loss = -torch.mean(torch.min(surr1, surr2)) \
+                - self.entropy_reg * torch.mean(entropy(torch.exp(action_log_probs)))
             actor_loss.backward()
             if self.max_grad_norm is not None:
                 nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
@@ -221,7 +221,7 @@ class MAPPO:
 
         softmax_action = []
         for agent_id in range(n_agents):
-            softmax_action_var = th.exp(self.actor(state_var[:, agent_id, :]))
+            softmax_action_var = torch.exp(self.actor(state_var[:, agent_id, :]))
 
             if self.use_cuda:
                 softmax_action.append(softmax_action_var.data.cpu().numpy()[0])
@@ -356,7 +356,7 @@ class MAPPO:
                 save_file = 'checkpoint-{:d}.pt'.format(global_step)
         if save_file is not None:
             file_path = model_dir + save_file
-            checkpoint = th.load(file_path)
+            checkpoint = torch.load(file_path)
             print('Checkpoint loaded: {}'.format(file_path))
             self.actor.load_state_dict(checkpoint['model_state_dict'])
             if train_mode:
@@ -370,7 +370,7 @@ class MAPPO:
 
     def save(self, model_dir, global_step):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_step)
-        th.save({'global_step': global_step,
+        torch.save({'global_step': global_step,
                  'model_state_dict': self.actor.state_dict(),
                  'optimizer_state_dict': self.actor_optimizer.state_dict()},
                 file_path)
