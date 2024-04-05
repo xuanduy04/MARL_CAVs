@@ -19,7 +19,7 @@ class IDMVehicle(ControlledVehicle):
     """
 
     """ Maximum reachable speed [m/s] """
-    MAX_SPEED = 35.
+    MAX_SPEED = 30.
     
     """Longitudinal policy parameters"""
     # Maximum acceleration.
