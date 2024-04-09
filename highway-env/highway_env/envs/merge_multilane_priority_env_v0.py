@@ -84,19 +84,23 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         #     2: 'LANE_RIGHT',
         #     3: 'FASTER',
         #     4: 'SLOWER'
-        # }        
-        # NOTE: I'm not sure if vehicle.crashed would mean that vehicle.speed is reset to 0.
+        # }
         collision_cost = vehicle.crashed * -1 * self.config["COLLISION_REWARD"] * vehicle.speed
 
         # 10 is the vehicle's minimum speed, while 30 is the maximum.
         # "if" statement is here for code speedup
         if self.config["reward_speed_cap"] is not 20:
             # assert False, "deprecated."
-            mean = 10 + 0.5 * (self.config["reward_speed_cap"] - 10)
-            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + mean))
+            if vehicle.speed < self.config["reward_speed_cap"]:
+                mean = 10 + (self.config["reward_speed_cap"] - 10)/2
+                scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed-mean)))
+            else:
+                scaled_speed = 0.95 + utils.lmap(vehicle.speed, [self.config["reward_speed_cap"], 30], [0, 0.05])
         else:
-            # scaled_speed = 2 / (1 + np.exp((10-vehicle.speed)*0.5)) -1
-            scaled_speed = 1 / (1 + np.exp(-vehicle.speed + 15.))
+            if vehicle.speed < 20:
+                scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed-15)))
+            else:
+                scaled_speed = 0.95 + utils.lmap(vehicle.speed, [20, 30], [0, 0.05])
 
         # compute cost for staying on the merging lane
         if vehicle.lane_index == ("b", "c", 2):
