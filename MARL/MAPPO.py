@@ -129,10 +129,10 @@ class MAPPO:
             actions.append([index_to_one_hot(a, self.action_dim) for a in action])
             self.episode_rewards[-1] += global_reward
             self.epoch_steps[-1] += 1
-            if self.reward_type == "global_R":
-                reward = [global_reward] * self.n_agents
-            elif self.reward_type == "regionalR":
-                reward = info["regional_rewards"]
+            # if self.reward_type == "global_R":
+            reward = [global_reward] * self.n_agents
+            # elif self.reward_type == "regionalR":
+            #     reward = info["regional_rewards"]
             rewards.append(reward)
             average_speed += info["average_speed"]
             final_state = next_state
