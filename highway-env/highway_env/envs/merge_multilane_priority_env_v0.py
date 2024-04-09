@@ -112,7 +112,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         if action == 0 or action == 2:
             self.lane_change_mult[vehicle_idx] += self.lane_change_mult[vehicle_idx] + 1
             lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] * self.lane_change_mult[vehicle_idx]
-            self.lane_change_mult[vehicle_idx] = vehicle.position
         else:
             self.lane_change_mult[vehicle_idx] //= 2
             lane_change_cost = 0
