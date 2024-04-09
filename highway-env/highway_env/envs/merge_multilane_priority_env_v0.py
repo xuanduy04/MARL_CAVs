@@ -110,11 +110,11 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # lane change cost to avoid unnecessary & frequent lane changes
         if action == 0 or action == 2:
-            lane_change_dist = np.linalg.norm(self.lane_change_pos[vehicle_idx] - self.position) ** 2. \
-                if isinstance(self.lane_change_pos[vehicle_idx], list) else 1
-            lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] / lane_change_dist
-            self.lane_change_pos[vehicle_idx] = vehicle.position
+            self.lane_change_mult[vehicle_idx] += self.lane_change_mult[vehicle_idx] + 1
+            lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] * self.lane_change_mult[vehicle_idx]
+            self.lane_change_mult[vehicle_idx] = vehicle.position
         else:
+            self.lane_change_mult[vehicle_idx] //= 2
             lane_change_cost = 0
         # idea: stack the lane change cost
 
@@ -138,7 +138,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         # if you are in the process of dodging, I'll reduce the blocking cost.
         if priority_lane_cost and (action == 0 or action == 2):
             priority_lane_cost *= 0.5
-            # and nullify the lane change cost
+            # and nullify the lane change cost ?
             # lane_change_cost = 0
         
         # cost for slowing the priority vehicle.
@@ -239,7 +239,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             num_CAV = np.random.choice(np.arange(max(1,num_CAV-2), num_CAV+1), 1)[0]
             num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
         
-        self.lane_change_pos = [0 for i in range(num_CAV)]
+        self.lane_change_mult = [0 for _ in range(num_CAV)]
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
