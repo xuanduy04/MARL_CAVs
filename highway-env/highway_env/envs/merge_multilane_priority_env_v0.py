@@ -51,7 +51,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "policy_frequency": 5,  # [Hz]
             # "reward_speed_range": [10, 30],
             "reward_speed_cap": 20, # value must be in range [10,30]
-            "priority_target_speed_range": [30, 40],
+            # "priority_target_speed_range": [30, 40],
             "COLLISION_REWARD": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
             "PRIORITY_SPEED_COST": 1,
@@ -68,10 +68,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
     def _reward(self, action: int) -> float:
         # Cooperative multi-agent reward
-        return sum(self._agent_reward(action[idx], vehicle, idx) for idx, vehicle in enumerate(self.controlled_vehicles)) \
+        return sum(self._agent_reward(action[idx], vehicle) for idx, vehicle in enumerate(self.controlled_vehicles)) \
                / len(self.controlled_vehicles)
 
-    def _agent_reward(self, action: int, vehicle: Vehicle, vehicle_idx: int) -> float:
+    def _agent_reward(self, action: int, vehicle: MDPVehicle) -> float:
         """
             The vehicle is rewarded for driving with high speed on lanes to the right and avoiding collisions
             But an additional altruistic penalty is also suffered if any vehicle on the merging lane has a low speed.
@@ -85,24 +85,25 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         #     3: 'FASTER',
         #     4: 'SLOWER'
         # }
-        collision_cost = vehicle.crashed * -1 * self.config["COLLISION_REWARD"] * vehicle.speed
 
-        # 10 is the vehicle's minimum speed, while 30 is the maximum.
-        # "if" statement is here for code speedup
-        if self.config["reward_speed_cap"] is not 20:
-            # assert False, "deprecated."
-            if vehicle.speed < self.config["reward_speed_cap"]:
-                mean = 10 + (self.config["reward_speed_cap"] - 10)/2
-                scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed-mean)))
-            else:
-                scaled_speed = 0.95 + utils.lmap(vehicle.speed, [self.config["reward_speed_cap"], 30], [0, 0.05])
+        # COLLISION
+        if vehicle.crashed:
+            collision_cost = -1 * self.config["COLLISION_REWARD"] * vehicle.speed
+            if vehicle.lane_index == ("b", "c", 2):
+                # if vehicle crashed to the bumper in merging lane, treat as if 2 vehicles crashed.
+                collision_cost *= 2
         else:
-            if vehicle.speed < 20:
-                scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed-15)))
-            else:
-                scaled_speed = 0.95 + utils.lmap(vehicle.speed, [20, 30], [0, 0.05])
+            collision_cost = 0
 
-        # compute cost for staying on the merging lane
+        # SPEED
+        # 10 is the vehicle's minimum speed, while 30 is the maximum.
+        if vehicle.speed < self.config["reward_speed_cap"]:
+            mean = 10 + (self.config["reward_speed_cap"] - 10)/2
+            scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed-mean)))
+        else:
+            scaled_speed = 0.95 + utils.lmap(vehicle.speed, [self.config["reward_speed_cap"], 30], [0, 0.05])
+
+        # STAYING IN MERGING LANE
         if vehicle.lane_index == ("b", "c", 2):
             Merging_lane_cost = - np.exp(-(vehicle.position[0] - sum(self.ends[:3])) ** 2. / (
                     10. * self.ends[2]))
@@ -112,16 +113,16 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         else:
             Merging_lane_cost = 0
 
-        # lane change cost to avoid unnecessary & frequent lane changes
+        # LANE CHANGE
         if action == 0 or action == 2:
-            self.lane_change_mult[vehicle_idx] += self.lane_change_mult[vehicle_idx] + 1
-            lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] * self.lane_change_mult[vehicle_idx]
+            vehicle.lane_change_mult += vehicle.lane_change_mult + 1 
+            lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] * vehicle.lane_change_mult
         else:
-            self.lane_change_mult[vehicle_idx] //= 2
+            vehicle.lane_change_mult //= 2
             lane_change_cost = 0
         # idea: stack the lane change cost
 
-        # compute headway cost
+        # HEADWAY
         headway_distance = self._compute_headway_distance(vehicle)
         Headway_cost = np.log(
             headway_distance / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
@@ -131,19 +132,19 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         #       while punishing vehicles who do
         priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(vehicle)
 
-        # compute cost for blocking the priority vehicle's path
-        priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"] \
-            if priority_vehicle_dist < 0 \
-                and vehicle.lane_index == priority_vehicle.lane_index else 0
+        # Blocking priority vehicle's path
+        if priority_vehicle_dist < 0 and vehicle.lane_index == priority_vehicle.lane_index:
+            priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"]
+            # if you are in the process of dodging, I'll reduce the blocking cost.
+            if action == 0 or action == 2:
+                priority_lane_cost *= 0.5
+                # and nullify the lane change cost ?
+                # lane_change_cost = 0
+        else:
+            priority_lane_cost = 0
         # Add (not self.viewer.sim_surface.is_visible(priority_vehicle.position)) 
         #   if you want to only begin couting when the vehicle is visible.
-        
-        # if you are in the process of dodging, I'll reduce the blocking cost.
-        if priority_lane_cost and (action == 0 or action == 2):
-            priority_lane_cost *= 0.5
-            # and nullify the lane change cost ?
-            # lane_change_cost = 0
-        
+
         # cost for slowing the priority vehicle.
         # priority_scaled_speed = \
         #     utils.lmap(priority_vehicle.speed, self.config["priority_target_speed_range"], [0, 1]) \
@@ -152,7 +153,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             
             # + (self.config["PRIORITY_SPEED_COST"] * priority_scaled_speed) \
         
-        # compute overall reward
+        # OVERALL REWARD
         reward = collision_cost \
                  + (self.config["HIGH_SPEED_REWARD"] * scaled_speed) \
                  + (self.config["MERGING_LANE_COST"] * Merging_lane_cost) \
@@ -242,7 +243,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             num_CAV = np.random.choice(np.arange(max(1,num_CAV-2), num_CAV+1), 1)[0]
             num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
         
-        self.lane_change_mult = [0 for _ in range(num_CAV)]
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])

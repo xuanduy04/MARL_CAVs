@@ -216,6 +216,9 @@ class MDPVehicle(ControlledVehicle):
                          is_priority=False)
         self.speed_index = self.speed_to_index(self.target_speed)
         self.target_speed = self.index_to_speed(self.speed_index)
+        
+        # for the consecutive lane change reward
+        self.lane_change_mult = 0
 
     def act(self, action: Union[dict, str] = None) -> None:
         """
