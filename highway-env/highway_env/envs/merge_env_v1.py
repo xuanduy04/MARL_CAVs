@@ -48,7 +48,7 @@ class MergeEnv(AbstractEnv):
             "duration": 20,  # time step
             "policy_frequency": 5,  # [Hz]
             "reward_speed_range": [10, 30],
-            "COLLISION_REWARD": 200,  # default=200
+            "COLLISION_COST": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=0.5
             "HEADWAY_COST": 4,  # default=1
             "HEADWAY_TIME": 1.2,  # default=1.2[s]
@@ -83,7 +83,7 @@ class MergeEnv(AbstractEnv):
         Headway_cost = np.log(
             headway_distance / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
         # compute overall reward
-        reward = self.config["COLLISION_REWARD"] * (-1 * vehicle.crashed) \
+        reward = self.config["COLLISION_COST"] * (-1 * vehicle.crashed) \
                  + (self.config["HIGH_SPEED_REWARD"] * np.clip(scaled_speed, 0, 1)) \
                  + self.config["MERGING_LANE_COST"] * Merging_lane_cost \
                  + self.config["HEADWAY_COST"] * (Headway_cost if Headway_cost < 0 else 0)

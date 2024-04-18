@@ -52,7 +52,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             # "reward_speed_range": [10, 30],
             "reward_speed_cap": 20, # value must be in range [10,30]
             # "priority_target_speed_range": [30, 40],
-            "COLLISION_REWARD": 200,  # default=200
+            "COLLISION_COST": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
             "PRIORITY_SPEED_COST": 1,
             "HEADWAY_COST": 4,  # default=4
@@ -88,7 +88,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # COLLISION
         if vehicle.crashed:
-            collision_cost = -1 * self.config["COLLISION_REWARD"] * vehicle.speed
+            collision_cost = -1 * self.config["COLLISION_COST"] * vehicle.speed
             if vehicle.lane_index == ("b", "c", 2):
                 # if vehicle crashed to the bumper in merging lane, treat as if 2 vehicles crashed.
                 collision_cost *= 2
