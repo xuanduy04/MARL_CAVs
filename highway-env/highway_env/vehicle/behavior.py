@@ -330,7 +330,7 @@ class PriorityIDMVehicle(IDMVehicle):
     # Desired maximum acceleration.
     COMFORT_ACC_MAX = ACC_MAX  # [m/s2]  (Wants to reach destination as fast as possible).
     # Desired minimum deceleration.
-    COMFORT_ACC_MIN = -0.01  # [m/s2]  (Never wants to slow down).
+    COMFORT_ACC_MIN = -10.0  # [m/s2]  (double the normal value)
             # [small negative number to avoid zero division and NaN].
     #   The rest are safety related so unchanged.
 
