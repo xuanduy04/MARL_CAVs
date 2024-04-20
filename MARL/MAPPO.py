@@ -263,18 +263,19 @@ class MAPPO:
     # evaluation the learned agent
     def evaluation(self, env, output_dir, eval_episodes=1, is_train=True):
         rewards = []
-        infos = []
-        avg_speeds = []
-        steps = []
+        # infos = []
         vehicle_speed = []
         vehicle_position = []
+        steps = []
+        avg_speeds = []
+        crash_rate = 0.0
         seeds = [int(s) for s in self.test_seeds.split(',')]
 
         for i in range(eval_episodes):
-            avg_speed = 0
-            step = 0
             rewards_i = []
-            infos_i = []
+            # infos_i = []
+            step = 0
+            avg_speed = 0
             Recorded_frames = []
             done = False
             state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i])
@@ -299,28 +300,31 @@ class MAPPO:
                     Recorded_frames.append(rendered_frame)
                     
                 rewards_i.append(reward)
-                infos_i.append(info)
+                # infos_i.append(info)
 
             if video_filename is not None:
                 rendered_frame = env.render(mode="rgb_array")
                 Recorded_frames.append(rendered_frame)
-
+            
+            rewards.append(rewards_i)
+            # infos.append(infos_i)
             vehicle_speed.append(info["vehicle_speed"])
             vehicle_position.append(info["vehicle_position"])
-            rewards.append(rewards_i)
-            infos.append(infos_i)
             steps.append(step)
             avg_speeds.append(avg_speed / step)
+            crash_rate += info["crashed"] / n_agents
 
             if video_filename is not None:
                 imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames], fps=5)
+                # Alternate writer.
                 # writer = imageio.get_writer(video_filename, fps=5)
                 # for frame in Recorded_frames:
                 #     writer.append_data(np.array(frame))
                 # writer.close()
 	
         env.close()
-        return rewards, (vehicle_speed, vehicle_position), steps, avg_speeds
+        crash_rate /= eval_episodes
+        return rewards, (vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate
 
     # discount roll out rewards
     def _discount_reward(self, rewards, final_value):

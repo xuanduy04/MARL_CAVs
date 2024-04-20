@@ -489,7 +489,7 @@ class AbstractEnv(gym.Env):
         self.vehicle_pos.append(([v.position[0] for v in self.controlled_vehicles]))
         info = {
             "speed": self.vehicle.speed,
-            "crashed": self.vehicle.crashed,
+            "crashed": sum(v.crashed for v in self.controlled_vehicles) if terminal else 0.,
             "action": action,
             "new_action": self.new_action,
             "action_mask": np.array(available_actions),

@@ -177,6 +177,7 @@ def train(args):
     env.unwrapped.seed = env.config['seed']
     eval_rewards = []
     avg_speeds = []
+    crash_rates = []
     evaluated_episodes = []
 
     while mappo.n_episodes < MAX_EPISODES:
@@ -184,11 +185,13 @@ def train(args):
         if mappo.n_episodes >= EPISODES_BEFORE_TRAIN:
             mappo.train()
         if mappo.episode_done and ((mappo.n_episodes + 1) % EVAL_INTERVAL == 0):
-            rewards, _, _, avg_speed = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
+            rewards, _, _, avg_speed, crash_rate = \
+                mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
             rewards_mu, rewards_std = agg_double_list(rewards)
             avg_speed_mu, avg_speed_std = agg_double_list(avg_speed)
             eval_rewards.append(round(rewards_mu,2))
             avg_speeds.append(round(avg_speed_mu,2))
+            crash_rates.append(round(crash_rate,2))
             evaluated_episodes.append(mappo.n_episodes + 1)
             # save the model
             mappo.save(dirs['models'], mappo.n_episodes + 1)
@@ -196,6 +199,7 @@ def train(args):
             print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
             print("Average rewards:", eval_rewards)
             print( "Average speeds:", avg_speeds)
+            print(    "Crash rates:", crash_rates)
 
     # save the model
     mappo.save(dirs['models'], MAX_EPISODES + 2)
@@ -208,7 +212,8 @@ def train(args):
     plt.show()
     print("Evaluated episodes:", evaluated_episodes,
           "Average rewards:", eval_rewards,
-          "Average speeds:", avg_speeds, 
+          "Average speeds:", avg_speeds,
+          "Crash rate:", np.mean(np.array(crash_rates)),
           "Output_dir:", output_dir,
           sep='\n')
 
