@@ -243,7 +243,7 @@ def evaluate(args):
 
     # load the model if exist
     mappo.load(model_dir, train_mode=False)
-    rewards, _, steps, avg_speeds = mappo.evaluation(env, video_dir, len(seeds), is_train=False)
+    rewards, _, steps, avg_speeds, _ = mappo.evaluation(env, video_dir, len(seeds), is_train=False)
 
 
 if __name__ == "__main__":
