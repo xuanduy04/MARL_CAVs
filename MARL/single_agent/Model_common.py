@@ -1,4 +1,4 @@
-import torch as th
+import torch
 from torch import nn
 
 
@@ -17,8 +17,8 @@ class ActorNetwork(nn.Module):
         self.output_act = output_act
 
     def __call__(self, state):
-        out = nn.functional.tanh(self.fc1(state))
-        out = nn.functional.tanh(self.fc2(out))
+        out = torch.tanh(self.fc1(state))
+        out = torch.tanh(self.fc2(out))
         out = self.output_act(self.fc3(out), -1) 
         # -1 for the last layer, as what is previously done.
         # "-1" added to remove UserWarning.
@@ -38,9 +38,9 @@ class CriticNetwork(nn.Module):
         self.fc3 = nn.Linear(hidden_size, output_size)
 
     def __call__(self, state, action):
-        out = nn.functional.tanh(self.fc1(state))
+        out = torch.tanh(self.fc1(state))
         out = th.cat([out, action], 1)
-        out = nn.functional.tanh(self.fc2(out))
+        out = torch.tanh(self.fc2(out))
         out = self.fc3(out)
         return out
 
@@ -61,8 +61,8 @@ class ActorCriticNetwork(nn.Module):
         self.actor_output_act = actor_output_act
 
     def __call__(self, state):
-        out = nn.functional.tanh(self.fc1(state))
-        out = nn.functional.tanh(self.fc2(out))
+        out = torch.tanh(self.fc1(state))
+        out = torch.tanh(self.fc2(out))
         act = self.actor_output_act(self.actor_linear(out))
         val = self.critic_linear(out)
         return act, val
