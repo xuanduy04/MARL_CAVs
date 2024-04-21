@@ -39,7 +39,7 @@ class CriticNetwork(nn.Module):
 
     def __call__(self, state, action):
         out = torch.tanh(self.fc1(state))
-        out = th.cat([out, action], 1)
+        out = torch.cat([out, action], 1)
         out = torch.tanh(self.fc2(out))
         out = self.fc3(out)
         return out
