@@ -213,7 +213,7 @@ def train(args):
     print("Evaluated episodes:", evaluated_episodes,
           "Average rewards:", eval_rewards,
           "Average speeds:", avg_speeds,
-          "Crash rate:", np.mean(np.array(crash_rates)),
+          "Crash rate:", round(np.mean(np.array(crash_rates)),2),
           "Output_dir:", output_dir,
           sep='\n')
 
