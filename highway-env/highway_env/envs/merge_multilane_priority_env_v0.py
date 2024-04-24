@@ -94,8 +94,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         if vehicle.crashed:
             collision_cost = -1 * self.config["COLLISION_COST"] * vehicle.speed
             if vehicle.lane_index == ("b", "c", 2):
-                # if vehicle crashed to the bumper in merging lane, treat as if all vehicles crashed.
-                collision_cost *= 4
+                # if the vehicle crashed to the bumper in merging lane, 
+                # (or if any crashes happen here for that matter)
+                #       treat as if 6 vehicles crashed.
+                collision_cost *= 6
         else:
             collision_cost = 0
 
@@ -111,9 +113,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         if vehicle.lane_index == ("b", "c", 2):
             Merging_lane_cost = - np.exp(-(vehicle.position[0] - sum(self.ends[:3])) ** 2. / (
                     10. * self.ends[2]))
-            # punish for staying in merging lane at terminal state
-            if self._is_terminal():
-                Merging_lane_cost *= 2.
         else:
             Merging_lane_cost = 0
 
