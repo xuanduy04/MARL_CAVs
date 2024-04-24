@@ -95,7 +95,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             collision_cost = -1 * self.config["COLLISION_COST"] * vehicle.speed
             if vehicle.lane_index == ("b", "c", 2):
                 # if vehicle crashed to the bumper in merging lane, treat as if all vehicles crashed.
-                collision_cost *= len(self.controlled_vehicles)
+                collision_cost *= 4
         else:
             collision_cost = 0
 
@@ -244,7 +244,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         if is_training:
             # chance to train with less vehicles.
             # Simulates curriculum training, in a way.
-            num_CAV = np.random.choice(np.arange(max(1,num_CAV-2), num_CAV+1), 1)[0]
+            num_CAV = np.random.choice(np.arange(max(min(3,num_CAV),num_CAV-2), num_CAV+1), 1)[0]
             num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
         
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
