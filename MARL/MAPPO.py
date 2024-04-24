@@ -11,7 +11,7 @@ torch.manual_seed(torch_seed)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-from torch.optim import Adam, RMSprop
+from torch.optim import Adam, RMSprop, AdamW
 
 import warnings
 import numpy as np
@@ -36,7 +36,7 @@ class MAPPO:
                  actor_hidden_size=128, critic_hidden_size=128,
                  actor_output_act=nn.functional.log_softmax, critic_loss="mse",
                  actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
-                 optimizer_type="adam", entropy_reg=0.01,
+                 optimizer_type="adamW", entropy_reg=0.01,
                  max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
                  use_cuda=True, reward_type="global_R"):
 
@@ -94,6 +94,9 @@ class MAPPO:
         if self.optimizer_type == "adam":
             self.actor_optimizer = Adam(self.actor.parameters(), lr=self.actor_lr)
             self.critic_optimizer = Adam(self.critic.parameters(), lr=self.critic_lr)
+        elif self.optimizer_type == "adamW":
+            self.actor_optimizer = AdamW(self.actor.parameters(), lr=self.actor_lr)
+            self.critic_optimizer = AdamW(self.critic.parameters(), lr=self.critic_lr)
         elif self.optimizer_type == "rmsprop":
             self.actor_optimizer = RMSprop(self.actor.parameters(), lr=self.actor_lr)
             self.critic_optimizer = RMSprop(self.critic.parameters(), lr=self.critic_lr)
