@@ -23,11 +23,11 @@ class IDMVehicle(ControlledVehicle):
     
     """Longitudinal policy parameters"""
     # Maximum acceleration.
-    ACC_MAX = 6.0  # [m/s2]
+    ACC_MAX = 4.0  # [m/s2]
     # Desired maximum acceleration.
-    COMFORT_ACC_MAX = 3.0  # [m/s2]
+    COMFORT_ACC_MAX = 1.0  # [m/s2]
     # Desired minimum deceleration.
-    COMFORT_ACC_MIN = -5.0  # [m/s2]
+    COMFORT_ACC_MIN = -2.0  # [m/s2]
     # Desired jam distance to the front vehicle.
     DISTANCE_WANTED = 5.0 + ControlledVehicle.LENGTH  # [m]
     # Desired time gap to the front vehicle.
@@ -41,7 +41,7 @@ class IDMVehicle(ControlledVehicle):
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
     LANE_CHANGE_DELAY = 1.0  # [s]
     # Begin dodging priority vehicle within this distance.
-    PRIORITY_DODGE_DISTANCE = 12 * DISTANCE_WANTED # [m]
+    PRIORITY_DODGE_DISTANCE = 150 # [m]
 
     def __init__(self,
                  road: Road,
@@ -326,12 +326,11 @@ class PriorityIDMVehicle(IDMVehicle):
 
     """Longitudinal policy parameters"""
     # Maximum acceleration.
-    ACC_MAX = 12.0  # [m/s2] (double the normal value)
+    ACC_MAX = 8.0 # [m/s2] (double the normal value)
     # Desired maximum acceleration.
-    COMFORT_ACC_MAX = ACC_MAX  # [m/s2]  (Wants to reach destination as fast as possible).
+    COMFORT_ACC_MAX = 3.0  # [m/s2]  (hard acceleration)
     # Desired minimum deceleration.
-    COMFORT_ACC_MIN = -10.0  # [m/s2]  (double the normal value)
-            # [small negative number to avoid zero division and NaN].
+    COMFORT_ACC_MIN = -4.0  # [m/s2]  (double the normal value)
     #   The rest are safety related so unchanged.
 
     """Lateral policy parameters"""
