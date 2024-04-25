@@ -96,8 +96,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             if vehicle.lane_index == ("b", "c", 2):
                 # if the vehicle crashed to the bumper in merging lane, 
                 # (or if any crashes happen here for that matter)
-                #       treat as if 6 vehicles crashed.
-                collision_cost *= 6
+                #       treat as if 4 vehicles crashed.
+                collision_cost *= 4
         else:
             collision_cost = 0
 
