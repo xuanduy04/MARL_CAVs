@@ -54,7 +54,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "duration": 20,  # time step
             "policy_frequency": 5,  # [Hz]
             # "reward_speed_range": [10, 30],
-            "reward_speed_cap": 20., # value must be in range [10,30]
+            "minimum_recommended_speed": 20., # value must be in range [10,30]
             # "priority_target_speed_range": [30, 40],
             "COLLISION_COST": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
@@ -103,11 +103,11 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # SPEED
         # 10 is the vehicle's minimum speed, while 30 is the maximum.
-        if vehicle.speed < self.config["reward_speed_cap"]:
-            mean = 10. + (self.config["reward_speed_cap"] - 10.) / 2.
+        if vehicle.speed < self.config["minimum_recommended_speed"]:
+            mean = 10. + (self.config["minimum_recommended_speed"] - 10.) / 2.
             scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed-mean)))
         else:
-            scaled_speed = 0.95 + utils.lmap(vehicle.speed, [self.config["reward_speed_cap"], 30.], [0., 0.05])
+            scaled_speed = 0.95 + utils.lmap(vehicle.speed, [self.config["minimum_recommended_speed"], 30.], [0., 0.05])
 
         # STAYING IN MERGING LANE
         if vehicle.lane_index == ("b", "c", 2):
