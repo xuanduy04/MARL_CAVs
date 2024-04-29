@@ -42,13 +42,15 @@ class MergeMultilanePriorityEnv(AbstractEnv):
                 "longitudinal": True,
                 "lateral": True
             },
-            "screen_width": 1504,
-            "screen_height": 128,
-            "centering_position": [0.5875, 0.5], # [width, height] - increase = go right
+            # display values showing the full simulation:
+            # "screen_width": 1504,
+            # "screen_height": 128,
+            # "centering_position": [0.5875, 0.5], 
             # original display values:
-                # "screen_width": 600,
-                # "screen_height": 120,
-                # "centering_position": [0.3, 0.5],
+            "screen_width": 600,
+            "screen_height": 120,
+            "centering_position": [0.3, 0.5],
+            # centering_pisition: [width, height] - increase = go right
             "scaling": 3,
             "simulation_frequency": 15,  # [Hz]
             "duration": 20,  # time step
