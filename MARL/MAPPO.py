@@ -47,7 +47,7 @@ class MAPPO:
         self.action_dim = action_dim
         self.env_state, self.action_mask = self.env.reset()
         self.n_episodes = 0
-        # self.n_curriculum_episodes = 0xfffffffffffff
+        self.n_curriculum_episodes = 1000
         self.n_steps = 0
         self.max_steps = max_steps
         self.test_seeds = test_seeds
@@ -115,7 +115,7 @@ class MAPPO:
     # agent interact with the environment to collect experience
     def interact(self):
         if (self.max_steps is not None) and (self.n_steps >= self.max_steps):
-            self.env_state, _ = self.env.reset(curriculum_learning = True)
+            self.env_state, _ = self.env.reset(curriculum_learning = self.n_episodes < self.n_curriculum_episodes)
             self.n_steps = 0
         states = []
         actions = []
