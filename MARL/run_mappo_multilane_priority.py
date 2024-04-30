@@ -196,7 +196,8 @@ def train(args):
             # save the model
             mappo.save(dirs['models'], mappo.n_episodes + 1)
             # Outputs:
-            print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
+            print("Episode %d, Average Reward %.2f, Average Speed %.2f, Crash rate %.2f" \
+                  % (mappo.n_episodes + 1, rewards_mu, avg_speed_mu, crash_rate))
             print("Average rewards:", eval_rewards)
             print( "Average speeds:", avg_speeds)
             print(    "Crash rates:", crash_rates)
