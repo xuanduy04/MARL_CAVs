@@ -41,7 +41,7 @@ class IDMVehicle(ControlledVehicle):
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 9.0  # [m/s2]
     LANE_CHANGE_DELAY = 1.0  # [s]
     # Begin dodging priority vehicle within this distance.
-    PRIORITY_DODGE_DISTANCE = 700 # [m]
+    PRIORITY_DODGE_DISTANCE = 700 # [m] behind the vehicle
 
     def __init__(self,
                  road: Road,
@@ -202,10 +202,11 @@ class IDMVehicle(ControlledVehicle):
         """
         # If a lane change already ongoing
         if self.lane_index != self.target_lane_index:
-            # Abort immediately if the priority vehicle in your rear wants that line.
+            # Abort immediately if the priority vehicle in your 'dodging range' wants that line.
             priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(self)
-            if -self.PRIORITY_DODGE_DISTANCE < priority_vehicle_dist \
-                    and self.target_lane_index == priority_vehicle.target_lane_index:
+            dodge_PV = (-self.PRIORITY_DODGE_DISTANCE < priority_vehicle_dist \
+                         and priority_vehicle_dist < self.DISTANCE_WANTED)
+            if dodge_PV and self.target_lane_index == priority_vehicle.target_lane_index:
                 self.target_lane_index = self.lane_index
 
             # If we are on correct route but bad lane: abort it if 
@@ -233,12 +234,13 @@ class IDMVehicle(ControlledVehicle):
             # And
         # Which lane does the priority vehicle want?
         priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(self)
+        dodge_PV = (-self.PRIORITY_DODGE_DISTANCE < priority_vehicle_dist \
+                         and priority_vehicle_dist < self.DISTANCE_WANTED)
 
         # Now we look at every lane...
         for lane_index in self.road.network.side_lanes(self.lane_index):
-            # Is the priority vehicle in your rear? Does it also want that lane?
-            if -self.PRIORITY_DODGE_DISTANCE < priority_vehicle_dist \
-                    and (priority_vehicle.target_lane_index == lane_index \
+            # Is the priority vehicle in 'dodging range'? Does it also want that lane?
+            if  dodge_PV and (priority_vehicle.target_lane_index == lane_index \
                          or priority_vehicle.lane_index == lane_index):
                 continue
             # Is the candidate lane close enough?
