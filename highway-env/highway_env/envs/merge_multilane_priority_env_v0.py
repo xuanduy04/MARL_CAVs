@@ -238,14 +238,14 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         return vehicle.crashed \
                or self.steps >= self.config["duration"] * self.config["policy_frequency"]
 
-    def _reset(self, is_training=False) -> None:
+    def _reset(self, curriculum_learning=False) -> None:
         self._make_road()
 
         num_CAV = self.config["num_CAV"]
         num_HDV = self.config["num_HDV"]
-        if is_training:
+        if curriculum_learning:
             # chance to train with less vehicles.
-            # Simulates curriculum training, in a way.
+            # Simulates curriculum learning, in a way.
             num_CAV = np.random.choice(np.arange(max(min(3,num_CAV),num_CAV-2), num_CAV+1), 1)[0]
             num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
         
