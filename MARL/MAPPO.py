@@ -47,7 +47,7 @@ class MAPPO:
         self.action_dim = action_dim
         self.env_state, self.action_mask = self.env.reset()
         self.n_episodes = 0
-        self.n_curriculum_episodes = 666
+        self.n_curriculum_episodes = 500
         self.n_steps = 0
         self.max_steps = max_steps
         self.test_seeds = test_seeds
