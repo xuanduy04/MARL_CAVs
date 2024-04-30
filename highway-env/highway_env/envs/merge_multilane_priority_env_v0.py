@@ -47,8 +47,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "screen_height": 128,
             "centering_position": [0.5875, 0.5], 
             # original display values:
-            # "screen_width": 600,
-            # "screen_height": 120,
+            # "screen_width": 608,
+            # "screen_height": 128,
             # "centering_position": [0.3, 0.5],
             # centering_pisition: [width, height] - increase = go right
             "scaling": 3,
