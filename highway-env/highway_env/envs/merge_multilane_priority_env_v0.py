@@ -138,7 +138,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         priority_vehicle_dist, priority_vehicle = self.road.priority_vehicle_relative_position(vehicle)
 
         # Blocking priority vehicle's path
-        if priority_vehicle_dist < 0 and vehicle.lane_index == priority_vehicle.lane_index:
+        if priority_vehicle_dist < 0 and -1000 <= priority_vehicle_dist \
+                and vehicle.lane_index == priority_vehicle.lane_index:
             priority_lane_cost = -1 * self.config["PRIORITY_LANE_COST"]
             # if you are in the process of dodging, I'll reduce the blocking cost.
             if action == 0 or action == 2:
