@@ -219,6 +219,7 @@ class MDPVehicle(ControlledVehicle):
         
         # for the consecutive lane change reward
         self.lane_change_mult = 0
+        self.lane_change_mult_inc = 0
 
     def act(self, action: Union[dict, str] = None) -> None:
         """
