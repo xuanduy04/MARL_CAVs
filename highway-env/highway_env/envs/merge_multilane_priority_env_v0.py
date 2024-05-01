@@ -120,7 +120,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # LANE CHANGE
         if action == 0 or action == 2:
-            vehicle.lane_change_mult += vehicle.lane_change_mult + 1 
+            if -511 < vehicle.lane_change_mult:
+                vehicle.lane_change_mult += vehicle.lane_change_mult + 1 
             lane_change_cost = -1 * self.config["LANE_CHANGE_COST"] * vehicle.lane_change_mult
         else:
             vehicle.lane_change_mult //= 2
