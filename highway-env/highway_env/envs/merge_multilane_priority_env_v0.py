@@ -127,8 +127,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             lane_change_cost = max(-1 * self.config["LANE_CHANGE_COST"] * vehicle.lane_change_mult, -500)
         else:
             vehicle.lane_change_mult //= 2
-            if vehicle.lane_change_mult == 0:
-                vehicle.last_lange_change_action = None
+            vehicle.last_lange_change_action = None
             lane_change_cost = 0
         # idea: stack the lane change cost
 
