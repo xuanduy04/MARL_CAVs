@@ -16,7 +16,7 @@ class ActorNetwork(nn.Module):
         # activation function for the output
         self.output_act = output_act
 
-    def forward(self, state):
+    def __call__(self, state):
         out = nn.functional.relu(self.fc1(state))
         out = nn.functional.relu(self.fc2(out))
         out = self.output_act(self.fc3(out), -1) 
@@ -37,7 +37,7 @@ class CriticNetwork(nn.Module):
         self.fc2 = nn.Linear(hidden_size + action_dim, hidden_size)
         self.fc3 = nn.Linear(hidden_size, output_size)
 
-    def forward(self, state, action):
+    def __call__(self, state, action):
         out = nn.functional.relu(self.fc1(state))
         out = torch.cat([out, action], 1)
         out = nn.functional.relu(self.fc2(out))
@@ -60,7 +60,7 @@ class ActorCriticNetwork(nn.Module):
         self.critic_linear = nn.Linear(hidden_size, critic_output_size)
         self.actor_output_act = actor_output_act
 
-    def forward(self, state):
+    def __call__(self, state):
         out = nn.functional.relu(self.fc1(state))
         out = nn.functional.relu(self.fc2(out))
         act = self.actor_output_act(self.actor_linear(out))

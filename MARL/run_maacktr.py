@@ -1,28 +1,29 @@
-from MAPPO import MAPPO
-from common.utils import agg_double_list, copy_file_ppo, init_dir
+from MAACKTR import JointACKTR as MAACKTR
+from common.utils import agg_double_list, copy_file_akctr, init_dir
+
 import sys
 sys.path.append("../highway-env")
-
+import os
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
 import highway_env
+from datetime import datetime
+
 import argparse
 import configparser
-import os
-from datetime import datetime
 
 
 def parse_args():
     """
     Description for this experiment:
-        + easy: globalR
+        + medium: maacktr, regionalR
         + seed = 0
     """
     default_base_dir = "./results/"
-    default_config_dir = 'configs/configs_ppo.ini'
+    default_config_dir = 'configs/configs_acktr.ini'
     parser = argparse.ArgumentParser(description=('Train or evaluate policy on RL environment '
-                                                  'using mappo'))
+                                                  'using maacktr'))
     parser.add_argument('--base-dir', type=str, required=False,
                         default=default_base_dir, help="experiment base dir")
     parser.add_argument('--option', type=str, required=False,
@@ -48,7 +49,7 @@ def train(args):
     now = datetime.utcnow().strftime("%b_%d_%H_%M_%S")
     output_dir = base_dir + now
     dirs = init_dir(output_dir)
-    copy_file_ppo(dirs['configs'])
+    copy_file_akctr(dirs['configs'])
 
     if os.path.exists(args.model_dir):
         model_dir = args.model_dir
@@ -65,8 +66,6 @@ def train(args):
     MAX_GRAD_NORM = config.getfloat('MODEL_CONFIG', 'MAX_GRAD_NORM')
     ENTROPY_REG = config.getfloat('MODEL_CONFIG', 'ENTROPY_REG')
     reward_type = config.get('MODEL_CONFIG', 'reward_type')
-    TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
-    TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
 
     # train configs
     actor_lr = config.getfloat('TRAIN_CONFIG', 'actor_lr')
@@ -110,45 +109,40 @@ def train(args):
     state_dim = env.n_s
     action_dim = env.n_a
     test_seeds = args.evaluation_seeds
-
-    mappo = MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
-                  state_dim=state_dim, action_dim=action_dim,
-                  batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
-                  roll_out_n_steps=ROLL_OUT_N_STEPS,
-                  actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
-                  actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
-                  target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                  reward_gamma=reward_gamma, reward_type=reward_type,
-                  max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                  episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
-                  )
+    maacktr = MAACKTR(env=env, memory_capacity=MEMORY_CAPACITY,
+                      state_dim=state_dim, action_dim=action_dim,
+                      batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
+                      actor_lr=actor_lr, critic_lr=critic_lr,
+                      reward_gamma=reward_gamma, reward_scale=reward_scale,
+                      actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
+                      roll_out_n_steps=ROLL_OUT_N_STEPS, test_seeds=test_seeds,
+                      max_grad_norm=MAX_GRAD_NORM, reward_type=reward_type,
+                      episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density)
 
     # load the model if exist
-    mappo.load(model_dir, train_mode=True)
+    maacktr.load(model_dir, train_mode=True)
     env.seed = env.config['seed']
     env.unwrapped.seed = env.config['seed']
     eval_rewards = []
-
-    while mappo.n_episodes < MAX_EPISODES:
-        mappo.interact()
-        if mappo.n_episodes >= EPISODES_BEFORE_TRAIN:
-            mappo.train()
-        if mappo.episode_done and ((mappo.n_episodes + 1) % EVAL_INTERVAL == 0):
-            rewards, _, _, _ = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
+    while maacktr.n_episodes < MAX_EPISODES:
+        maacktr.interact()
+        if maacktr.n_episodes >= EPISODES_BEFORE_TRAIN:
+            maacktr.train()
+        if maacktr.episode_done and ((maacktr.n_episodes + 1) % EVAL_INTERVAL == 0):
+            rewards, _, _, _ = maacktr.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
             rewards_mu, rewards_std = agg_double_list(rewards)
-            print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))
+            print("Episode %d, Average Reward %.2f" % (maacktr.n_episodes + 1, rewards_mu))
             eval_rewards.append(rewards_mu)
             # save the model
-            mappo.save(dirs['models'], mappo.n_episodes + 1)
+            maacktr.save(dirs['models'], maacktr.n_episodes + 1)
 
     # save the model
-    mappo.save(dirs['models'], MAX_EPISODES + 2)
-
+    maacktr.save(dirs['models'], MAX_EPISODES + 2)
     plt.figure()
     plt.plot(eval_rewards)
     plt.xlabel("Episode")
     plt.ylabel("Average Reward")
-    plt.legend(["MAPPO"])
+    plt.legend(["MAACKTR"])
     plt.show()
 
 
@@ -157,7 +151,7 @@ def evaluate(args):
         model_dir = args.model_dir + '/models/'
     else:
         raise Exception("Sorry, no pretrained models")
-    config_dir = args.model_dir + '/configs/configs_ppo.ini'
+    config_dir = args.model_dir + '/configs/configs_acktr.ini'
     config = configparser.ConfigParser()
     config.read(config_dir)
 
@@ -173,8 +167,6 @@ def evaluate(args):
     MAX_GRAD_NORM = config.getfloat('MODEL_CONFIG', 'MAX_GRAD_NORM')
     ENTROPY_REG = config.getfloat('MODEL_CONFIG', 'ENTROPY_REG')
     reward_type = config.get('MODEL_CONFIG', 'reward_type')
-    TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
-    TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
 
     # train configs
     actor_lr = config.getfloat('TRAIN_CONFIG', 'actor_lr')
@@ -203,21 +195,19 @@ def evaluate(args):
     test_seeds = args.evaluation_seeds
     seeds = [int(s) for s in test_seeds.split(',')]
 
-    mappo = MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
-                  state_dim=state_dim, action_dim=action_dim,
-                  batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
-                  roll_out_n_steps=ROLL_OUT_N_STEPS,
-                  actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
-                  actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
-                  target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                  reward_gamma=reward_gamma, reward_type=reward_type,
-                  max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                  episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density
-                  )
+    maacktr = MAACKTR(env=env, memory_capacity=MEMORY_CAPACITY,
+                      state_dim=state_dim, action_dim=action_dim,
+                      batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
+                      actor_lr=actor_lr, critic_lr=critic_lr,
+                      reward_gamma=reward_gamma, reward_scale=reward_scale,
+                      actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
+                      roll_out_n_steps=ROLL_OUT_N_STEPS, test_seeds=test_seeds,
+                      max_grad_norm=MAX_GRAD_NORM, reward_type=reward_type,
+                      episodes_before_train=EPISODES_BEFORE_TRAIN, traffic_density=traffic_density)
 
     # load the model if exist
-    mappo.load(model_dir, train_mode=False)
-    rewards, _, steps, avg_speeds = mappo.evaluation(env, video_dir, len(seeds), is_train=False)
+    maacktr.load(model_dir, train_mode=False)
+    rewards, _, steps, avg_speeds = maacktr.evaluation(env, video_dir, len(seeds), is_train=False)
 
 
 if __name__ == "__main__":

@@ -85,28 +85,67 @@ class VideoRecorder:
         self.release()
 
 
-def copy_file(target_dir, model='MAPPO'):
+def copy_file(tar_dir):
     # env = '.highway-env/envs/common/abstract.py'
-    # copy(env, target_dir)
+    # copy(env, tar_dir)
     # env1 = '.highway_env/envs/merge_env_v1.py'
-    # copy(env1, target_dir)
+    # copy(env1, tar_dir)
 
-    config = 'configs/configs_ppo.ini'
-    copy(config, target_dir)
+    env2 = 'configs/configs.ini'
+    copy(env2, tar_dir)
 
-    model_dir = f'multi_agent/{model}.py'
-    assert (os.path.exists(model_dir)), \
-        f"{model} implementation does not exist"
+    models = 'MAA2C.py'
+    copy(models, tar_dir)
+    main = 'run_ma2c.py'
+    copy(main, tar_dir)
+    c1 = 'common/Agent.py'
+    copy(c1, tar_dir)
+    c2 = 'common/Memory.py'
+    copy(c2, tar_dir)
+    c3 = 'common/Model.py'
+    copy(c3, tar_dir)
 
-    copy(model_dir, target_dir)
+
+def copy_file_ppo(tar_dir):
+    # env = '.highway-env/envs/common/abstract.py'
+    # copy(env, tar_dir)
+    # env1 = '.highway_env/envs/merge_env_v1.py'
+    # copy(env1, tar_dir)
+
+    env2 = 'configs/configs_ppo.ini'
+    copy(env2, tar_dir)
+
+    models = 'MAPPO.py'
+    copy(models, tar_dir)
     main = 'run_mappo.py'
-    copy(main, target_dir)
+    copy(main, tar_dir)
     c1 = 'single_agent/Agent_common.py'
-    copy(c1, target_dir)
+    copy(c1, tar_dir)
     c2 = 'single_agent/Memory_common.py'
-    copy(c2, target_dir)
+    copy(c2, tar_dir)
     c3 = 'single_agent/Model_common.py'
-    copy(c3, target_dir)
+    copy(c3, tar_dir)
+
+
+def copy_file_akctr(tar_dir):
+    # env = '.highway-env/envs/common/abstract.py'
+    # copy(env, tar_dir)
+    # env1 = '.highway_env/envs/merge_env_v1.py'
+    # copy(env1, tar_dir)
+
+    env2 = 'configs/configs_acktr.ini'
+    copy(env2, tar_dir)
+
+    models = 'MAACKTR.py'
+    copy(models, tar_dir)
+    main = 'run_maacktr.py'
+    copy(main, tar_dir)
+    c1 = 'single_agent/Agent_common.py'
+    copy(c1, tar_dir)
+    c2 = 'single_agent/Memory_common.py'
+    copy(c2, tar_dir)
+    c3 = 'single_agent/Model_common.py'
+    copy(c3, tar_dir)
 
 
 def init_dir(base_dir, pathes=['train_videos', 'configs', 'models', 'eval_videos', 'eval_logs']):
