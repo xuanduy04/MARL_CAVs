@@ -264,7 +264,7 @@ class MAPPO:
                 values[agent_id] = value_var.data.numpy()[0]
         return values
 
-    # evaluation the learned agent
+    # evaluate the learned agent
     def evaluation(self, env, output_dir, eval_episodes=1, is_train=True):
         rewards = []
         # infos = []
@@ -300,15 +300,13 @@ class MAPPO:
                 avg_speed += info["average_speed"]
                 
                 if video_filename is not None:
-                    rendered_frame = env.render(mode="rgb_array")
-                    Recorded_frames.append(rendered_frame)
+                    Recorded_frames.append(env.render(mode="rgb_array"))
                     
                 rewards_i.append(reward)
                 # infos_i.append(info)
 
             if video_filename is not None:
-                rendered_frame = env.render(mode="rgb_array")
-                Recorded_frames.append(rendered_frame)
+                Recorded_frames.append(env.render(mode="rgb_array"))
             
             rewards.append(rewards_i)
             # infos.append(infos_i)
