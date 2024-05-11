@@ -120,14 +120,16 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         # LANE CHANGE
         if action == 0 or action == 2:
-            # This is done as it takes multiple timesteps of the same action to successfully change lanes.
+            # This is done as it could take multiple timesteps of the same action to successfully change lanes.
+            # In the future, this will be "time-based", not step-based for more accurate real-world simulations.
             if vehicle.last_lange_change_action != action:
+            # TODO: rename to LANE (from lange)
                 vehicle.last_lange_change_action = action
                 vehicle.lane_change_mult += vehicle.lane_change_mult + 1
             lane_change_cost = max(-1 * self.config["LANE_CHANGE_COST"] * vehicle.lane_change_mult, -500)
         else:
-            vehicle.lane_change_mult //= 2
             vehicle.last_lange_change_action = None
+            vehicle.lane_change_mult //= 2
             lane_change_cost = 0
         # idea: stack the lane change cost
 
