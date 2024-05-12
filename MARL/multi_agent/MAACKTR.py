@@ -2,7 +2,7 @@ import torch as th
 from torch import nn
 import configparser
 
-config_dir = 'configs/configs_ppo.ini'
+config_dir = '../configs/configs_acktr.ini'
 config = configparser.ConfigParser()
 config.read(config_dir)
 torch_seed = config.getint('MODEL_CONFIG', 'torch_seed')
@@ -10,47 +10,45 @@ th.manual_seed(torch_seed)
 th.backends.cudnn.benchmark = False
 th.backends.cudnn.deterministic = True
 
-from torch.optim import Adam, RMSprop
-
 import numpy as np
 import os, logging
-from copy import deepcopy
 from single_agent.Memory_common import OnPolicyReplayMemory
-from single_agent.Model_common import ActorNetwork, CriticNetwork
-from common.utils import index_to_one_hot, to_tensor_var, VideoRecorder
+from single_agent.Model_common import ActorCriticNetwork
+from single_agent.kfac import KFACOptimizer
+from common.utils import index_to_one_hot, entropy, to_tensor_var, VideoRecorder
 
 
-class MAPPO:
+class JointACKTR:
     """
-    An multi-agent learned with PPO
+    An multi-agent learned with ACKTR
     reference: https://github.com/ChenglongChen/pytorch-DRL
     """
+
     def __init__(self, env, state_dim, action_dim,
                  memory_capacity=10000, max_steps=None,
-                 roll_out_n_steps=1, target_tau=1.,
-                 target_update_steps=5, clip_param=0.2,
-                 reward_gamma=0.99, reward_scale=20,
+                 roll_out_n_steps=10, test_seeds=0,
+                 reward_gamma=0.99, reward_scale=20.,
                  actor_hidden_size=128, critic_hidden_size=128,
                  actor_output_act=nn.functional.log_softmax, critic_loss="mse",
-                 actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
-                 optimizer_type="rmsprop", entropy_reg=0.01,
-                 max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
-                 use_cuda=True, traffic_density=1, reward_type="global_R"):
+                 actor_lr=0.0001, critic_lr=0.0001, vf_coef=0.5, vf_fisher_coef=1.0,
+                 entropy_reg=0.01, max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
+                 use_cuda=True, reward_type='global_R', traffic_density=1):
 
         assert traffic_density in [1, 2, 3]
         assert reward_type in ["regionalR", "global_R"]
-        self.reward_type = reward_type
+
         self.env = env
         self.state_dim = state_dim
         self.action_dim = action_dim
-        self.env_state, self.action_mask = self.env.reset()
+        self.env_state, _ = self.env.reset()
         self.n_episodes = 0
         self.n_steps = 0
         self.max_steps = max_steps
-        self.test_seeds = test_seeds
+        self.reward_type = reward_type
         self.reward_gamma = reward_gamma
         self.reward_scale = reward_scale
         self.traffic_density = traffic_density
+        self.test_seeds = test_seeds
         self.memory = OnPolicyReplayMemory(memory_capacity)
         self.actor_hidden_size = actor_hidden_size
         self.critic_hidden_size = critic_hidden_size
@@ -58,36 +56,21 @@ class MAPPO:
         self.critic_loss = critic_loss
         self.actor_lr = actor_lr
         self.critic_lr = critic_lr
-        self.optimizer_type = optimizer_type
         self.entropy_reg = entropy_reg
         self.max_grad_norm = max_grad_norm
         self.batch_size = batch_size
         self.episodes_before_train = episodes_before_train
         self.use_cuda = use_cuda and th.cuda.is_available()
         self.roll_out_n_steps = roll_out_n_steps
-        self.target_tau = target_tau
-        self.target_update_steps = target_update_steps
-        self.clip_param = clip_param
 
-        self.actor = ActorNetwork(self.state_dim, self.actor_hidden_size,
-                                  self.action_dim, self.actor_output_act)
-        self.critic = CriticNetwork(self.state_dim, self.action_dim, self.critic_hidden_size, 1)
-        # to ensure target network and learning network has the same weights
-        self.actor_target = deepcopy(self.actor)
-        self.critic_target = deepcopy(self.critic)
-
-        if self.optimizer_type == "adam":
-            self.actor_optimizer = Adam(self.actor.parameters(), lr=self.actor_lr)
-            self.critic_optimizer = Adam(self.critic.parameters(), lr=self.critic_lr)
-        elif self.optimizer_type == "rmsprop":
-            self.actor_optimizer = RMSprop(self.actor.parameters(), lr=self.actor_lr)
-            self.critic_optimizer = RMSprop(self.critic.parameters(), lr=self.critic_lr)
-
+        self.actor_critic = ActorCriticNetwork(self.state_dim, self.action_dim,
+                                               min(self.actor_hidden_size, self.critic_hidden_size),
+                                               self.actor_output_act)
+        self.optimizer = KFACOptimizer(self.actor_critic, lr=min(self.actor_lr, self.critic_lr))
+        self.vf_coef = vf_coef
+        self.vf_fisher_coef = vf_fisher_coef
         if self.use_cuda:
-            self.actor.cuda()
-            self.critic.cuda()
-            self.actor_target.cuda()
-            self.critic_target.cuda()
+            self.actor_critic.cuda()
 
         self.episode_rewards = [0]
         self.average_speed = [0]
@@ -118,8 +101,8 @@ class MAPPO:
             elif self.reward_type == "global_R":
                 reward = [global_reward] * self.n_agents
             rewards.append(reward)
-            average_speed += info["average_speed"]
             final_state = next_state
+            average_speed += info["average_speed"]
             self.env_state = next_state
 
             self.n_steps += 1
@@ -162,41 +145,39 @@ class MAPPO:
 
         for agent_id in range(self.n_agents):
             # update actor network
-            self.actor_optimizer.zero_grad()
-            values = self.critic_target(states_var[:, agent_id, :], actions_var[:, agent_id, :]).detach()
-            advantages = rewards_var[:, agent_id, :] - values
-
-            action_log_probs = self.actor(states_var[:, agent_id, :])
+            action_log_probs, values = self.actor_critic(states_var[:, agent_id, :])
+            entropy_loss = th.mean(entropy(th.exp(action_log_probs)))
             action_log_probs = th.sum(action_log_probs * actions_var[:, agent_id, :], 1)
-            old_action_log_probs = self.actor_target(states_var[:, agent_id, :]).detach()
-            old_action_log_probs = th.sum(old_action_log_probs * actions_var[:, agent_id, :], 1)
-            ratio = th.exp(action_log_probs - old_action_log_probs)
-            surr1 = ratio * advantages
-            surr2 = th.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
-            # PPO's pessimistic surrogate (L^CLIP)
-            actor_loss = -th.mean(th.min(surr1, surr2))
-            actor_loss.backward()
-            if self.max_grad_norm is not None:
-                nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
-            self.actor_optimizer.step()
-
-            # update critic network
-            self.critic_optimizer.zero_grad()
+            # fisher loss
+            if self.optimizer.steps % self.optimizer.Ts == 0:
+                self.actor_critic.zero_grad()
+                pg_fisher_loss = th.mean(action_log_probs)
+                values_noise = to_tensor_var(np.random.randn(values.size()[0]), self.use_cuda)
+                sample_values = (values + values_noise.view(-1, 1)).detach()
+                if self.critic_loss == "huber":
+                    vf_fisher_loss = - nn.functional.smooth_l1_loss(values, sample_values)
+                else:
+                    vf_fisher_loss = - nn.MSELoss()(values, sample_values)
+                joint_fisher_loss = pg_fisher_loss + self.vf_fisher_coef * vf_fisher_loss
+                self.optimizer.acc_stats = True
+                joint_fisher_loss.backward(retain_graph=True)
+                self.optimizer.acc_stats = False
+            self.optimizer.zero_grad()
+            # actor loss
+            advantages = rewards_var[:, agent_id, :] - values.detach()
+            pg_loss = -th.mean(action_log_probs * advantages)
+            actor_loss = pg_loss - entropy_loss * self.entropy_reg
+            # critic loss
             target_values = rewards_var[:, agent_id, :]
-            values = self.critic(states_var[:, agent_id, :], actions_var[:, agent_id, :])
             if self.critic_loss == "huber":
                 critic_loss = nn.functional.smooth_l1_loss(values, target_values)
             else:
                 critic_loss = nn.MSELoss()(values, target_values)
-            critic_loss.backward()
+            loss = actor_loss + critic_loss
+            loss.backward()
             if self.max_grad_norm is not None:
-                nn.utils.clip_grad_norm_(self.critic.parameters(), self.max_grad_norm)
-            self.critic_optimizer.step()
-
-        # update actor target network and critic target network
-        if self.n_episodes % self.target_update_steps == 0 and self.n_episodes > 0:
-            self._soft_update_target(self.actor_target, self.actor)
-            self._soft_update_target(self.critic_target, self.critic)
+                nn.utils.clip_grad_norm_(self.actor_critic.parameters(), self.max_grad_norm)
+            self.optimizer.step()
 
     # predict softmax action based on state
     def _softmax_action(self, state, n_agents):
@@ -204,7 +185,7 @@ class MAPPO:
 
         softmax_action = []
         for agent_id in range(n_agents):
-            softmax_action_var = th.exp(self.actor(state_var[:, agent_id, :]))
+            softmax_action_var = th.exp(self.actor_critic(state_var[:, agent_id, :])[0])
 
             if self.use_cuda:
                 softmax_action.append(softmax_action_var.data.cpu().numpy()[0])
@@ -231,13 +212,9 @@ class MAPPO:
     # evaluate value for a state-action pair
     def value(self, state, action):
         state_var = to_tensor_var([state], self.use_cuda)
-        action = index_to_one_hot(action, self.action_dim)
-        action_var = to_tensor_var([action], self.use_cuda)
-
         values = [0] * self.n_agents
         for agent_id in range(self.n_agents):
-            value_var = self.critic(state_var[:, agent_id, :], action_var[:, agent_id, :])
-
+            value_var = self.actor_critic(state_var[:, agent_id, :])
             if self.use_cuda:
                 values[agent_id] = value_var.data.cpu().numpy()[0]
             else:
@@ -319,12 +296,6 @@ class MAPPO:
             discounted_r[t] = running_add
         return discounted_r
 
-    # soft update the actor target network or critic target network
-    def _soft_update_target(self, target, source):
-        for t, s in zip(target.parameters(), source.parameters()):
-            t.data.copy_(
-                (1. - self.target_tau) * t.data + self.target_tau * s.data)
-
     def load(self, model_dir, global_step=None, train_mode=False):
         save_file = None
         save_step = 0
@@ -345,12 +316,13 @@ class MAPPO:
             file_path = model_dir + save_file
             checkpoint = th.load(file_path)
             print('Checkpoint loaded: {}'.format(file_path))
-            self.actor.load_state_dict(checkpoint['model_state_dict'])
+            # logging.info('Checkpoint loaded: {}'.format(file_path))
+            self.actor_critic.load_state_dict(checkpoint['model_state_dict'])
             if train_mode:
-                self.actor_optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-                self.actor.train()
+                self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                self.actor_critic.train()
             else:
-                self.actor.eval()
+                self.actor_critic.eval()
             return True
         logging.error('Can not find checkpoint for {}'.format(model_dir))
         return False
@@ -358,6 +330,6 @@ class MAPPO:
     def save(self, model_dir, global_step):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_step)
         th.save({'global_step': global_step,
-                 'model_state_dict': self.actor.state_dict(),
-                 'optimizer_state_dict': self.actor_optimizer.state_dict()},
+                 'model_state_dict': self.actor_critic.state_dict(),
+                 'optimizer_state_dict': self.optimizer.state_dict()},
                 file_path)

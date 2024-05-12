@@ -3,7 +3,7 @@ from torch import nn
 import configparser
 from torch.optim import Adam, RMSprop
 
-config_dir = 'configs/configs_dqn.ini'
+config_dir = '../configs/configs_dqn.ini'
 config = configparser.ConfigParser()
 config.read(config_dir)
 torch_seed = config.getint('MODEL_CONFIG', 'torch_seed')
