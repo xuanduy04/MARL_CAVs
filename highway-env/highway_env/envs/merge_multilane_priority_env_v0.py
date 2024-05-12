@@ -60,7 +60,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             # "priority_target_speed_range": [30, 40],
             "COLLISION_COST": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
-            "PRIORITY_SPEED_COST": 1,
+            # "PRIORITY_SPEED_COST": 1,
             "HEADWAY_COST": 4,  # default=4
             "HEADWAY_TIME": 1.2,  # default=1.2[s]
             "MERGING_LANE_COST": 4,  # default=4

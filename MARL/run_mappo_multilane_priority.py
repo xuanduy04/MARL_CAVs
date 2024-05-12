@@ -24,7 +24,6 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     critic_hidden_size = config.getint('MODEL_CONFIG', 'critic_hidden_size')
     MAX_GRAD_NORM = config.getfloat('MODEL_CONFIG', 'MAX_GRAD_NORM')
     ENTROPY_REG = config.getfloat('MODEL_CONFIG', 'ENTROPY_REG')
-    reward_type = config.get('MODEL_CONFIG', 'reward_type')
     TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
     TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
 
@@ -55,7 +54,7 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
                     actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
                     actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
                     target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                    reward_gamma=reward_gamma, reward_type=reward_type,
+                    reward_gamma=reward_gamma,
                     max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
                     episodes_before_train=EPISODES_BEFORE_TRAIN
                     )
@@ -68,7 +67,7 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
                     actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
                     actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
                     target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                    reward_gamma=reward_gamma, reward_type=reward_type,
+                    reward_gamma=reward_gamma,
                     max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
                     episodes_before_train=EPISODES_BEFORE_TRAIN
                     )

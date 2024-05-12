@@ -38,10 +38,8 @@ class MAPPO:
                  actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
                  optimizer_type="adamW", entropy_reg=0.01,
                  max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
-                 use_cuda=True, reward_type="global_R"):
+                 use_cuda=True):
 
-        assert reward_type in ["regionalR", "global_R"]
-        self.reward_type = reward_type
         self.env = env
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -132,10 +130,7 @@ class MAPPO:
             actions.append([index_to_one_hot(a, self.action_dim) for a in action])
             self.episode_rewards[-1] += global_reward
             self.epoch_steps[-1] += 1
-            # if self.reward_type == "global_R":
             reward = [global_reward] * self.n_agents
-            # elif self.reward_type == "regionalR":
-            #     reward = info["regional_rewards"]
             rewards.append(reward)
             average_speed += info["average_speed"]
             final_state = next_state
