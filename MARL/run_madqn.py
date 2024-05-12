@@ -1,4 +1,4 @@
-from MADQN import MADQN
+from MARL.multi_agent.MADQN import MADQN
 from single_agent.utils_common import agg_double_list
 
 import sys
@@ -6,7 +6,6 @@ sys.path.append("../highway-env")
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
-import highway_env
 
 MAX_EPISODES = 20000
 EPISODES_BEFORE_TRAIN = 10

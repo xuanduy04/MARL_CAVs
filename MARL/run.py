@@ -1,12 +1,11 @@
 from typing import Union
 
-from MAPPO import MAPPO
-from MAPPO_attention import MAPPO_attention
+from MARL.multi_agent.MAPPO import MAPPO
+from MARL.multi_agent.MAPPO_attention import MAPPO_attention
 from common.utils import agg_double_list, copy_file_ppo, init_dir
 import sys
 
-from highway_env import gym
-import numpy as np
+import gym
 import matplotlib.pyplot as plt
 
 import argparse
@@ -15,8 +14,6 @@ import os
 from datetime import datetime
 
 sys.path.append("../highway-env")
-import highway_env
-
 
 
 def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
@@ -112,8 +109,12 @@ def parse_args():
                                                   'using mappo'))
     parser.add_argument('--base-dir', type=str, required=False,
                         default=default_base_dir, help="experiment base dir")
+    parser.add_argument('--algo', type=str, required=False,
+                        choices=['mappo', 'mappo_attention'],
+                        default='mappo', help='which algorithm to use')
     parser.add_argument('--option', type=str, required=False,
-                        default='train', help="train or evaluate")
+                        choices=['train', 'evaluate'],
+                        default='train', help="whether to train or evaluate")
     parser.add_argument('--config-dir', type=str, required=False,
                         default=default_config_dir, help="experiment config path")
     parser.add_argument('--model-dir', type=str, required=False,
@@ -121,8 +122,7 @@ def parse_args():
     parser.add_argument('--evaluation-seeds', type=str, required=False,
                         default=','.join([str(i) for i in range(0, 600, 20)]),
                         help="random seeds for evaluation, split by ,")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def train(args):
@@ -141,6 +141,9 @@ def train(args):
         model_dir = args.model_dir
     else:
         model_dir = dirs['models']
+
+    assert (config.getint('ENV_CONFIG', 'seed') == config.getint('MODEL_CONFIG', 'torch_seed')), \
+        "seed mismatch in config"
 
     # train configs
     MAX_EPISODES = config.getint('TRAIN_CONFIG', 'MAX_EPISODES')

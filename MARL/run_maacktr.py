@@ -1,13 +1,11 @@
-from MAACKTR import JointACKTR as MAACKTR
+from MARL.multi_agent.MAACKTR import JointACKTR as MAACKTR
 from common.utils import agg_double_list, copy_file_akctr, init_dir
 
 import sys
 sys.path.append("../highway-env")
 import os
 import gym
-import numpy as np
 import matplotlib.pyplot as plt
-import highway_env
 from datetime import datetime
 
 import argparse

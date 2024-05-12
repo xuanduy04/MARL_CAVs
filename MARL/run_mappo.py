@@ -1,12 +1,10 @@
-from MAPPO import MAPPO
+from MARL.multi_agent.MAPPO import MAPPO
 from common.utils import agg_double_list, copy_file_ppo, init_dir
 import sys
 sys.path.append("../highway-env")
 
 import gym
-import numpy as np
 import matplotlib.pyplot as plt
-import highway_env
 import argparse
 import configparser
 import os
