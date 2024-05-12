@@ -82,7 +82,6 @@ def init_env(config, env):
     env.config['policy_frequency'] = config.getint('ENV_CONFIG', 'policy_frequency')
     env.config['COLLISION_COST'] = config.getfloat('ENV_CONFIG', 'COLLISION_COST')
     env.config['HIGH_SPEED_REWARD'] = config.getfloat('ENV_CONFIG', 'HIGH_SPEED_REWARD')
-    env.config['PRIORITY_SPEED_COST'] = config.getfloat('ENV_CONFIG', 'PRIORITY_SPEED_COST')
     env.config['HEADWAY_COST'] = config.getfloat('ENV_CONFIG', 'HEADWAY_COST')
     env.config['HEADWAY_TIME'] = config.getfloat('ENV_CONFIG', 'HEADWAY_TIME')
     env.config['MERGING_LANE_COST'] = config.getfloat('ENV_CONFIG', 'MERGING_LANE_COST')
