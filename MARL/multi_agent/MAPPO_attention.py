@@ -28,31 +28,20 @@ class MAPPO_attention(MAPPO):
     
     Input states are passed through an attention layer before going through the actor/ critic.
     """
-    def __init__(self,
-                 env, state_dim, action_dim, d_model,
-                 num_heads, dropout_p,
-                 memory_capacity=10000, max_steps=None,
-                 roll_out_n_steps=1, target_tau=1.,
-                 target_update_steps=5, clip_param=0.2,
-                 reward_gamma=0.99, reward_scale=20,
+    def __init__(self, env, state_dim, action_dim, d_model, num_heads, dropout_p,
+                 memory_capacity=10000, max_steps=None, roll_out_n_steps=1, target_tau=1.,
+                 target_update_steps=5, clip_param=0.2, reward_gamma=0.99, reward_scale=20,
                  actor_hidden_size=128, critic_hidden_size=128,
-                 actor_output_act=nn.functional.log_softmax, critic_loss="mse",
-                 actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
-                 optimizer_type="adam", entropy_reg=0.01,
-                 max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
-                 use_cuda=True):
+                 actor_output_act=nn.functional.log_softmax, actor_lr=0.0001, critic_lr=0.0001,
+                 test_seeds=0, optimizer_type="adamW", entropy_reg=0.01, max_grad_norm=0.5,
+                 batch_size=100, episodes_before_train=100, use_cuda=True):
 
-        super().__init__(env, state_dim, action_dim,
-                 memory_capacity, max_steps,
-                 roll_out_n_steps, target_tau,
-                 target_update_steps, clip_param,
-                 reward_gamma, reward_scale,
-                 actor_hidden_size, critic_hidden_size,
-                 actor_output_act, critic_loss,
-                 actor_lr, critic_lr, test_seeds,
-                 optimizer_type, entropy_reg,
-                 max_grad_norm, batch_size, episodes_before_train,
-                 use_cuda)
+        super().__init__(env, state_dim, action_dim, memory_capacity, max_steps,
+                        roll_out_n_steps, target_tau, target_update_steps, clip_param,
+                        reward_gamma, reward_scale, actor_hidden_size, critic_hidden_size,
+                        actor_output_act, actor_lr, critic_lr, test_seeds, optimizer_type,
+                        entropy_reg, max_grad_norm, batch_size, episodes_before_train,
+                        use_cuda)
 
         print("Environment observation shape: ", env.observation_space[0].shape, sep = '')
 
@@ -74,6 +63,9 @@ class MAPPO_attention(MAPPO):
         if self.optimizer_type == "adam":
             self.actor_optimizer = Adam(self.actor.parameters(), lr=self.actor_lr)
             self.critic_optimizer = Adam(self.critic.parameters(), lr=self.critic_lr)
+        elif self.optimizer_type == "adamW":
+            self.actor_optimizer = AdamW(self.actor.parameters(), lr=self.actor_lr)
+            self.critic_optimizer = AdamW(self.critic.parameters(), lr=self.critic_lr)
         elif self.optimizer_type == "rmsprop":
             self.actor_optimizer = RMSprop(self.actor.parameters(), lr=self.actor_lr)
             self.critic_optimizer = RMSprop(self.critic.parameters(), lr=self.critic_lr)

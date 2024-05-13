@@ -1,6 +1,7 @@
+from typing import Optional
+
 import random
 from collections import namedtuple
-
 
 Experience = namedtuple("Experience",
                         ("states", "actions", "rewards", "next_states", "dones"))
@@ -10,7 +11,8 @@ class ReplayMemory(object):
     """
     Replay memory buffer
     """
-    def __init__(self, capacity):
+
+    def __init__(self, capacity: int = 10_000):
         self.capacity = capacity
         self.memory = []
         self.position = 0
@@ -37,8 +39,8 @@ class ReplayMemory(object):
         else:
             self._push_one(states, actions, rewards, next_states, dones)
 
-    def sample(self, batch_size):
-        if batch_size > len(self.memory):
+    def sample(self, batch_size: Optional[int] = None):
+        if batch_size is None or batch_size > len(self.memory):
             batch_size = len(self.memory)
         transitions = random.sample(self.memory, batch_size)
         batch = Experience(*zip(*transitions))
@@ -53,11 +55,13 @@ class OnPolicyReplayMemory(ReplayMemory):
     """
     Replay memory buffer
     """
-    def __init__(self, capacity):
+
+    def __init__(self, capacity: int = 10_000):
         super().__init__(capacity)
 
-    def sample(self, batch_size):
-        batch = super().sample(batch_size=batch_size)
+    def sample(self, batch_size: Optional[int] = None):
+        # TODO: refactor and change signature of this function.
+        batch = super().sample(batch_size=None)
 
         # reset the memory
         self.memory = []

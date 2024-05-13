@@ -3,6 +3,8 @@ from torch import nn
 import configparser
 import imageio
 
+from torch.utils.tensorboard import SummaryWriter
+
 config_dir = 'configs/configs_ppo.ini'
 config = configparser.ConfigParser()
 config.read(config_dir)
@@ -27,17 +29,11 @@ class MAPPO:
     An multi-agent learned with PPO
     reference: https://github.com/ChenglongChen/pytorch-DRL
     """
-    def __init__(self, env, state_dim, action_dim,
-                 memory_capacity=10000, max_steps=None,
-                 roll_out_n_steps=1, target_tau=1.,
-                 target_update_steps=5, clip_param=0.2,
-                 reward_gamma=0.99, reward_scale=20,
-                 actor_hidden_size=128, critic_hidden_size=128,
-                 actor_output_act=nn.functional.log_softmax, critic_loss="mse",
-                 actor_lr=0.0001, critic_lr=0.0001, test_seeds=0,
-                 optimizer_type="adamW", entropy_reg=0.01,
-                 max_grad_norm=0.5, batch_size=100, episodes_before_train=100,
-                 use_cuda=True):
+    def __init__(self, env, state_dim, action_dim, memory_capacity=10000, max_steps=None, roll_out_n_steps=1,
+                 target_tau=1., target_update_steps=5, clip_param=0.2, reward_gamma=0.99, reward_scale=20,
+                 actor_hidden_size=128, critic_hidden_size=128, actor_output_act=nn.functional.log_softmax,
+                 actor_lr=0.0001, critic_lr=0.0001, test_seeds=0, optimizer_type="adamW", entropy_reg=0.01,
+                 max_grad_norm=0.5, batch_size=100, episodes_before_train=100, use_cuda=True):
 
         self.env = env
         self.state_dim = state_dim
@@ -94,9 +90,7 @@ class MAPPO:
             self.actor_target.cuda()
             self.critic_target.cuda()
 
-        self.episode_rewards = [0]
-        self.average_speed = [0]
-        self.epoch_steps = [0]
+        self.n_agents = None
 
     # agent interact with the environment to collect experience
     def interact(self):
@@ -116,8 +110,6 @@ class MAPPO:
             action = self.exploration_action(self.env_state, self.n_agents)
             next_state, global_reward, done, info = self.env.step(tuple(action))
             actions.append([index_to_one_hot(a, self.action_dim) for a in action])
-            self.episode_rewards[-1] += global_reward
-            self.epoch_steps[-1] += 1
             reward = [global_reward] * self.n_agents
             rewards.append(reward)
             average_speed += info["average_speed"]
@@ -133,13 +125,7 @@ class MAPPO:
         if done:
             final_value = [0.0] * self.n_agents
             self.n_episodes += 1
-            self.episode_done = True
-            self.episode_rewards.append(0)
-            self.average_speed[-1] = average_speed / self.epoch_steps[-1]
-            self.average_speed.append(0)
-            self.epoch_steps.append(0)
         else:
-            self.episode_done = False
             final_action = self.action(final_state, self.n_agents)
             final_value = self.value(final_state, final_action)
 
@@ -217,11 +203,7 @@ class MAPPO:
 
     # choose an action based on state with random noise added for exploration in training
     def exploration_action(self, state, n_agents):
-        softmax_actions = self._softmax_action(state, n_agents)
-        actions = []
-        for pi in softmax_actions:
-            actions.append(np.random.choice(np.arange(len(pi)), p=pi))
-        return actions
+        return self.action(state, n_agents)
 
     # choose an action based on state for execution
     def action(self, state, n_agents):

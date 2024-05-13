@@ -45,30 +45,23 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
         d_model = env.n_obs_features
         num_heads = config.getint('MODEL_CONFIG','num_heads')
         dropout_p = config.getfloat('MODEL_CONFIG','dropout_p')
-        return MAPPO_attention(env=env, memory_capacity=MEMORY_CAPACITY,
-                    d_model=d_model, num_heads=num_heads, dropout_p=dropout_p, 
-                    state_dim=state_dim, action_dim=action_dim,
-                    batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
-                    roll_out_n_steps=ROLL_OUT_N_STEPS,
-                    actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
-                    actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
-                    target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                    reward_gamma=reward_gamma,
-                    max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                    episodes_before_train=EPISODES_BEFORE_TRAIN
-                    )
+        return MAPPO_attention(env=env, state_dim=state_dim, action_dim=action_dim, d_model=d_model,
+                               num_heads=num_heads, dropout_p=dropout_p,
+                               memory_capacity=MEMORY_CAPACITY, roll_out_n_steps=ROLL_OUT_N_STEPS,
+                               target_tau=TARGET_TAU, target_update_steps=TARGET_UPDATE_STEPS,
+                               reward_gamma=reward_gamma, reward_scale=reward_scale,
+                               actor_hidden_size=actor_hidden_size,
+                               critic_hidden_size=critic_hidden_size, actor_lr=actor_lr,
+                               critic_lr=critic_lr, test_seeds=test_seeds, entropy_reg=ENTROPY_REG,
+                               max_grad_norm=MAX_GRAD_NORM, batch_size=BATCH_SIZE,
+                               episodes_before_train=EPISODES_BEFORE_TRAIN)
     else:
-        return MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
-                    state_dim=state_dim, action_dim=action_dim,
-                    batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
-                    roll_out_n_steps=ROLL_OUT_N_STEPS,
-                    actor_hidden_size=actor_hidden_size, critic_hidden_size=critic_hidden_size,
-                    actor_lr=actor_lr, critic_lr=critic_lr, reward_scale=reward_scale,
-                    target_update_steps=TARGET_UPDATE_STEPS, target_tau=TARGET_TAU,
-                    reward_gamma=reward_gamma,
-                    max_grad_norm=MAX_GRAD_NORM, test_seeds=test_seeds,
-                    episodes_before_train=EPISODES_BEFORE_TRAIN
-                    )
+        return MAPPO(env=env, state_dim=state_dim, action_dim=action_dim, memory_capacity=MEMORY_CAPACITY,
+                     roll_out_n_steps=ROLL_OUT_N_STEPS, target_tau=TARGET_TAU, target_update_steps=TARGET_UPDATE_STEPS,
+                     reward_gamma=reward_gamma, reward_scale=reward_scale, actor_hidden_size=actor_hidden_size,
+                     critic_hidden_size=critic_hidden_size, actor_lr=actor_lr, critic_lr=critic_lr,
+                     test_seeds=test_seeds, entropy_reg=ENTROPY_REG, max_grad_norm=MAX_GRAD_NORM, batch_size=BATCH_SIZE,
+                     episodes_before_train=EPISODES_BEFORE_TRAIN)
 
 
 def init_env(config, env):
