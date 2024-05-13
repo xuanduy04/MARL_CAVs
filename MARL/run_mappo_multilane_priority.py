@@ -1,10 +1,11 @@
 from typing import Union
 
-from MARL.multi_agent.MAPPO import MAPPO
-from MARL.multi_agent.MAPPO_attention import MAPPO_attention
+from multi_agent.MAPPO import MAPPO
+from multi_agent.MAPPO_attention import MAPPO_attention
 from common.utils import agg_double_list, copy_file_ppo, init_dir
 import sys
 sys.path.append("../highway-env")
+import highway_env
 
 import gym
 import matplotlib.pyplot as plt

@@ -115,9 +115,9 @@ def copy_file_ppo(tar_dir):
     env2 = 'configs/configs_ppo.ini'
     copy(env2, tar_dir)
 
-    models = 'MAPPO.py'
+    models = 'multi_agent/MAPPO.py'
     copy(models, tar_dir)
-    main = 'run_mappo.py'
+    main = 'run_mappo_multilane_priority.py'
     copy(main, tar_dir)
     c1 = 'single_agent/Agent_common.py'
     copy(c1, tar_dir)
