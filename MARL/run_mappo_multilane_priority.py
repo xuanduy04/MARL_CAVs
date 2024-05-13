@@ -158,12 +158,9 @@ def train(args):
     mappo = create_model(config=config, env=env)
     
     # print comments.
-    use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
     model_type_name = "MAPPO" + (" with attention" if isinstance(mappo, MAPPO_attention) else "")
-    init_method = "using xavier_uniform_" if use_xavier_initialization else "randomly"
-
     print(f"Environment initialized with {num_CAV} CAVs, {num_HDV} HDVs and 1 PV.")
-    print(f"{model_type_name} model initialized {init_method}.\n")
+    print(f"{model_type_name} model initialized.\n")
 
     # load the model if exist
     mappo.load(model_dir, train_mode=True)
