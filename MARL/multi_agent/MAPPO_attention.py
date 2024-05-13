@@ -13,7 +13,7 @@ torch.backends.cudnn.deterministic = True
 
 from torch.optim import Adam, RMSprop
 
-from MAPPO import MAPPO
+from multi_agent.MAPPO import MAPPO
 
 import numpy as np
 from copy import deepcopy
