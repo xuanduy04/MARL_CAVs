@@ -27,7 +27,6 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
     TARGET_UPDATE_STEPS = config.getint('MODEL_CONFIG', 'TARGET_UPDATE_STEPS')
     TARGET_TAU = config.getfloat('MODEL_CONFIG', 'TARGET_TAU')
 
-    use_xavier_initialization = config.getboolean('MODEL_CONFIG','use_xavier_initialization')
     use_attention_module = config.getboolean('MODEL_CONFIG','use_attention_module')
 
     # train configs
@@ -47,7 +46,6 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
         dropout_p = config.getfloat('MODEL_CONFIG','dropout_p')
         return MAPPO_attention(env=env, memory_capacity=MEMORY_CAPACITY,
                     d_model=d_model, num_heads=num_heads, dropout_p=dropout_p, 
-                    use_xavier_initialization=use_xavier_initialization,
                     state_dim=state_dim, action_dim=action_dim,
                     batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
                     roll_out_n_steps=ROLL_OUT_N_STEPS,
@@ -60,7 +58,6 @@ def create_model(config, env) -> Union[MAPPO, MAPPO_attention]:
                     )
     else:
         return MAPPO(env=env, memory_capacity=MEMORY_CAPACITY,
-                    use_xavier_initialization=use_xavier_initialization,
                     state_dim=state_dim, action_dim=action_dim,
                     batch_size=BATCH_SIZE, entropy_reg=ENTROPY_REG,
                     roll_out_n_steps=ROLL_OUT_N_STEPS,

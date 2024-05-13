@@ -28,7 +28,6 @@ class MAPPO:
     reference: https://github.com/ChenglongChen/pytorch-DRL
     """
     def __init__(self, env, state_dim, action_dim,
-                 use_xavier_initialization,
                  memory_capacity=10000, max_steps=None,
                  roll_out_n_steps=1, target_tau=1.,
                  target_update_steps=5, clip_param=0.2,
@@ -74,17 +73,6 @@ class MAPPO:
         self.actor = ActorNetwork(self.state_dim, self.actor_hidden_size,
                                   self.action_dim, self.actor_output_act)
         self.critic = CriticNetwork(self.state_dim, self.action_dim, self.critic_hidden_size, 1)
-
-        if use_xavier_initialization:
-            def initialize_linear(module: nn.Module):
-                for name, param in module.named_parameters():
-                    if 'weight' in name:
-                        nn.init.xavier_uniform_(param)
-                    elif 'bias' in name:
-                        nn.init.zeros_(param)
-        
-            initialize_linear(self.actor)
-            initialize_linear(self.critic)
 
         # to ensure target network and learning network has the same weights
         self.actor_target = deepcopy(self.actor)

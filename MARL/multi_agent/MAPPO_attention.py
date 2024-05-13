@@ -30,7 +30,7 @@ class MAPPO_attention(MAPPO):
     """
     def __init__(self,
                  env, state_dim, action_dim, d_model,
-                 num_heads, dropout_p, use_xavier_initialization,
+                 num_heads, dropout_p,
                  memory_capacity=10000, max_steps=None,
                  roll_out_n_steps=1, target_tau=1.,
                  target_update_steps=5, clip_param=0.2,
@@ -43,7 +43,6 @@ class MAPPO_attention(MAPPO):
                  use_cuda=True):
 
         super().__init__(env, state_dim, action_dim,
-                 use_xavier_initialization,
                  memory_capacity, max_steps,
                  roll_out_n_steps, target_tau,
                  target_update_steps, clip_param,
@@ -64,16 +63,6 @@ class MAPPO_attention(MAPPO):
         self.seq_len, _ = env.observation_space[0].shape
         
         self.attention = MultiHeadAttention(d_model=d_model, num_heads=num_heads, dropout_p=dropout_p)
-
-        if use_xavier_initialization:
-            def initialize_linear(module: nn.Module):
-                for name, param in module.named_parameters():
-                    if 'weight' in name:
-                        nn.init.xavier_uniform_(param)
-                    elif 'bias' in name:
-                        nn.init.zeros_(param)
-        
-            initialize_linear(self.attention)
 
         self.actor  = Attention_Feed_Forward(self.attention, self.actor)
         self.critic = Attention_Feed_Forward(self.attention, self.critic)
