@@ -168,7 +168,7 @@ def train(args):
         mappo.interact()
         if mappo.n_episodes >= EPISODES_BEFORE_TRAIN:
             mappo.train()
-        if mappo.episode_done and ((mappo.n_episodes + 1) % EVAL_INTERVAL == 0):
+        if ((mappo.n_episodes + 1) % EVAL_INTERVAL == 0):
             rewards, _, _, avg_speed, crash_rate = \
                 mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
             rewards_mu, rewards_std = agg_double_list(rewards)
