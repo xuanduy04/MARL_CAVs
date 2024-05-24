@@ -11,7 +11,6 @@ class ReplayMemory(object):
     """
     Replay memory buffer
     """
-
     def __init__(self, capacity: int = 10_000):
         self.capacity = capacity
         self.memory = []
@@ -55,7 +54,6 @@ class OnPolicyReplayMemory(ReplayMemory):
     """
     Replay memory buffer
     """
-
     def __init__(self, capacity: int = 10_000):
         super().__init__(capacity)
 

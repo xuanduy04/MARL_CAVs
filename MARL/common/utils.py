@@ -121,7 +121,7 @@ def copy_file_ppo(tar_dir):
     copy(main, tar_dir)
     c1 = 'single_agent/Agent_common.py'
     copy(c1, tar_dir)
-    c2 = 'single_agent/Memory_common.py'
+    c2 = 'single_agent/Memory.py'
     copy(c2, tar_dir)
     c3 = 'single_agent/Model_common.py'
     copy(c3, tar_dir)
@@ -142,7 +142,7 @@ def copy_file_akctr(tar_dir):
     copy(main, tar_dir)
     c1 = 'single_agent/Agent_common.py'
     copy(c1, tar_dir)
-    c2 = 'single_agent/Memory_common.py'
+    c2 = 'single_agent/Memory.py'
     copy(c2, tar_dir)
     c3 = 'single_agent/Model_common.py'
     copy(c3, tar_dir)
