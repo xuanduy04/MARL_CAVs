@@ -2,12 +2,12 @@ import os
 
 from BasePolicy import BasePolicy
 from torch.optim import AdamW
-from MARL.single_agent.Memory import OnPolicyReplayMemory
+# from MARL.single_agent.Memory import OnPolicyReplayMemory
 
 
 class IPPO(BasePolicy):
     def __init__(self, train_config: dict, env_config: dict):
-        super().__init__(memory=OnPolicyReplayMemory())
+        # super().__init__(memory=OnPolicyReplayMemory())
         self.train_config = train_config
         self.env_config = env_config
 

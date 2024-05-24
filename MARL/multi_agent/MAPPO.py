@@ -19,7 +19,7 @@ import warnings
 import numpy as np
 import os, logging
 from copy import deepcopy
-from single_agent.Memory_common import OnPolicyReplayMemory
+from single_agent.Memory import OnPolicyReplayMemory
 from single_agent.Model_common import ActorNetwork, CriticNetwork
 from common.utils import entropy, index_to_one_hot, to_tensor_var
 
