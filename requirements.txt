@@ -1,5 +1,5 @@
+tensorboard==2.4.0
 numpy==1.19.0
-tensorboard
 pandas
 gym==0.21.0
 matplotlib
