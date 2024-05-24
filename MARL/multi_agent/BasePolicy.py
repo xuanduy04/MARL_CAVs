@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 
-from MARL.single_agent.Memory import ReplayMemory
+# from MARL.single_agent.Memory import ReplayMemory
 
 
 class BasePolicy(object):
-    def __init__(self, memory: ReplayMemory = ReplayMemory()):
+    def __init__(self, memory):
         super(BasePolicy, self).__init__()
         self.memory = memory
 
