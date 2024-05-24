@@ -1,6 +1,6 @@
 import os
 
-from BasePolicy import BasePolicy
+from multi_agent import BasePolicy
 from torch.optim import AdamW
 # from MARL.single_agent.Memory import OnPolicyReplayMemory
 
