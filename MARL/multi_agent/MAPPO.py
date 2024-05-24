@@ -3,7 +3,7 @@ from torch import nn
 import configparser
 import imageio
 
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 
 config_dir = 'configs/configs_ppo.ini'
 config = configparser.ConfigParser()
@@ -50,7 +50,7 @@ class MAPPO:
         self.actor_hidden_size = actor_hidden_size
         self.critic_hidden_size = critic_hidden_size
         self.actor_output_act = actor_output_act
-        self.critic_loss = critic_loss
+        self.critic_loss = 'mse'
         self.actor_lr = actor_lr
         self.critic_lr = critic_lr
         self.optimizer_type = optimizer_type
