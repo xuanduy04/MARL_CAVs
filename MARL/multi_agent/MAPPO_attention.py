@@ -11,7 +11,7 @@ torch.manual_seed(torch_seed)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-from torch.optim import Adam, RMSprop
+from torch.optim import Adam, RMSprop, AdamW
 
 from multi_agent.MAPPO import MAPPO
 
