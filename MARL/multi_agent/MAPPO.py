@@ -29,10 +29,15 @@ class MAPPO:
     An multi-agent learned with PPO
     reference: https://github.com/ChenglongChen/pytorch-DRL
     """
-    def __init__(self, env, state_dim, action_dim, memory_capacity=10000, max_steps=None, roll_out_n_steps=1,
-                 target_tau=1., target_update_steps=5, clip_param=0.2, reward_gamma=0.99, reward_scale=20,
-                 actor_hidden_size=128, critic_hidden_size=128, actor_output_act=nn.functional.log_softmax,
-                 actor_lr=0.0001, critic_lr=0.0001, test_seeds=0, optimizer_type="adamW", entropy_reg=0.01,
+
+    def __init__(self, env, state_dim, action_dim, memory_capacity=10000, max_steps=None,
+                 roll_out_n_steps=1,
+                 target_tau=1., target_update_steps=5, clip_param=0.2, reward_gamma=0.99,
+                 reward_scale=20,
+                 actor_hidden_size=128, critic_hidden_size=128,
+                 actor_output_act=nn.functional.log_softmax,
+                 actor_lr=0.0001, critic_lr=0.0001, test_seeds=0, optimizer_type="adamW",
+                 entropy_reg=0.01,
                  max_grad_norm=0.5, batch_size=100, episodes_before_train=100, use_cuda=True):
 
         self.env = env
@@ -95,7 +100,8 @@ class MAPPO:
     # agent interact with the environment to collect experience
     def interact(self):
         if (self.max_steps is not None) and (self.n_steps >= self.max_steps):
-            self.env_state, _ = self.env.reset(curriculum_learning = self.n_episodes < self.n_curriculum_episodes)
+            self.env_state, _ = self.env.reset(
+                curriculum_learning=self.n_episodes < self.n_curriculum_episodes)
             self.n_steps = 0
         states = []
         actions = []
@@ -133,7 +139,8 @@ class MAPPO:
             rewards = np.array(rewards) / self.reward_scale
 
         for agent_id in range(self.n_agents):
-            rewards[:, agent_id] = self._discount_reward(rewards[:, agent_id], final_value[agent_id])
+            rewards[:, agent_id] = self._discount_reward(rewards[:, agent_id],
+                                                         final_value[agent_id])
 
         rewards = rewards.tolist()
         self.memory.push(states, actions, rewards)
@@ -144,14 +151,17 @@ class MAPPO:
             pass
 
         batch = self.memory.sample(self.batch_size)
-        states_var = to_tensor_var(batch.states, self.use_cuda).view(-1, self.n_agents, self.state_dim)
-        actions_var = to_tensor_var(batch.actions, self.use_cuda).view(-1, self.n_agents, self.action_dim)
+        states_var = to_tensor_var(batch.states, self.use_cuda).view(-1, self.n_agents,
+                                                                     self.state_dim)
+        actions_var = to_tensor_var(batch.actions, self.use_cuda).view(-1, self.n_agents,
+                                                                       self.action_dim)
         rewards_var = to_tensor_var(batch.rewards, self.use_cuda).view(-1, self.n_agents, 1)
 
         for agent_id in range(self.n_agents):
             # update actor network
             self.actor_optimizer.zero_grad()
-            values = self.critic_target(states_var[:, agent_id, :], actions_var[:, agent_id, :]).detach()
+            values = self.critic_target(states_var[:, agent_id, :],
+                                        actions_var[:, agent_id, :]).detach()
             advantages = rewards_var[:, agent_id, :] - values
 
             action_log_probs = self.actor(states_var[:, agent_id, :])
@@ -163,7 +173,7 @@ class MAPPO:
             surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
             # PPO's pessimistic surrogate (L^CLIP)
             actor_loss = -torch.mean(torch.min(surr1, surr2)) \
-                - self.entropy_reg * torch.mean(entropy(torch.exp(action_log_probs)))
+                         - self.entropy_reg * torch.mean(entropy(torch.exp(action_log_probs)))
             actor_loss.backward()
             if self.max_grad_norm is not None:
                 nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
@@ -252,29 +262,31 @@ class MAPPO:
             n_agents = len(env.controlled_vehicles)
             rendered_frame = env.render(mode="rgb_array")
             video_filename = os.path.join(output_dir,
-                                          "testing_episode{}".format(self.n_episodes + 1) + '_{}'.format(i) +
+                                          "testing_episode{}".format(
+                                              self.n_episodes + 1) + '_{}'.format(i) +
                                           '.mp4')
             # Init video recording
             if video_filename is not None:
-                print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape,
+                print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename,
+                                                                      *rendered_frame.shape,
                                                                       5))
             while not done:
                 step += 1
                 action = self.action(state, n_agents)
                 state, reward, done, info = env.step(action)
                 avg_speed += info["average_speed"]
-                
+
                 if video_filename is not None:
                     rendered_frame = env.render(mode="rgb_array")
                     Recorded_frames.append(rendered_frame)
-                    
+
                 rewards_i.append(reward)
                 # infos_i.append(info)
 
             if video_filename is not None:
                 rendered_frame = env.render(mode="rgb_array")
                 Recorded_frames.append(rendered_frame)
-            
+
             rewards.append(rewards_i)
             # infos.append(infos_i)
             vehicle_speed.append(info["vehicle_speed"])
@@ -284,13 +296,14 @@ class MAPPO:
             crash_rate += info["crashed"] / n_agents
 
             if video_filename is not None:
-                imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames], fps=5)
+                imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames],
+                                fps=5)
                 # Alternate writer.
                 # writer = imageio.get_writer(video_filename, fps=5)
                 # for frame in Recorded_frames:
                 #     writer.append_data(np.array(frame))
                 # writer.close()
-	
+
         env.close()
         crash_rate /= eval_episodes
         return rewards, (vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate
@@ -343,6 +356,6 @@ class MAPPO:
     def save(self, model_dir, global_step):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_step)
         torch.save({'global_step': global_step,
-                 'model_state_dict': self.actor.state_dict(),
-                 'optimizer_state_dict': self.actor_optimizer.state_dict()},
-                file_path)
+                    'model_state_dict': self.actor.state_dict(),
+                    'optimizer_state_dict': self.actor_optimizer.state_dict()},
+                   file_path)
