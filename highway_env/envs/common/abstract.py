@@ -183,7 +183,7 @@ class AbstractEnv(gym.Env):
         """
         Reset the environment to it's initial configuration
 
-        :return: the observation of the reset state
+        :return: the observation of the reset state, (num_CAV and num_HDV)
         """
         if is_training:
             np.random.seed(self.seed)
@@ -205,15 +205,6 @@ class AbstractEnv(gym.Env):
             v.id = i
         obs = self.observation_type.observe()
         # print(f"""obs.shape from env.reset: {np.asarray(obs).shape}""")
-        # get action masks
-        if self.config["action_masking"]:
-            available_actions = [[0] * self.n_a] * len(self.controlled_vehicles)
-            for i in range(len(self.controlled_vehicles)):
-                available_action = self._get_available_actions(self.controlled_vehicles[i], self)
-                for a in available_action:
-                    available_actions[i][a] = 1
-        else:
-            available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
         obs = np.asarray(obs).reshape((len(obs), -1)) if self.config["flatten_obs"] else np.asarray(obs)
         return obs, vehicle_count
 
