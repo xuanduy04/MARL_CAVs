@@ -2,8 +2,9 @@ import yaml
 
 
 class Config:
-    def __init__(self, config_dict):
+    def __init__(self, config_dict: dict):
         self._config_dict = config_dict
+        self._assigned_attrs = set(config_dict.keys())
 
     def __getattr__(self, name):
         if name in self._config_dict:
