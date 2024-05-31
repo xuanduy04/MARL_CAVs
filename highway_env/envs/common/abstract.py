@@ -470,16 +470,6 @@ class AbstractEnv(gym.Env):
         # print(f"""reward.shape from env.super().step: {np.asarray(reward).shape}""")
         terminal = self._is_terminal()
 
-        # get action masks
-        if self.config["action_masking"]:
-            available_actions = [[0] * self.n_a] * len(self.controlled_vehicles)
-            for i in range(len(self.controlled_vehicles)):
-                available_action = self._get_available_actions(self.controlled_vehicles[i], self)
-                for a in available_action:
-                    available_actions[i][a] = 1
-        else:
-            available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
-
         for v in self.controlled_vehicles:
             average_speed += v.speed
         average_speed = average_speed / len(self.controlled_vehicles)
@@ -491,7 +481,7 @@ class AbstractEnv(gym.Env):
             "crashed": sum(v.crashed for v in self.controlled_vehicles) if terminal else 0.,
             "action": action,
             "new_action": self.new_action,
-            "action_mask": np.array(available_actions),
+            # "action_mask": np.array(available_actions),
             "average_speed": average_speed,
             "vehicle_speed": np.array(self.vehicle_speed),
             "vehicle_position": np.array(self.vehicle_pos)
@@ -506,7 +496,7 @@ class AbstractEnv(gym.Env):
         except NotImplementedError:
             pass
 
-        # print(self.steps)    
+        # print(self.steps)
         return obs, reward, terminal, info
 
     def _simulate(self, action: Optional[Action] = None) -> None:
