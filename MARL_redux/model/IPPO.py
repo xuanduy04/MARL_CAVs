@@ -42,7 +42,7 @@ class IPPO(object):
         #     self.optimizer.param_groups[0]["lr"] = lrnow
 
         # TRY NOT TO MODIFY: start the game
-        next_obs, (num_CAV, _) = env.reset(curriculum_training)
+        next_obs, (num_CAV, _) = env.reset(curriculum_learning=curriculum_training)
         next_obs = torch.Tensor(next_obs).to(device)
         next_done = torch.zeros(num_CAV).to(device)
 
@@ -165,7 +165,6 @@ class IPPO(object):
         crash_rate = 0.0
 
         device = self.config.device
-        args = self.config.model
 
         for i, seed in enumerate(self.config.model.test_seeds):
             # set up variables
@@ -173,7 +172,6 @@ class IPPO(object):
             step = 0
             avg_speed = 0
             Recorded_frames = []
-            done = False
 
             # TRY NOT TO MODIFY: start the game
             next_obs, (num_CAV, _) = env.reset(is_training=False, testing_seeds=seed)
@@ -183,13 +181,9 @@ class IPPO(object):
             # TRY NOT TO MODIFY: init video recorder
             rendered_frame = env.render(mode="rgb_array")
             video_filename = os.path.join(output_dir, f"testing_episode{global_episode + 1}_{i}.mp4")
-            # Init video recording
-            if video_filename is not None:
-                print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename,
-                                                                      *rendered_frame.shape,
-                                                                      5))
+            print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape, 5))
 
-            for step in range(0, 10_000):
+            for step in range(0, 1_000):
                 # ALGO LOGIC: action logic
                 with torch.no_grad():
                     action, _, _, _ = self.network.get_action_and_value(next_obs)
