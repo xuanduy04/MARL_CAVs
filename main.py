@@ -29,10 +29,10 @@ def train(args):
 
     # init envs
     env_train = gym.make('merge-multilane-priority-multi-agent-v0')
-    env_train = init_env(config.env, env_train)
+    env_train = init_env(env_train, config)
 
     env_eval = gym.make('merge-multilane-priority-multi-agent-v0')
-    env_eval = init_env(config.env, env_eval)
+    env_eval = init_env(env_eval, config)
     config.env.state_dim = env_train.state_dim
     config.env.action_dim = env_train.action_dim
 
