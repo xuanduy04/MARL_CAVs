@@ -169,42 +169,42 @@ class MergeMultilanePriorityEnv(AbstractEnv):
                  + lane_change_cost
         return reward
 
-    def _regional_reward(self):
-        for vehicle in self.controlled_vehicles:
-            neighbor_vehicle = []
+    # def _regional_reward(self):
+    #     for vehicle in self.controlled_vehicles:
+    #         neighbor_vehicle = []
 
-            # vehicle is on the main road
-            if vehicle.lane_index == ("a", "b", 0) or vehicle.lane_index == ("a", "b", 1) or vehicle.lane_index == (
-                    "b", "c", 0) or vehicle.lane_index == ("b", "c", 1) or vehicle.lane_index == (
-                    "c", "d", 0) or vehicle.lane_index == ("c", "d", 1):
-                v_fl, v_rl = self.road.surrounding_vehicles(vehicle)
-                if len(self.road.network.side_lanes(vehicle.lane_index)) != 0:
-                    v_fr, v_rr = self.road.surrounding_vehicles(vehicle,
-                                                                self.road.network.side_lanes(
-                                                                    vehicle.lane_index)[0])
-                # assume we can observe vehicles on the ramp
-                elif vehicle.lane_index == ("a", "b", 1) and vehicle.position[0] > self.ends[0]:
-                    v_fr, v_rr = self.road.surrounding_vehicles(vehicle, ("k", "b", 0))
-                else:
-                    v_fr, v_rr = None, None
-            else:
-                # vehicle is on the ramp
-                v_fr, v_rr = self.road.surrounding_vehicles(vehicle)
-                if len(self.road.network.side_lanes(vehicle.lane_index)) != 0:
-                    v_fl, v_rl = self.road.surrounding_vehicles(vehicle,
-                                                                self.road.network.side_lanes(
-                                                                    vehicle.lane_index)[0])
-                # assume we can observe the straight road on the ramp
-                elif vehicle.lane_index == ("k", "b", 0):
-                    v_fl, v_rl = self.road.surrounding_vehicles(vehicle, ("a", "b", 1))
-                else:
-                    v_fl, v_rl = None, None
+    #         # vehicle is on the main road
+    #         if vehicle.lane_index == ("a", "b", 0) or vehicle.lane_index == ("a", "b", 1) or vehicle.lane_index == (
+    #                 "b", "c", 0) or vehicle.lane_index == ("b", "c", 1) or vehicle.lane_index == (
+    #                 "c", "d", 0) or vehicle.lane_index == ("c", "d", 1):
+    #             v_fl, v_rl = self.road.surrounding_vehicles(vehicle)
+    #             if len(self.road.network.side_lanes(vehicle.lane_index)) != 0:
+    #                 v_fr, v_rr = self.road.surrounding_vehicles(vehicle,
+    #                                                             self.road.network.side_lanes(
+    #                                                                 vehicle.lane_index)[0])
+    #             # assume we can observe vehicles on the ramp
+    #             elif vehicle.lane_index == ("a", "b", 1) and vehicle.position[0] > self.ends[0]:
+    #                 v_fr, v_rr = self.road.surrounding_vehicles(vehicle, ("k", "b", 0))
+    #             else:
+    #                 v_fr, v_rr = None, None
+    #         else:
+    #             # vehicle is on the ramp
+    #             v_fr, v_rr = self.road.surrounding_vehicles(vehicle)
+    #             if len(self.road.network.side_lanes(vehicle.lane_index)) != 0:
+    #                 v_fl, v_rl = self.road.surrounding_vehicles(vehicle,
+    #                                                             self.road.network.side_lanes(
+    #                                                                 vehicle.lane_index)[0])
+    #             # assume we can observe the straight road on the ramp
+    #             elif vehicle.lane_index == ("k", "b", 0):
+    #                 v_fl, v_rl = self.road.surrounding_vehicles(vehicle, ("a", "b", 1))
+    #             else:
+    #                 v_fl, v_rl = None, None
 
-            for v in [v_fl, v_fr, vehicle, v_rl, v_rr]:
-                if type(v) is MDPVehicle and v is not None:
-                    neighbor_vehicle.append(v)
-            regional_reward = sum(v.local_reward for v in neighbor_vehicle)
-            vehicle.regional_reward = regional_reward / sum(1 for _ in filter(None.__ne__, neighbor_vehicle))
+    #         for v in [v_fl, v_fr, vehicle, v_rl, v_rr]:
+    #             if type(v) is MDPVehicle and v is not None:
+    #                 neighbor_vehicle.append(v)
+    #         regional_reward = sum(v.local_reward for v in neighbor_vehicle)
+    #         vehicle.regional_reward = regional_reward / sum(1 for _ in filter(None.__ne__, neighbor_vehicle))
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
         agent_info = []
