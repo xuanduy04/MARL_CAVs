@@ -41,6 +41,9 @@ class AbstractEnv(gym.Env):
     PERCEPTION_DISTANCE = 6.0 * MDPVehicle.SPEED_MAX
     """The maximum distance of any vehicle present in the observation [m]"""
 
+    state_dim = -1
+    action_dim = -1
+
     def __init__(self, config: dict = None) -> None:
         # Configuration
         self.config = self.default_config()
