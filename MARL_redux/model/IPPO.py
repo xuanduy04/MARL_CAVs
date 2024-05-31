@@ -19,7 +19,7 @@ class IPPO(object):
         # Actor & Critic
         self.network = ActorCriticNetwork(config.env.state_dim, config.env.action_dim,
                                           config.model.hidden_size)
-        self.optimizer = Adam(self.network.parameters(), lr=config.learning_rate)
+        self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
         # self.model_path = ""
         # self.actor_path = os.path.join(self.model_path, "actor.pth")
