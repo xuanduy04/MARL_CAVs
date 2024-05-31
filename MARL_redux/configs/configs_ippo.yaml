@@ -34,7 +34,7 @@ model: # Algorithm specific arguments
   clip_coef: 0.2
   # the surrogate clipping coefficient
   clip_vloss: True
-  # Toggles whether or not to use a clipped loss for the value function, as per the paper.
+  # Toggles whether to use a clipped loss for the value function, as per the paper.
   ent_coef: 0.01
   # coefficient of the entropy
   vf_coef: 0.5
