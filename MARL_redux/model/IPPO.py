@@ -13,7 +13,6 @@ from MARL_redux.common.network import ActorCriticNetwork
 
 class IPPO(object):
     def __init__(self, config: Config):
-        # super().__init__(memory=OnPolicyReplayMemory())
         self.config = config
 
         # Actor & Critic
@@ -34,8 +33,14 @@ class IPPO(object):
         rollout_steps = self.config.model.rollout_steps
         args = self.config.model
 
+        # Annealing the rate if instructed to do so.
+        # if args.anneal_lr:
+        #     frac = 1.0 - (iteration - 1.0) / args.num_iterations
+        #     lrnow = frac * args.learning_rate
+        #     self.optimizer.param_groups[0]["lr"] = lrnow
+
         # TRY NOT TO MODIFY: start the game
-        next_obs, (num_CAV, _) = env.reset()
+        next_obs, (num_CAV, _) = env.reset(curriculum_training)
         next_obs = torch.Tensor(next_obs).to(device)
         next_done = torch.zeros(num_CAV).to(device)
 
@@ -127,6 +132,7 @@ class IPPO(object):
                 # Value loss
                 newvalue = newvalue.view(-1)
                 if args.clip_vloss:
+                    # TODO: change clip value loss to the one in IPPO.
                     v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
                     v_clipped = b_values[mb_inds] + torch.clamp(
                         newvalue - b_values[mb_inds],
@@ -226,3 +232,9 @@ class IPPO(object):
         env.close()
         crash_rate /= len(self.config.model.test_seeds)
         return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
+    
+    def save_model():
+        pass
+
+    def load_model():
+        pass
