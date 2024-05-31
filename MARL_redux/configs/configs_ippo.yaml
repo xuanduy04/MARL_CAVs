@@ -1,23 +1,49 @@
 seed: 2000
 
-model:
-  batch_size: 10_000 # will remember and interact with the environment for at most batch_size steps
-  update_epochs: 1 # each train_model() called fill update `update_epochs` times
-  entropy_reg: 0.01
-
-  hidden_size: 256 # network hidden size, for both actor and critic
-
-  rollout_steps: 125
-  train_episodes: 2000 # training episodes
-  curriculum_episodes: 1000 # how many curriculum episdoes?
+model: # Algorithm specific arguments
+  train_episodes: 1000
+  # Total episodes to train
+  curriculum_episodes: 500
+  # Amount of curriculum episodes
+  hidden_size: 256 
+  # network hidden size, for both actor and critic
   eval_interval: 50
-  learning_rate: 3e-4
+  # How many training episodes to run an evaluation
   test_seeds:
     - 100
     - 125
     - 150
+  # List of seeds for evaluation
 
-env:
+  learning_rate: 2.5e-4
+  # the learning rate of the optimizer
+  num_steps: 125
+  # the maximum number of steps to run in each environment per policy rollout
+  anneal_lr: True
+  # Toggle learning rate annealing for policy and value networks
+  gamma: 0.99
+  # the discount factor gamma
+  gae_lambda: 0.95
+  # the lambda for the general advantage estimation
+  num_minibatches: 4
+  # the number of mini-batches
+  update_epochs: 4
+  # the K epochs to update the policy
+  norm_adv: True
+  # Toggles advantages normalization
+  clip_coef: 0.2
+  # the surrogate clipping coefficient
+  clip_vloss: True
+  # Toggles whether or not to use a clipped loss for the value function, as per the paper.
+  ent_coef: 0.01
+  # coefficient of the entropy
+  vf_coef: 0.5
+  # coefficient of the value function
+  max_grad_norm: 0.5
+  # the maximum norm for the gradient clipping
+    
+
+env: # Environment specific arguments
   simulation_frequency: 15 # [Hz]
   policy_frequency: 5      # [Hz]
   duration: 25             # (seconds)
@@ -35,5 +61,4 @@ env:
   # Vehicle count
   num_CAV: 4
   num_HDV: 3
-  # num_PV: 1  # Uncomment if needed
-  # num_HDV excludes the priority vehicle count
+  # num_PV: 1 # num_HDV excludes the priority vehicle count
