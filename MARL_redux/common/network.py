@@ -23,7 +23,7 @@ class ActorCriticNetwork(nn.Module):
         )
 
         self.critic = nn.Sequential(
-            layer_init(nn.Linear(state_dim + action_dim, hidden_size)),
+            layer_init(nn.Linear(state_dim, hidden_size)),
             nn.ReLU(),
             layer_init(nn.Linear(hidden_size, hidden_size)),
             nn.ReLU(),
