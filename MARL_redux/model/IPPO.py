@@ -49,7 +49,7 @@ class IPPO(object):
         # ALGO Logic: Storage setup
         memory_shape = (num_steps, num_CAV)
         obs = torch.zeros(memory_shape + (self.config.env.state_dim,)).to(device)
-        actions = torch.zeros(memory_shape + (1,)).to(device)
+        actions = torch.zeros(memory_shape).to(device)
         logprobs = torch.zeros(memory_shape).to(device)
         rewards = torch.zeros(memory_shape).to(device)
         dones = torch.zeros(memory_shape[0]).to(device)
@@ -94,7 +94,7 @@ class IPPO(object):
         # flatten the batch
         b_obs = obs.reshape((-1, self.config.env.state_dim))
         b_logprobs = logprobs.reshape(-1)
-        b_actions = actions.reshape((-1, 1))
+        b_actions = actions.reshape((-1))
         b_advantages = advantages.reshape(-1)
         b_returns = returns.reshape(-1)
         b_values = values.reshape(-1)
