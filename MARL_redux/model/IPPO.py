@@ -15,6 +15,7 @@ class IPPO(object):
     def __init__(self, config: Config):
         super(IPPO, self).__init__()
         self.config = config
+        self.config.model.batch_size = self.config.model.num_steps  # on-policy so use all data we get.
 
         # Actor & Critic
         self.network = ActorCriticNetwork(config.env.state_dim, config.env.action_dim,
@@ -70,10 +71,10 @@ class IPPO(object):
             next_obs, reward, next_done, infos = env.step(action.cpu().numpy())
             rewards[step] = torch.tensor(reward).to(device).view(-1)
 
+            next_obs = torch.Tensor(next_obs).to(device)
             if next_done:
                 num_steps = step
                 break
-            next_obs = torch.Tensor(next_obs).to(device)
 
         # bootstrap value if not done
         with torch.no_grad():
@@ -94,7 +95,7 @@ class IPPO(object):
         # flatten the batch
         b_obs = obs.reshape((-1, self.config.env.state_dim))
         b_logprobs = logprobs.reshape(-1)
-        b_actions = actions.reshape((-1))
+        b_actions = actions.reshape(-1)
         b_advantages = advantages.reshape(-1)
         b_returns = returns.reshape(-1)
         b_values = values.reshape(-1)
