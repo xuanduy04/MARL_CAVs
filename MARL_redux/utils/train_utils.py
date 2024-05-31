@@ -8,7 +8,7 @@ from highway_env.envs import AbstractEnv
 from config import Config
 
 def init_env(env: AbstractEnv, config: Config) -> AbstractEnv:
-    env.config['flatten_obs'] = 'use_attention_module' not in config
+    env.config['flatten_obs'] = 'use_attention_module' not in config.model
     return env
 
 def set_seed(seed: int):
