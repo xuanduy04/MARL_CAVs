@@ -48,8 +48,8 @@ class IPPO(object):
 
         # ALGO Logic: Storage setup
         memory_shape = (num_steps, num_CAV)
-        obs = torch.zeros(memory_shape + (self.config.env.state_dim)).to(device)
-        actions = torch.zeros(memory_shape + (self.config.env.action_dim)).to(device)
+        obs = torch.zeros(memory_shape + (self.config.env.state_dim,)).to(device)
+        actions = torch.zeros(memory_shape + (self.config.env.action_dim,)).to(device)
         logprobs = torch.zeros(memory_shape).to(device)
         rewards = torch.zeros(memory_shape).to(device)
         dones = torch.zeros(memory_shape).to(device)
