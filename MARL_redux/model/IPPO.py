@@ -13,6 +13,7 @@ from MARL_redux.common.network import ActorCriticNetwork
 
 class IPPO(object):
     def __init__(self, config: Config):
+        super(IPPO, self).__init__()
         self.config = config
 
         # Actor & Critic
@@ -30,10 +31,11 @@ class IPPO(object):
         """
         # set up variables
         device = self.config.device
-        rollout_steps = self.config.model.rollout_steps
+        num_steps = self.config.model.num_steps
         args = self.config.model
 
         # Annealing the rate if instructed to do so.
+        # TODO: implement this?
         # if args.anneal_lr:
         #     frac = 1.0 - (iteration - 1.0) / args.num_iterations
         #     lrnow = frac * args.learning_rate
@@ -45,7 +47,7 @@ class IPPO(object):
         next_done = torch.zeros(num_CAV).to(device)
 
         # ALGO Logic: Storage setup
-        memory_shape = (rollout_steps, num_CAV)
+        memory_shape = (num_steps, num_CAV)
         obs = torch.zeros(memory_shape + self.config.env.state_dim).to(device)
         actions = torch.zeros(memory_shape + self.config.env.action_dim).to(device)
         logprobs = torch.zeros(memory_shape).to(device)
@@ -53,7 +55,7 @@ class IPPO(object):
         dones = torch.zeros(memory_shape).to(device)
         values = torch.zeros(memory_shape).to(device)
 
-        for step in range(0, rollout_steps):
+        for step in range(0, num_steps):
             obs[step] = next_obs
             dones[step] = next_done
 
@@ -69,17 +71,17 @@ class IPPO(object):
             rewards[step] = torch.tensor(reward).to(device).view(-1)
 
             if next_done:
-                rollout_steps = step
+                num_steps = step
                 break
             next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(next_done).to(device)
 
-            # bootstrap value if not done
+        # bootstrap value if not done
         with torch.no_grad():
             next_value = self.network.get_value(next_obs).reshape(1, -1)
             advantages = torch.zeros_like(rewards).to(device)
             lastgaelam = 0
-            for t in reversed(range(rollout_steps)):
-                if t == rollout_steps - 1:
+            for t in reversed(range(num_steps)):
+                if t == num_steps - 1:
                     nextnonterminal = 1.0 - next_done
                     nextvalues = next_value
                 else:
@@ -89,7 +91,7 @@ class IPPO(object):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
-            # flatten the batch
+        # flatten the batch
         b_obs = obs.reshape((-1,) + self.config.env.state_dim)
         b_logprobs = logprobs.reshape(-1)
         b_actions = actions.reshape((-1,) + self.config.env.action_dim)
@@ -98,8 +100,8 @@ class IPPO(object):
         b_values = values.reshape(-1)
 
         # Optimizing the policy and value network
-        batch_size = min(args.batch_size, rollout_steps)
-        minibatch_size = min(args.minibatch_size, batch_size)
+        batch_size = min(args.batch_size, num_steps)
+        minibatch_size = batch_size // args.num_minibatches
         b_inds = np.arange(batch_size)
         clipfracs = []
         for epoch in range(args.update_epochs):
@@ -233,8 +235,8 @@ class IPPO(object):
         crash_rate /= len(self.config.model.test_seeds)
         return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
     
-    def save_model():
+    def save_model(self):
         pass
 
-    def load_model():
+    def load_model(self):
         pass
