@@ -16,7 +16,7 @@ from MARL_redux.model import IPPO
 
 
 def train(args):
-    config = import_config(args.model)
+    config = import_config(args.algorithm)
     set_seed(config.seed)
 
     # update configs
