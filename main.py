@@ -49,7 +49,7 @@ def train(args):
             # evaluate the model
             eval_result, _ = policy.evaluate(env_eval, output_dir, episode)
             print(f"Episode {episode + 1}: {eval_result}")
-        results.append(eval_result)
+            results.append(eval_result)
     # Save the model.
     policy.save_model()
     return results  # whatever they are
