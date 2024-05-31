@@ -1,5 +1,8 @@
+from typing import Optional
+
 import torch
 from torch import nn
+from torch import Tensor
 from torch.distributions.categorical import Categorical
 
 
@@ -15,25 +18,24 @@ class ActorCriticNetwork(nn.Module):
         super(ActorCriticNetwork, self).__init__()
         self.actor = nn.Sequential(
             layer_init(nn.Linear(state_dim, hidden_size)),
-            nn.ReLU(),
+            nn.Tanh(),
             layer_init(nn.Linear(hidden_size, hidden_size)),
-            nn.ReLU(),
+            nn.Tanh(),
             layer_init(nn.Linear(hidden_size, action_dim)),
-            nn.LogSigmoid()
         )
 
         self.critic = nn.Sequential(
             layer_init(nn.Linear(state_dim, hidden_size)),
-            nn.ReLU(),
+            nn.Tanh(),
             layer_init(nn.Linear(hidden_size, hidden_size)),
-            nn.ReLU(),
+            nn.Tanh(),
             layer_init(nn.Linear(hidden_size, 1))
         )
 
-    def get_value(self, state):
+    def get_value(self, state: Tensor) -> Tensor:
         return self.critic(state)
 
-    def get_action_and_value(self, state, action=None):
+    def get_action_and_value(self, state: Tensor, action: Optional[Tensor] = None):
         logits = self.actor(state)
         probs = Categorical(logits=logits)
         if action is None:
