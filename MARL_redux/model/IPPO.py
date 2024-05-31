@@ -44,12 +44,12 @@ class IPPO(object):
         # TRY NOT TO MODIFY: start the game
         next_obs, (num_CAV, _) = env.reset(curriculum_learning=curriculum_training)
         next_obs = torch.Tensor(next_obs).to(device)
-        next_done = torch.zeros(num_CAV).to(device)
+        next_done = torch.zeros(1).to(device)
 
         # ALGO Logic: Storage setup
         memory_shape = (num_steps, num_CAV)
         obs = torch.zeros(memory_shape + (self.config.env.state_dim,)).to(device)
-        actions = torch.zeros(memory_shape + (self.config.env.action_dim,)).to(device)
+        actions = torch.zeros(memory_shape + (1,)).to(device)
         logprobs = torch.zeros(memory_shape).to(device)
         rewards = torch.zeros(memory_shape).to(device)
         dones = torch.zeros(memory_shape[0]).to(device)
@@ -92,9 +92,9 @@ class IPPO(object):
             returns = advantages + values
 
         # flatten the batch
-        b_obs = obs.reshape((-1,) + self.config.env.state_dim)
+        b_obs = obs.reshape((-1, self.config.env.state_dim))
         b_logprobs = logprobs.reshape(-1)
-        b_actions = actions.reshape((-1,) + self.config.env.action_dim)
+        b_actions = actions.reshape((-1, 1))
         b_advantages = advantages.reshape(-1)
         b_returns = returns.reshape(-1)
         b_values = values.reshape(-1)
