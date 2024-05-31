@@ -26,6 +26,9 @@ class Config:
         else:
             super().__setattr__(name, value)
 
+    def __contains__(self, name):
+        return name in self._assigned_attrs
+
 
 def import_config(model_name: str) -> Config:
     # TODO: fix this when it's all over.
