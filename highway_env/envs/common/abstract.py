@@ -1,11 +1,13 @@
 import copy
 import os
-from typing import List, Tuple, Optional, Callable
+from typing import List, Tuple, Optional, Callable, Any, Union
 import gym
 import random
 from gym import Wrapper
 import numpy as np
 from queue import PriorityQueue
+
+from numpy import ndarray
 
 from highway_env import utils
 from highway_env.envs.common.action import action_factory, Action, DiscreteMetaAction, ActionType
@@ -173,7 +175,8 @@ class AbstractEnv(gym.Env):
         """
         raise NotImplementedError
 
-    def reset(self, is_training=True, testing_seeds=0, curriculum_learning=False) -> Observation:
+    def reset(self, is_training: bool = True, testing_seeds: int = 0, curriculum_learning: bool = False) \
+        -> Tuple[Union[ndarray, Any], Tuple[int, int]]:
         """
         Reset the environment to it's initial configuration
 
@@ -192,7 +195,7 @@ class AbstractEnv(gym.Env):
         self.done = False
         self.vehicle_speed = []
         self.vehicle_pos = []
-        self._reset(curriculum_learning=curriculum_learning)
+        vehicle_count = self._reset(curriculum_learning=curriculum_learning)
         self.define_spaces()  # Second, to link the obs and actions to the vehicles once the scene is created
         # set the vehicle id for visualizing
         for i, v in enumerate(self.road.vehicles):
@@ -208,12 +211,13 @@ class AbstractEnv(gym.Env):
                     available_actions[i][a] = 1
         else:
             available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
-        return np.asarray(obs).reshape((len(obs), -1)) if self.config["flatten_obs"] else np.asarray(obs), \
-              np.array(available_actions)
+        obs = np.asarray(obs).reshape((len(obs), -1)) if self.config["flatten_obs"] else np.asarray(obs)
+        return obs, vehicle_count
 
-    def _reset(self, curriculum_learning=False) -> None:
+    def _reset(self, curriculum_learning: bool) -> Tuple[int, int]:
         """
         Reset the scene: roads and vehicles.
+        returns the vehicle counts (num_CAVs, num_HDVs)
 
         This method must be overloaded by the environments.
         """

@@ -1,8 +1,3 @@
-"""
-This environment is built on HighwayEnv with one main road and one merging lane.
-Dong Chen: chendon9@msu.edu
-Date: 01/05/2021
-"""
 import numpy as np
 from gym.envs.registration import register
 from typing import Tuple
@@ -45,7 +40,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             # display values showing the full simulation:
             "screen_width": 1504,
             "screen_height": 128,
-            "centering_position": [0.5875, 0.5], 
+            "centering_position": [0.5875, 0.5],
             # original display values:
             # "screen_width": 608,
             # "screen_height": 128,
@@ -56,7 +51,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "duration": 20,  # time step
             "policy_frequency": 5,  # [Hz]
             # "reward_speed_range": [10, 30],
-            "minimum_recommended_speed": 20., # value must be in range [10,30]
+            "minimum_recommended_speed": 20.,  # value must be in range [10,30]
             # "priority_target_speed_range": [30, 40],
             "COLLISION_COST": 200,  # default=200
             "HIGH_SPEED_REWARD": 1,  # default=1
@@ -68,14 +63,14 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             "LANE_CHANGE_COST": 0.5,  # default=0.5
             "num_CAV": 1,
             "num_HDV": 4,
-            "flatten_obs": False, # set this to False for attention to work
+            "flatten_obs": False,  # set this to False for attention to work
         })
         return config
 
     def _reward(self, action: int) -> float:
         # Cooperative multi-agent reward
         return sum(self._agent_reward(action[idx], vehicle) for idx, vehicle in enumerate(self.controlled_vehicles)) \
-               / len(self.controlled_vehicles)
+            / len(self.controlled_vehicles)
 
     def _agent_reward(self, action: int, vehicle: MDPVehicle) -> float:
         """
@@ -107,7 +102,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         # 10 is the vehicle's minimum speed, while 30 is the maximum.
         if vehicle.speed < self.config["minimum_recommended_speed"]:
             mean = 10. + (self.config["minimum_recommended_speed"] - 10.) / 2.
-            scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed-mean)))
+            scaled_speed = 0.95 / (1 + np.exp(-(vehicle.speed - mean)))
         else:
             scaled_speed = 0.95 + utils.lmap(vehicle.speed, [self.config["minimum_recommended_speed"], 30.], [0., 0.05])
 
@@ -123,7 +118,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             # This is done as it could take multiple timesteps of the same action to successfully change lanes.
             # In the future, this will be "time-based", not step-based for more accurate real-world simulations.
             if vehicle.last_lange_change_action != action:
-            # TODO: rename to LANE (from lange)
+                # TODO: rename to LANE (from lange)
                 vehicle.last_lange_change_action = action
                 vehicle.lane_change_mult += vehicle.lane_change_mult + 1
             lane_change_cost = max(-1 * self.config["LANE_CHANGE_COST"] * vehicle.lane_change_mult, -500)
@@ -137,7 +132,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         headway_distance = self._compute_headway_distance(vehicle)
         Headway_cost = np.log(
             headway_distance / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
-        
+
         # -- Priority vehicle related --
         # idea: do not punish vehicles who don't need to dodge.
         #       while punishing vehicles who do
@@ -162,9 +157,9 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         #     utils.lmap(priority_vehicle.speed, self.config["priority_target_speed_range"], [0, 1]) \
         #         if priority_vehicle_dist < 0 \
         #             and priority_vehicle.speed < self.config["priority_target_speed_range"][0] else 0
-            
-            # + (self.config["PRIORITY_SPEED_COST"] * priority_scaled_speed) \
-        
+
+        # + (self.config["PRIORITY_SPEED_COST"] * priority_scaled_speed) \
+
         # OVERALL REWARD
         reward = collision_cost \
                  + (self.config["HIGH_SPEED_REWARD"] * scaled_speed) \
@@ -212,20 +207,12 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             vehicle.regional_reward = regional_reward / sum(1 for _ in filter(None.__ne__, neighbor_vehicle))
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
-        # agent_info = []
+        agent_info = []
         obs, reward, done, info = super().step(action)
-        # info["agents_dones"] = tuple(self._agent_is_terminal(vehicle) for vehicle in self.controlled_vehicles)
-        # for v in self.controlled_vehicles:
-        #     agent_info.append([v.position[0], v.position[1], v.speed])
-        # info["agents_info"] = agent_info
-
-        # for idx, vehicle in enumerate(self.controlled_vehicles):
-        #     vehicle.local_reward = self._agent_reward(action, vehicle, idx)
-        # local reward
-        # info["agents_rewards"] = tuple(vehicle.local_reward for vehicle in self.controlled_vehicles)
-        # regional reward
-        # self._regional_reward()
-        # info["regional_rewards"] = tuple(vehicle.regional_reward for vehicle in self.controlled_vehicles)
+        info["agents_dones"] = tuple(self._agent_is_terminal(vehicle) for vehicle in self.controlled_vehicles)
+        for v in self.controlled_vehicles:
+            agent_info.append([v.position[0], v.position[1], v.speed])
+        info["agents_info"] = agent_info
 
         if self.config["flatten_obs"]:
             obs = np.asarray(obs).reshape((len(obs), -1))
@@ -237,27 +224,28 @@ class MergeMultilanePriorityEnv(AbstractEnv):
     def _is_terminal(self) -> bool:
         """The episode is over when a collision occurs or when the access ramp has been passed."""
         return any(vehicle.crashed for vehicle in self.controlled_vehicles) \
-               or self.steps >= self.config["duration"] * self.config["policy_frequency"]
+            or self.steps >= self.config["duration"] * self.config["policy_frequency"]
 
     def _agent_is_terminal(self, vehicle: Vehicle) -> bool:
         """The episode is over when a collision occurs or when the access ramp has been passed."""
         return vehicle.crashed \
-               or self.steps >= self.config["duration"] * self.config["policy_frequency"]
+            or self.steps >= self.config["duration"] * self.config["policy_frequency"]
 
-    def _reset(self, curriculum_learning=False) -> None:
+    def _reset(self, curriculum_learning) -> Tuple[int, int]:
         self._make_road()
 
         num_CAV = self.config["num_CAV"]
         num_HDV = self.config["num_HDV"]
         if curriculum_learning:
-            # chance to train with less vehicles.
+            # chance to train with fewer vehicles.
             # Simulates curriculum learning, in a way.
-            num_CAV = np.random.choice(np.arange(max(min(3,num_CAV),num_CAV-2), num_CAV+1), 1)[0]
-            num_HDV = np.random.choice(np.arange(max(1,num_HDV-2), num_HDV+1), 1)[0]
-        
+            num_CAV = np.random.choice(np.arange(max(min(3, num_CAV), num_CAV - 2), num_CAV + 1), 1)[0]
+            num_HDV = np.random.choice(np.arange(max(1, num_HDV - 2), num_HDV + 1), 1)[0]
+
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
         self.T = int(self.config["duration"] * self.config["policy_frequency"])
+        return num_CAV, num_HDV
 
     def _make_road(self) -> None:
         """
@@ -306,14 +294,14 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         num_PV = 1
 
         # small numbers spawn later.
-        spawn_points_s1 = [10, 50, 90, 130] #, 170, 210, 250]
-        spawn_points_s2 = [5, 45, 85, 125] #, 165, 205, 245]
-        spawn_points_m = [5, 45, 85, 125] #, 165, 205]
+        spawn_points_s1 = [10, 50, 90, 130]  #, 170, 210, 250]
+        spawn_points_s2 = [5, 45, 85, 125]  #, 165, 205, 245]
+        spawn_points_m = [5, 45, 85, 125]  #, 165, 205]
 
         """Spawn points for PV"""
         # for now, PV always spawn on straight road.
         # if not self.config["priority_vehicle_can_spawn_first"]:
-            # print("priority_vehicle_can_spawn_first setting is currently unimplemented")
+        # print("priority_vehicle_can_spawn_first setting is currently unimplemented")
 
         # priority_vehicle's spawn lane & spawn point index
         spawn_lane_pv = np.random.choice(np.arange(0, 2), 1)[0]
@@ -331,7 +319,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         else:
             raise NotImplementedError
             # spawn_lane_pv = ("j", "k", 0)
-        
+
         """Spawn points for CAV"""
         # spawn point indexes on the straight road
         spawn_point_s_c1 = np.random.choice(spawn_points_s1, num_CAV // 3, replace=False)
@@ -436,7 +424,7 @@ class MergeMultilanePriorityEnvMARL(MergeMultilanePriorityEnv):
                 "type": "MultiAgentObservation",
                 "observation_config": {
                     "type": "Kinematics",
-                    "vehicles_count": 6, 
+                    "vehicles_count": 6,
                     "see_priority_vehicle": True,
                 }},
             "num_CAV": 4,
