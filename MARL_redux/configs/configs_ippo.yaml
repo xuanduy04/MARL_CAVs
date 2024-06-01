@@ -17,7 +17,7 @@ model: # Algorithm specific arguments
 
   learning_rate: !!float 1e-4
   # the learning rate of the optimizer
-  num_steps: 125
+  num_steps: 128
   # the maximum number of steps to run in each environment per policy rollout
   anneal_lr: True
   # Toggle learning rate annealing for policy and value networks
@@ -35,13 +35,15 @@ model: # Algorithm specific arguments
   # the surrogate clipping coefficient
   clip_vloss: True
   # Toggles whether to use a clipped loss for the value function, as per the paper.
-  ent_coef: 0.01
+  critic_coef: 2
+  # coefficient of the critic
+  ent_coef: 0.005
   # coefficient of the entropy
   vf_coef: 0.5
   # coefficient of the value function
   max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
-    
+
 
 env: # Environment specific arguments
   simulation_frequency: 15 # [Hz]
