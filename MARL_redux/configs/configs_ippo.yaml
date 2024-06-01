@@ -35,12 +35,10 @@ model: # Algorithm specific arguments
   # the surrogate clipping coefficient
   clip_vloss: True
   # Toggles whether to use a clipped loss for the value function, as per the paper.
-  critic_coef: 2
-  # coefficient of the critic
   ent_coef: 0.005
   # coefficient of the entropy
-  vf_coef: 0.5
-  # coefficient of the value function
+  vf_coef: 2
+  # coefficient of the value function (i.e. critic_coefficient)
   max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
 
