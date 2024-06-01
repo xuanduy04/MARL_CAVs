@@ -22,8 +22,6 @@ class ActorCriticNetwork(nn.Module):
             layer_init(nn.Linear(hidden_size, hidden_size)),
             nn.Tanh(),
             layer_init(nn.Linear(hidden_size, action_dim)),
-            # TODO: check if LogSoftmax solves our problem
-            nn.LogSoftmax(dim=-1)
         )
 
         self.critic = nn.Sequential(
@@ -39,9 +37,13 @@ class ActorCriticNetwork(nn.Module):
 
     def get_action_and_value(self, state: Tensor, action: Optional[Tensor] = None):
         logits = self.actor(state)
-        # TODO: print logits to check for 'nan' or non-negatives?
+        analyze(logits)
         probs = Categorical(logits=logits)
         if action is None:
             # Sample an action
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(state)
+
+def analyze(tensor: Tensor):
+    positive_count, negative_count, zero_count, nan_count = torch.sum(tensor > 0).item(), torch.sum(tensor < 0).item(), torch.sum(tensor == 0).item(), torch.sum(torch.isnan(tensor)).item()
+    print(positive_count, negative_count, zero_count, nan_count)
