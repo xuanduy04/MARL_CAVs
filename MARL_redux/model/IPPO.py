@@ -40,7 +40,7 @@ class IPPO(object):
         # Annealing the rate if instructed to do so.
         # TODO: implement this?
         if args.anneal_lr:
-            frac = 1.0 - global_episode / args.train_episodes
+            frac = 1.0 - (global_episode / args.train_episodes)
             lrnow = frac * args.learning_rate
             self.optimizer.param_groups[0]["lr"] = lrnow
 
