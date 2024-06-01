@@ -6,6 +6,8 @@ from torch import nn
 from torch import Tensor
 from torch.distributions.categorical import Categorical
 
+from MARL_redux.utils.debug_utils import checknan
+
 
 def layer_init(layer: nn.Linear, method: str = 'orthogonal', **kwargs) -> nn.Linear:
     if method == 'xavier':
@@ -18,6 +20,7 @@ def layer_init(layer: nn.Linear, method: str = 'orthogonal', **kwargs) -> nn.Lin
     nn.init.zeros_(layer.bias)
     return layer
 
+
 class ActorCriticNetwork(nn.Module):
     """An actor critic network, similar to that of cleanrl"""
     def __init__(self, state_dim: int, action_dim: int, hidden_size: int):
@@ -28,6 +31,7 @@ class ActorCriticNetwork(nn.Module):
             layer_init(nn.Linear(hidden_size, hidden_size)),
             nn.Tanh(),
             layer_init(nn.Linear(hidden_size, action_dim), std=0.01),
+            nn.Tanh(),
         )
 
         self.critic = nn.Sequential(
@@ -42,10 +46,9 @@ class ActorCriticNetwork(nn.Module):
         return self.critic(state)
 
     def get_action_and_value(self, state: Tensor, action: Optional[Tensor] = None):
-        if torch.isnan(state).any():
-          print("Input contains NaN values")
-        else:
-          print("Input is ok")
+        if checknan(Input=state, print_when_false=True):
+          print(state)
+          exit(0)
         nn_check_nan(self.actor)
         nn_check_nan(self.critic)
         logits = self.actor(state)
@@ -55,6 +58,7 @@ class ActorCriticNetwork(nn.Module):
             # Sample an action
             action = probs.sample()
         return action, probs.log_prob(action), probs.entropy(), self.critic(state)
+
 
 def analyze(tensor: Tensor):
     positive_count, negative_count, zero_count, nan_count = torch.sum(tensor > 0).item(), torch.sum(tensor < 0).item(), torch.sum(tensor == 0).item(), torch.sum(torch.isnan(tensor)).item()
@@ -71,3 +75,5 @@ def nn_check_nan(network: nn.Linear):
             print(f"Gradient of {name} contains NaNs")
     if contains_nan is False:
         print(f"No parameter contains NaNs")
+    else:
+        exit(0)
