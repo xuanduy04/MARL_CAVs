@@ -43,11 +43,11 @@ def train(args):
     results = []
     for episode in range(0, config.model.train_episodes):
         # Interacts and trains the policy
-        policy.train(env_train, curriculum_training=episode < config.model.curriculum_episodes)
+        policy.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, global_episode=episode)
 
         if (episode + 1) % config.model.eval_interval == 0:
             # evaluate the model
-            eval_result, _ = policy.evaluate(env_eval, output_dir, episode)
+            eval_result, _ = policy.evaluate(env_eval, output_dir, global_episode=episode)
             print(f"Episode {episode + 1}: {eval_result}")
             results.append(eval_result)
     # Save the model.

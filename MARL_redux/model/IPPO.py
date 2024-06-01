@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.optim import Adam
 
 import os
+import math
 import imageio
 
 from config import Config
@@ -16,6 +17,7 @@ class IPPO(object):
         super(IPPO, self).__init__()
         self.config = config
         self.config.model.batch_size = self.config.model.num_steps  # on-policy so use all data we get.
+        # batch_size is "per agent", 'cause IPPO.
 
         # Actor & Critic
         self.network = ActorCriticNetwork(config.env.state_dim, config.env.action_dim,
@@ -26,7 +28,7 @@ class IPPO(object):
         # self.actor_path = os.path.join(self.model_path, "actor.pth")
         # self.critic_path = os.path.join(self.model_path, "critic.pth")
 
-    def train(self, env: AbstractEnv, curriculum_training: bool = False):
+    def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode:int = 0):
         """
         Interacts with the environment and trains the model, once (i.e 1 episode).
         """
@@ -37,10 +39,10 @@ class IPPO(object):
 
         # Annealing the rate if instructed to do so.
         # TODO: implement this?
-        # if args.anneal_lr:
-        #     frac = 1.0 - (iteration - 1.0) / args.num_iterations
-        #     lrnow = frac * args.learning_rate
-        #     self.optimizer.param_groups[0]["lr"] = lrnow
+        if args.anneal_lr:
+            frac = 1.0 - global_episode / args.train_episodes
+            lrnow = frac * args.learning_rate
+            self.optimizer.param_groups[0]["lr"] = lrnow
 
         # TRY NOT TO MODIFY: start the game
         next_obs, (num_CAV, _) = env.reset(curriculum_learning=curriculum_training)
@@ -92,6 +94,9 @@ class IPPO(object):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
+        for agent_id in range(num_CAV):
+            # TODO: implement IPPO grad-descent, 
+            pass
         # flatten the batch
         b_obs = obs.reshape((-1, self.config.env.state_dim))
         b_logprobs = logprobs.reshape(-1)
@@ -102,7 +107,7 @@ class IPPO(object):
 
         # Optimizing the policy and value network
         batch_size = min(args.batch_size, num_steps)
-        minibatch_size = batch_size // args.num_minibatches
+        minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
         clipfracs = []
         for epoch in range(args.update_epochs):
