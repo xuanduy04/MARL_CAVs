@@ -11,6 +11,8 @@ from config import Config
 from highway_env.envs import AbstractEnv
 from MARL_redux.common.network import ActorCriticNetwork
 
+from MARL_redux.utils.debug_utils import checknan
+
 
 class IPPO(object):
     def __init__(self, config: Config):
@@ -93,7 +95,7 @@ class IPPO(object):
                 delta = rewards[t] + args.gamma * nextvalues * nextnonterminal - values[t]
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
-
+        
         for agent_id in range(num_CAV):
             # TODO: implement IPPO grad-descent, 
             pass
@@ -154,10 +156,17 @@ class IPPO(object):
                     v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
 
                 entropy_loss = entropy.mean()
-                loss = pg_loss - args.ent_coef * entropy_loss + v_loss * args.vf_coef
+                loss = pg_loss - args.ent_coef * entropy_loss + args.vf_coef * v_loss
 
                 self.optimizer.zero_grad()
                 loss.backward()
+                if checknan(loss=loss, print_when_false=True):
+                    if checknan(pg_loss=pg_loss):
+                        checknan(pg_loss1=pg_loss1)
+                        checknan(pg_loss2=pg_loss2)
+                    checknan(v_loss=v_loss)
+                    checknan(entropy_loss=entropy_loss)
+                    exit(0)
                 nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                 self.optimizer.step()
 
