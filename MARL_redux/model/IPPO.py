@@ -97,6 +97,10 @@ class IPPO(object):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
         
+        batch_size = min(args.batch_size, num_steps)
+        minibatch_size = math.ceil(batch_size / args.num_minibatches)
+        b_inds = np.arange(batch_size)
+        # Optimizing the policy and value network
         for agent_id in range(num_CAV):
             # flatten the batch
             b_obs = obs[:, agent_id, :].reshape((-1, self.config.env.state_dim))
@@ -106,6 +110,8 @@ class IPPO(object):
             b_returns = returns[:, agent_id].reshape(-1)
             b_values = values[:, agent_id].reshape(-1)
             # TODO: implement IPPO grad-descent, 
+            for epoch in range(args.update_epochs):
+                pass
             pass
         # flatten the batch
         b_obs = obs.reshape((-1, self.config.env.state_dim))
@@ -172,7 +178,8 @@ class IPPO(object):
                 if checknan(loss=loss, print_when_false=True):
                     if checknan(pg_loss=pg_loss):
                         if checknan(pg_loss1=pg_loss1) or checknan(pg_loss2=pg_loss2):
-                            checknan(mb_advantages=mb_advantages, print_when_false=True)
+                            if checknan(mb_advantages=mb_advantages, print_when_false=True):
+                                print(mb_advantages.max(), mb_advantages.min(), mb_advantages.mean(), mb_advantages.std())
                             checknan(preNorm_b_advantages=b_advantages[mb_inds], print_when_false = True)
                             checknan(ratio=ratio, print_when_false=True)
                             checknan(logratio=logratio, print_when_false=True)
