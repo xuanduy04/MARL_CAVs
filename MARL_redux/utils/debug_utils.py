@@ -2,6 +2,15 @@ import torch
 from torch import Tensor
 
 
+DEBUG = False
+
+
+def printd(*args, **kwargs):
+    """A wrapper for the print function"""
+    if DEBUG:
+        print(*args, **kwargs)
+
+
 def checknan(**kwargs) -> bool:
     """Check if tensor contains NaN, also outputs the checker results
     
@@ -9,6 +18,9 @@ def checknan(**kwargs) -> bool:
         >>> checknan(InputTensor=tensor([0, 1]), print_when_false=True)
         InputTensor is ok
     """
+    if DEBUG is False:
+        return False
+    
     tensor = None
     print_when_false = False
     assert(1 <= len(kwargs) <= 2)
