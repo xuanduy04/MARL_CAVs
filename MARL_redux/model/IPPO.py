@@ -97,6 +97,13 @@ class IPPO(object):
             returns = advantages + values
         
         for agent_id in range(num_CAV):
+            # flatten the batch
+            b_obs = obs[:, agent_id, :].reshape((-1, self.config.env.state_dim))
+            b_logprobs = logprobs[:, agent_id].reshape(-1)
+            b_actions = actions[:, agent_id].reshape(-1)
+            b_advantages = advantages[:, agent_id].reshape(-1)
+            b_returns = returns[:, agent_id].reshape(-1)
+            b_values = values[:, agent_id].reshape(-1)
             # TODO: implement IPPO grad-descent, 
             pass
         # flatten the batch
@@ -113,6 +120,7 @@ class IPPO(object):
         b_inds = np.arange(batch_size)
         clipfracs = []
         for epoch in range(args.update_epochs):
+            print(f'Epoch {epoch}:')
             np.random.shuffle(b_inds)
             for start in range(0, batch_size, minibatch_size):
                 end = start + minibatch_size
@@ -162,8 +170,9 @@ class IPPO(object):
                 loss.backward()
                 if checknan(loss=loss, print_when_false=True):
                     if checknan(pg_loss=pg_loss):
-                        checknan(pg_loss1=pg_loss1)
-                        checknan(pg_loss2=pg_loss2)
+                        if checknan(pg_loss1=pg_loss1) or checknan(pg_loss2=pg_loss2):
+                            checknan(mb_advantages=mb_advantages)
+                            checknan(ratio=ratio)
                     checknan(v_loss=v_loss)
                     checknan(entropy_loss=entropy_loss)
                     exit(0)
