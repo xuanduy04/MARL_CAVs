@@ -3,9 +3,9 @@ seed: 2000
 model: # Algorithm specific arguments
   train_episodes: 1000
   # Total episodes to train
-  curriculum_episodes: 500
+  curriculum_episodes: 0
   # Amount of curriculum episodes
-  hidden_size: 256 
+  hidden_size: 256
   # network hidden size, for both actor and critic
   eval_interval: 50
   # How many training episodes to run an evaluation
@@ -30,7 +30,7 @@ model: # Algorithm specific arguments
   update_epochs: 4
   # the K epochs to update the policy
   norm_adv: True
-  # Toggles advantages normalization
+  # Toggles advantages normalization (may 'cause numerical instability errors)
   clip_coef: 0.2
   # the surrogate clipping coefficient
   clip_vloss: True
@@ -42,7 +42,7 @@ model: # Algorithm specific arguments
   max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
 
-  reward_scale: 50.0
+  reward_scale: 25.0
   # scales the reward by a factor of (1 / reward_scale)
 
 
