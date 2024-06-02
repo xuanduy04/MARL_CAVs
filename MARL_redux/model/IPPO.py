@@ -118,12 +118,12 @@ class IPPO(object):
         batch_size = min(args.batch_size, num_steps)
         minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
-        clipfracs = []
+        # clipfracs = []
         for epoch in range(args.update_epochs):
             print(f'Epoch {epoch}:')
             np.random.shuffle(b_inds)
             for start in range(0, batch_size, minibatch_size):
-                end = start + minibatch_size
+                end = min(start + minibatch_size, batch_size)
                 mb_inds = b_inds[start:end]
 
                 _, newlogprob, entropy, newvalue = \
@@ -131,11 +131,11 @@ class IPPO(object):
                 logratio = newlogprob - b_logprobs[mb_inds]
                 ratio = logratio.exp()
 
-                with torch.no_grad():
+                # with torch.no_grad():
                     # calculate approx_kl http://joschu.net/blog/kl-approx.html
                     # old_approx_kl = (-logratio).mean()
                     # approx_kl = ((ratio - 1) - logratio).mean()
-                    clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
+                    # clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
 
                 mb_advantages = b_advantages[mb_inds]
                 if args.norm_adv:
@@ -171,8 +171,8 @@ class IPPO(object):
                 if checknan(loss=loss, print_when_false=True):
                     if checknan(pg_loss=pg_loss):
                         if checknan(pg_loss1=pg_loss1) or checknan(pg_loss2=pg_loss2):
-                            checknan(mb_advantages=mb_advantages)
-                            checknan(ratio=ratio)
+                            checknan(mb_advantages=mb_advantages, print_when_false=True)
+                            checknan(ratio=ratio, print_when_false=True)
                     checknan(v_loss=v_loss)
                     checknan(entropy_loss=entropy_loss)
                     exit(0)
