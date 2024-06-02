@@ -3,13 +3,15 @@ import torch
 
 import random
 
+import sys
+import highway_env
 import gym
 import argparse
 import logging
 from datetime import datetime
 
-from MARL.common.utils import init_dir
-from MARL_redux.utils.train_utils import init_env, set_seed
+from MARL_redux.utils.train_utils import init_env, set_seed, init_dir
+from MARL_redux.utils.model_utils import init_model
 from config import import_config
 
 from MARL_redux.model import IPPO
@@ -17,6 +19,7 @@ from MARL_redux.model import IPPO
 
 def train(args):
     config = import_config(args.algorithm)
+    print(f'seed: {config.seed}')
     set_seed(config.seed)
 
     # update configs
@@ -37,21 +40,22 @@ def train(args):
     config.env.action_dim = env_train.action_dim
 
     # init model
-    policy = IPPO(config)
+    model = init_model(model_name=args.algorithm, config=config)
+    print(f'Training {args.algorithm} model')
 
     # Training loop
     results = []
     for episode in range(0, config.model.train_episodes):
-        # Interacts and trains the policy
-        policy.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, global_episode=episode)
+        # Model interacts with env and trains
+        model.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, global_episode=episode)
 
         if (episode + 1) % config.model.eval_interval == 0:
             # evaluate the model
-            eval_result, _ = policy.evaluate(env_eval, output_dir, global_episode=episode)
+            eval_result, _ = model.evaluate(env_eval, output_dir, global_episode=episode)
             print(f"Episode {episode + 1}: {eval_result}")
             results.append(eval_result)
     # Save the model.
-    policy.save_model()
+    model.save_model()
     return results  # whatever they are
 
 
@@ -85,7 +89,6 @@ if __name__ == "__main__":
 
     logging.getLogger().setLevel(logging.INFO)
     if args.log_to_stdout:
-        import sys
         logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     # train or eval
     if args.option == 'train':
