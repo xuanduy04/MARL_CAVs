@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict
 
 import numpy as np
 import torch
@@ -25,7 +25,8 @@ def set_seed(seed: int):
     torch.backends.cudnn.benchmark = False
 
 
-def init_dir(base_dir: str, paths: List[str] = ['train_videos', 'configs', 'models', 'eval_videos', 'eval_logs']) -> dict:
+def init_dir(base_dir: str) -> Dict[str, str]:
+    paths = ['train_videos', 'configs', 'models', 'eval_videos', 'eval_logs']
     if not os.path.exists("./results/"):
         os.mkdir("./results/")
     if not os.path.exists(base_dir):
