@@ -73,7 +73,7 @@ class IPPO(object):
 
             # TRY NOT TO MODIFY: execute the game and log data.
             next_obs, reward, next_done, infos = env.step(action.cpu().numpy())
-            rewards[step] = torch.tensor(reward).to(device).view(-1)
+            rewards[step] = torch.tensor(reward / args.reward_scale).to(device).view(-1)
 
             next_obs = torch.Tensor(next_obs).to(device)
             if next_done:

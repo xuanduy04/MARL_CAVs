@@ -42,6 +42,9 @@ model: # Algorithm specific arguments
   max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
 
+  reward_scale: 25.0
+  # scales the reward by a factor of (1 / reward_scale)
+
 
 env: # Environment specific arguments
   simulation_frequency: 15 # [Hz]
