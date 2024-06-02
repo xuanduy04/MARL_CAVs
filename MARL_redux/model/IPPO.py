@@ -34,6 +34,7 @@ class IPPO(object):
         """
         Interacts with the environment and trains the model, once (i.e 1 episode).
         """
+        print(f'Begin training for episode {global_episode + 1}')
         # set up variables
         device = self.config.device
         num_steps = self.config.model.num_steps
@@ -172,7 +173,9 @@ class IPPO(object):
                     if checknan(pg_loss=pg_loss):
                         if checknan(pg_loss1=pg_loss1) or checknan(pg_loss2=pg_loss2):
                             checknan(mb_advantages=mb_advantages, print_when_false=True)
+                            checknan(preNorm_b_advantages=b_advantages[mb_inds], print_when_false = True)
                             checknan(ratio=ratio, print_when_false=True)
+                            checknan(logratio=logratio, print_when_false=True)
                     checknan(v_loss=v_loss)
                     checknan(entropy_loss=entropy_loss)
                     exit(0)
