@@ -1,10 +1,9 @@
-from torch.optim import Adam, AdamW
+from MARL_redux.model import IPPO
+from config import Config
 
-def get_optimizer(params, lr, optimizer = 'adam'):
-    if optimizer == 'sgd':
-        optimizer = SGD(params, lr=lr)
-    elif optimizer == 'adam':
-        optimizer = Adam(params, lr=lr)
-    elif optimizer == 'adamW':
-        optim = AdamW(params, lr=lr)
-    return optimizer
+
+def init_model(model_name: str, config: Config):
+    if model_name == 'ippo':
+        return IPPO(config)
+    else:
+        raise ValueError(f'Unsupported model ({model_name})')
