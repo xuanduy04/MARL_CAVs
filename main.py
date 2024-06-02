@@ -10,7 +10,7 @@ import argparse
 import logging
 from datetime import datetime
 
-from MARL_redux.utils.train_utils import init_env, set_seed, init_dir
+from MARL_redux.utils.train_utils import init_env, set_seed, init_dir, extract_data
 from MARL_redux.utils.model_utils import init_model
 from config import import_config
 
@@ -51,12 +51,14 @@ def train(args):
 
         if (episode + 1) % config.model.eval_interval == 0:
             # evaluate the model
-            eval_result, _ = model.evaluate(env_eval, output_dir, global_episode=episode)
-            print(f"Episode {episode + 1}: {eval_result}")
+            eval_result, eval_infos = model.evaluate(env_eval, output_dir, global_episode=episode)
+            print(f"Episode {episode + 1}:\n{eval_result}")
+            print(extract_data(eval_infos, config), sep='\n', end='\n\n')
+
             results.append(eval_result)
-    # Save the model.
-    model.save_model()
-    return results  # whatever they are
+            # Save the model.
+            model.save_model()
+    return results
 
 
 def parse_args():

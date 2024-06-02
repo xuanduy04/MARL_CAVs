@@ -97,9 +97,9 @@ class IPPO(object):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
         
-        batch_size = min(args.batch_size, num_steps)
-        minibatch_size = math.ceil(batch_size / args.num_minibatches)
-        b_inds = np.arange(batch_size)
+        # batch_size = min(args.batch_size, num_steps)
+        # minibatch_size = math.ceil(batch_size / args.num_minibatches)
+        # b_inds = np.arange(batch_size)
         # Optimizing the policy and value network
         # for agent_id in range(num_CAV):
         #     # flatten the agent's batch
@@ -121,12 +121,6 @@ class IPPO(object):
         #                 self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
         #             logratio = newlogprob - b_logprobs[mb_inds]
         #             ratio = logratio.exp()
-        #
-        #             # with torch.no_grad():
-        #             # calculate approx_kl http://joschu.net/blog/kl-approx.html
-        #             # old_approx_kl = (-logratio).mean()
-        #             # approx_kl = ((ratio - 1) - logratio).mean()
-        #             # clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
         #
         #             mb_advantages = b_advantages[mb_inds]
         #             if args.norm_adv:
@@ -159,17 +153,6 @@ class IPPO(object):
         #
         #             self.optimizer.zero_grad()
         #             loss.backward()
-        #             if checknan(loss=loss, print_when_false=True):
-        #                 if checknan(pg_loss=pg_loss):
-        #                     if checknan(pg_loss1=pg_loss1) or checknan(pg_loss2=pg_loss2):
-        #                         if checknan(mb_advantages=mb_advantages, print_when_false=True):
-        #                             printd(mb_advantages.max(), mb_advantages.min(), mb_advantages.mean(), mb_advantages.std())
-        #                         checknan(preNorm_b_advantages=b_advantages[mb_inds], print_when_false=True)
-        #                         checknan(ratio=ratio, print_when_false=True)
-        #                         checknan(logratio=logratio, print_when_false=True)
-        #                 checknan(v_loss=v_loss)
-        #                 checknan(entropy_loss=entropy_loss)
-        #                 exit(0)
         #             nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
         #             self.optimizer.step()
         # flatten the batch
@@ -216,7 +199,6 @@ class IPPO(object):
                 # Value loss
                 newvalue = newvalue.view(-1)
                 if args.clip_vloss:
-                    # TODO: change clip value loss to the one in IPPO.
                     v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
                     v_clipped = b_values[mb_inds] + torch.clamp(
                         newvalue - b_values[mb_inds],
@@ -234,36 +216,27 @@ class IPPO(object):
 
                 self.optimizer.zero_grad()
                 loss.backward()
-                if checknan(loss=loss, print_when_false=True):
-                    if checknan(pg_loss=pg_loss):
-                        if checknan(pg_loss1=pg_loss1) or checknan(pg_loss2=pg_loss2):
-                            if checknan(mb_advantages=mb_advantages, print_when_false=True):
-                                printd(mb_advantages.max(), mb_advantages.min(), mb_advantages.mean(), mb_advantages.std())
-                            checknan(preNorm_b_advantages=b_advantages[mb_inds], print_when_false = True)
-                            checknan(ratio=ratio, print_when_false=True)
-                            checknan(logratio=logratio, print_when_false=True)
-                    checknan(v_loss=v_loss)
-                    checknan(entropy_loss=entropy_loss)
-                    exit(0)
                 nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                 self.optimizer.step()
 
     def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int):
         # set up variables
+        infos = []
         rewards = []
-        vehicle_speed = []
-        vehicle_position = []
-        steps = []
-        avg_speeds = []
-        crash_rate = 0.0
+        # vehicle_speed = []
+        # vehicle_position = []
+        # steps = []
+        # avg_speeds = []
+        # crash_rate = 0.0
 
         device = self.config.device
 
         for i, seed in enumerate(self.config.model.test_seeds):
             # set up variables
+            infos_i = []
             rewards_i = []
-            step = 0
-            avg_speed = 0
+            # step = 0
+            # avg_speed = 0
             Recorded_frames = []
 
             # TRY NOT TO MODIFY: start the game
@@ -282,15 +255,15 @@ class IPPO(object):
                     action, _, _, _ = self.network.get_action_and_value(next_obs)
 
                 # TRY NOT TO MODIFY: execute the game and log data.
-                next_obs, reward, next_done, infos = env.step(action.cpu().numpy())
+                next_obs, reward, next_done, info = env.step(action.cpu().numpy())
 
                 if video_filename is not None:
                     rendered_frame = env.render(mode="rgb_array")
                     Recorded_frames.append(rendered_frame)
 
-                avg_speed += infos["average_speed"]
+                # avg_speed += info["average_speed"]
                 rewards_i.append(reward)
-                # infos_i.append(infos)
+                infos_i.append(info)
 
                 if next_done:
                     break
@@ -302,12 +275,12 @@ class IPPO(object):
                 Recorded_frames.append(rendered_frame)
 
             rewards.append(rewards_i)
-            # infos.append(infos_i)
-            vehicle_speed.append(infos["vehicle_speed"])
-            vehicle_position.append(infos["vehicle_position"])
-            steps.append(step)
-            avg_speeds.append(avg_speed / step)
-            crash_rate += infos["crashed"] / num_CAV
+            infos.append(infos_i)
+            # vehicle_speed.append(infos["vehicle_speed"])
+            # vehicle_position.append(infos["vehicle_position"])
+            # steps.append(step)
+            # avg_speeds.append(avg_speed / step)
+            # crash_rate += infos["crashed"] / num_CAV
 
             if video_filename is not None:
                 imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames],
@@ -319,8 +292,9 @@ class IPPO(object):
                 # writer.close()
 
         env.close()
-        crash_rate /= len(self.config.model.test_seeds)
-        return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
+        # crash_rate /= len(self.config.model.test_seeds)
+        # return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
+        return rewards, infos
     
     def save_model(self):
         pass
