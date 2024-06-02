@@ -456,10 +456,10 @@ class AbstractEnv(gym.Env):
             raise NotImplementedError("The road and vehicle must be initialized in the environment implementation")
 
         self.steps += 1
-        if self.config["safety_guarantee"]:
-            self.new_action = self.safety_supervisor(action)
-        else:
-            self.new_action = action
+        # if self.config["safety_guarantee"]:
+        #     self.new_action = self.safety_supervisor(action)
+        # else:
+        #     self.new_action = action
 
         # action is a tuple, e.g., (2, 3, 0, 1)
         self._simulate(self.new_action)
@@ -477,14 +477,14 @@ class AbstractEnv(gym.Env):
         self.vehicle_speed.append([v.speed for v in self.controlled_vehicles])
         self.vehicle_pos.append(([v.position[0] for v in self.controlled_vehicles]))
         info = {
-            "speed": self.vehicle.speed,
             "crashed": sum(v.crashed for v in self.controlled_vehicles) if terminal else 0.,
             "action": action,
-            "new_action": self.new_action,
+            # "new_action": self.new_action,
             # "action_mask": np.array(available_actions),
             "average_speed": average_speed,
             "vehicle_speed": np.array(self.vehicle_speed),
-            "vehicle_position": np.array(self.vehicle_pos)
+            "vehicle_position": np.array(self.vehicle_pos),
+            "vehicle_count": len(self.controlled_vehicles),
         }
 
         # if terminal:
