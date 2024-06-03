@@ -41,7 +41,6 @@ class IPPO(object):
         args = self.config.model
 
         # Annealing the rate if instructed to do so.
-        # TODO: implement this?
         if args.anneal_lr:
             frac = 1.0 - (global_episode / args.train_episodes)
             lrnow = frac * args.learning_rate
@@ -73,10 +72,10 @@ class IPPO(object):
             logprobs[step] = logprob
 
             # TRY NOT TO MODIFY: execute the game and log data.
-            next_obs, reward, next_done, infos = env.step(action.cpu().numpy())
+            next_obs, reward, next_done, info = env.step(action.cpu().numpy())
             rewards[step] = torch.tensor(reward / args.reward_scale).to(device).view(-1)
 
-            next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(float(next_done)).to(device)
+            next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor([float(next_done)]).to(device)
             if next_done:
                 num_steps = step
                 break
@@ -97,127 +96,64 @@ class IPPO(object):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
         
-        # batch_size = min(args.batch_size, num_steps)
-        # minibatch_size = math.ceil(batch_size / args.num_minibatches)
-        # b_inds = np.arange(batch_size)
-        # Optimizing the policy and value network
-        # for agent_id in range(num_CAV):
-        #     # flatten the agent's batch
-        #     b_obs = obs[:, agent_id, :].reshape((-1, self.config.env.state_dim))
-        #     b_logprobs = logprobs[:, agent_id].reshape(-1)
-        #     b_actions = actions[:, agent_id].reshape(-1)
-        #     b_advantages = advantages[:, agent_id].reshape(-1)
-        #     b_returns = returns[:, agent_id].reshape(-1)
-        #     b_values = values[:, agent_id].reshape(-1)
-        #     # TODO: implement IPPO grad-descent,
-        #     for epoch in range(args.update_epochs):
-        #         printd(f'Epoch {epoch}:')
-        #         np.random.shuffle(b_inds)
-        #         for start in range(0, batch_size, minibatch_size):
-        #             end = min(start + minibatch_size, batch_size)
-        #             mb_inds = b_inds[start:end]
-        #
-        #             _, newlogprob, entropy, newvalue = \
-        #                 self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
-        #             logratio = newlogprob - b_logprobs[mb_inds]
-        #             ratio = logratio.exp()
-        #
-        #             mb_advantages = b_advantages[mb_inds]
-        #             if args.norm_adv:
-        #                 mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
-        #
-        #             # Policy loss
-        #             pg_loss1 = -mb_advantages * ratio
-        #             pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef,
-        #                                                     1 + args.clip_coef)
-        #             pg_loss = torch.max(pg_loss1, pg_loss2).mean()
-        #
-        #             # Value loss
-        #             newvalue = newvalue.view(-1)
-        #             if args.clip_vloss:
-        #                 # TODO: change clip value loss to the one in IPPO.
-        #                 v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
-        #                 v_clipped = b_values[mb_inds] + torch.clamp(
-        #                     newvalue - b_values[mb_inds],
-        #                     -args.clip_coef,
-        #                     args.clip_coef,
-        #                 )
-        #                 v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
-        #                 v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
-        #                 v_loss = 0.5 * v_loss_max.mean()
-        #             else:
-        #                 v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
-        #
-        #             entropy_loss = entropy.mean()
-        #             loss = pg_loss - args.ent_coef * entropy_loss + args.vf_coef * v_loss
-        #
-        #             self.optimizer.zero_grad()
-        #             loss.backward()
-        #             nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
-        #             self.optimizer.step()
-        # flatten the batch
-        b_obs = obs.reshape((-1, self.config.env.state_dim))
-        b_logprobs = logprobs.reshape(-1)
-        b_actions = actions.reshape(-1)
-        b_advantages = advantages.reshape(-1)
-        b_returns = returns.reshape(-1)
-        b_values = values.reshape(-1)
-
-        # Optimizing the policy and value network
         batch_size = min(args.batch_size, num_steps)
         minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
-        # clipfracs = []
-        for epoch in range(args.update_epochs):
-            printd(f'Epoch {epoch}:')
-            np.random.shuffle(b_inds)
-            for start in range(0, batch_size, minibatch_size):
-                end = min(start + minibatch_size, batch_size)
-                mb_inds = b_inds[start:end]
 
-                _, newlogprob, entropy, newvalue = \
-                    self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
-                logratio = newlogprob - b_logprobs[mb_inds]
-                ratio = logratio.exp()
+        for agent_id in range(num_CAV):
+            # flatten the agent's batch
+            b_obs = obs[:, agent_id, :].reshape((-1, self.config.env.state_dim))
+            b_logprobs = logprobs[:, agent_id].reshape(-1)
+            b_actions = actions[:, agent_id].reshape(-1)
+            b_advantages = advantages[:, agent_id].reshape(-1)
+            b_returns = returns[:, agent_id].reshape(-1)
+            b_values = values[:, agent_id].reshape(-1)
 
-                # with torch.no_grad():
-                    # calculate approx_kl http://joschu.net/blog/kl-approx.html
-                    # old_approx_kl = (-logratio).mean()
-                    # approx_kl = ((ratio - 1) - logratio).mean()
-                    # clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
+            # Optimizing the agent's policy and value network
+            for epoch in range(args.update_epochs):
+                # printd(f'Epoch {epoch}:')
+                np.random.shuffle(b_inds)
+                for start in range(0, batch_size, minibatch_size):
+                    end = min(start + minibatch_size, batch_size)
+                    mb_inds = b_inds[start:end]
 
-                mb_advantages = b_advantages[mb_inds]
-                if args.norm_adv:
-                    mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
+                    _, newlogprob, entropy, newvalue = \
+                        self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
+                    logratio = newlogprob - b_logprobs[mb_inds]
+                    ratio = logratio.exp()
 
-                # Policy loss
-                pg_loss1 = -mb_advantages * ratio
-                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef,
-                                                        1 + args.clip_coef)
-                pg_loss = torch.max(pg_loss1, pg_loss2).mean()
+                    mb_advantages = b_advantages[mb_inds]
+                    if args.norm_adv:
+                        mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
 
-                # Value loss
-                newvalue = newvalue.view(-1)
-                if args.clip_vloss:
-                    v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
-                    v_clipped = b_values[mb_inds] + torch.clamp(
-                        newvalue - b_values[mb_inds],
-                        -args.clip_coef,
-                        args.clip_coef,
-                    )
-                    v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
-                    v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
-                    v_loss = 0.5 * v_loss_max.mean()
-                else:
-                    v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
+                    # Policy loss
+                    pg_loss1 = -mb_advantages * ratio
+                    pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef,
+                                                            1 + args.clip_coef)
+                    pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
-                entropy_loss = entropy.mean()
-                loss = pg_loss - args.ent_coef * entropy_loss + args.vf_coef * v_loss
+                    # Value loss
+                    newvalue = newvalue.view(-1)
+                    if args.clip_vloss:
+                        v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
+                        v_clipped = b_values[mb_inds] + torch.clamp(
+                            newvalue - b_values[mb_inds],
+                            -args.clip_coef,
+                            args.clip_coef,
+                        )
+                        v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
+                        v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
+                        v_loss = 0.5 * v_loss_max.mean()
+                    else:
+                        v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
 
-                self.optimizer.zero_grad()
-                loss.backward()
-                nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
-                self.optimizer.step()
+                    entropy_loss = entropy.mean()
+                    loss = pg_loss - args.ent_coef * entropy_loss + args.vf_coef * v_loss
+
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
+                    self.optimizer.step()
 
     def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int):
         # set up variables
@@ -267,7 +203,7 @@ class IPPO(object):
 
                 if next_done:
                     break
-                next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(float(next_done)).to(device)
+                next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor([float(next_done)]).to(device)
 
             # records final frame
             if video_filename is not None:
