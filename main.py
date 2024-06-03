@@ -8,11 +8,14 @@ import highway_env
 import gym
 import argparse
 import logging
+import warnings
 from datetime import datetime
 
 from MARL_redux.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
 from MARL_redux.utils.model_utils import init_model
 from config import import_config
+
+warnings.simplefilter("once")
 
 
 def train(args):
@@ -69,7 +72,7 @@ def train(args):
             print("Average rewards:", results)
             print("  Average steps:", avg_steps)
             print(" Average speeds:", avg_speeds)
-            print("    Crash rates:", crash_rates)
+            print("    Crash rates:", crash_rates, end='\n\n')
 
             # Save the model.
             model.save_model(dirs['models'], global_episode=episode)
