@@ -130,7 +130,7 @@ class AbstractEnv(gym.Env):
             "real_time_rendering": False,
             "n_step": 5,  # do n step prediction
             "seed": 0,
-            "action_masking": False,
+            # "action_masking": False,
             "flatten_obs": True, 
         }
 
@@ -451,7 +451,6 @@ class AbstractEnv(gym.Env):
         :param action: the action performed by the ego-vehicle
         :return: a tuple (observation, reward, terminal, info)
         """
-        average_speed = 0
         if self.road is None or self.vehicle is None:
             raise NotImplementedError("The road and vehicle must be initialized in the environment implementation")
 
@@ -470,6 +469,7 @@ class AbstractEnv(gym.Env):
         # print(f"""reward.shape from env.super().step: {np.asarray(reward).shape}""")
         terminal = self._is_terminal()
 
+        average_speed = 0.0
         for v in self.controlled_vehicles:
             average_speed += v.speed
         average_speed = average_speed / len(self.controlled_vehicles)
