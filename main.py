@@ -10,7 +10,7 @@ import argparse
 import logging
 from datetime import datetime
 
-from MARL_redux.utils.train_utils import init_env, set_seed, init_dir, extract_data, get_mean_std
+from MARL_redux.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
 from MARL_redux.utils.model_utils import init_model
 from config import import_config
 
@@ -30,10 +30,11 @@ def train(args):
 
     # init envs
     env_train = gym.make('merge-multilane-priority-multi-agent-v0')
-    env_train = init_env(env_train, config)
+    env_train = init_env(env_train, config, is_eval_env=False)
 
     env_eval = gym.make('merge-multilane-priority-multi-agent-v0')
-    env_eval = init_env(env_eval, config)
+    env_eval = init_env(env_eval, config, is_eval_env=True)
+
     config.env.state_dim = env_train.state_dim
     config.env.action_dim = env_train.action_dim
     print(f'Env has {config.env.num_CAV} CAVs, {config.env.num_HDV} HDVs and 1 PV')
@@ -48,21 +49,22 @@ def train(args):
     avg_speeds = []
     crash_rates = []
     for episode in range(0, config.model.train_episodes):
-        # Model interacts with env and trains
+        # Model interacts with env, and trains (when valid)
         model.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, global_episode=episode)
 
         if (episode + 1) % config.model.eval_interval == 0:
             # evaluate the model
-            eval_rewards, eval_infos = model.evaluate(env_eval, output_dir, global_episode=episode)
-            eval_rewards_mean, _ = get_mean_std(eval_rewards)
+            eval_rewards, eval_infos = model.evaluate(env_eval, dirs['train_videos'], global_episode=episode)
 
+            # Saves & logs results
+            eval_rewards_mean, _ = reward_mean_std(eval_rewards)
             avg_step, avg_speed_mean, crash_rate = extract_data(eval_infos, config)
             results.append(eval_rewards_mean)
             avg_steps.append(avg_step)
             avg_speeds.append(avg_speed_mean)
             crash_rates.append(crash_rate)
 
-            print("Episode %d, Average Reward %.2f, Average Speed %.2f, Crash rate %.2f" \
+            print("Episode %d, Average Reward %f, Average Speed %f, Crash rate %f"
                   % (episode + 1, eval_rewards_mean, avg_speed_mean, crash_rate))
             print("Average rewards:", results)
             print("  Average steps:", avg_steps)
