@@ -2,8 +2,7 @@ numpy==1.19.0
 pandas
 gym==0.21.0
 matplotlib
-opencv-python==3.3.0.10
 pygame
-imageio
+imageio==2.4.1
 imageio-ffmpeg
 pyyaml
