@@ -21,11 +21,11 @@ def train(args):
 
     # update configs
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f'seed: {config.seed}')
+    print(f'Seed = {config.seed}')
 
     # create an experiment folder
     now = datetime.now().strftime("%b_%d_%H_%M_%S")
-    output_dir = args.base_dir + f'{args.algorithm}-{now}'
+    output_dir = args.base_dir + f'{args.algorithm}-{config.seed}-{now}'
     dirs = init_dir(output_dir)
 
     # init envs
