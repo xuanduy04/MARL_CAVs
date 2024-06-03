@@ -65,7 +65,7 @@ def train(args):
             print("Episode %d, Average Reward %.2f, Average Speed %.2f, Crash rate %.2f" \
                   % (episode + 1, eval_rewards_mean, avg_speed_mean, crash_rate))
             print("Average rewards:", results)
-            print("  Average steps:", avg_speeds)
+            print("  Average steps:", avg_steps)
             print(" Average speeds:", avg_speeds)
             print("    Crash rates:", crash_rates)
 
@@ -73,8 +73,9 @@ def train(args):
             model.save_model(dirs['models'], global_episode=episode)
 
     print("Average rewards:", results,
+          "Average steps:", avg_steps,
           "Average speeds:", avg_speeds,
-          "Final crash rate:", crash_rates[-1],
+          "Crash rates", crash_rates,
           "Output_dir:", output_dir,
           sep='\n')
 

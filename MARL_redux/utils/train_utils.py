@@ -53,22 +53,23 @@ def get_mean_std(l: List[List[float]]) -> Tuple[float, float]:
 
 
 def extract_data(infos: List[List[dict]], config: Config):
-    """returns (avg_steps, avg_speeds_mean, crash_rate) from infos"""
+    """returns (avg_step, avg_speed_mean, crash_rate) from infos"""
     assert len(infos) == len(config.model.test_seeds)
-    avg_speeds = []
-    avg_steps = 0
+    avg_speed = []
+    avg_step = 0.0
     crash_rate = 0.0
     for i, infos_i in enumerate(infos):
         steps = len(infos_i)
-        avg_speed = []
+        avg_speed_i = []
         for info in infos_i:
-            avg_speed.append(info["average_speed"])
+            avg_speed_i.append(info["average_speed"])
 
-        avg_speeds.append(avg_speed)
-        avg_steps += steps
+        avg_speed.append(avg_speed_i)
+        avg_step += steps
         crash_rate += (infos_i[-1]["crashed"] / infos_i[-1]["vehicle_count"])
         # TODO: maybe extract vehicle count from config directly? would that fasten the code? is it needed?
 
-    avg_steps /= len(infos)
-    avg_speeds_mean, _ = get_mean_std(avg_speeds)
-    return avg_steps, avg_speeds_mean, crash_rate
+    avg_step /= len(infos)
+    avg_speed_mean, _ = get_mean_std(avg_speed)
+    crash_rate /= len(infos)
+    return avg_step, avg_speed_mean, crash_rate
