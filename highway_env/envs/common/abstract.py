@@ -462,7 +462,7 @@ class AbstractEnv(gym.Env):
         #     self.new_action = action
 
         # action is a tuple, e.g., (2, 3, 0, 1)
-        self._simulate(self.new_action)
+        self._simulate(action)
 
         obs = self.observation_type.observe()
         # print(f"""obs.shape from env.super().step: {np.asarray(obs).shape}""")
