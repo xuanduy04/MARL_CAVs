@@ -1,14 +1,5 @@
 from typing import List, Tuple
 
-import numpy as np
-import torch
-import torch.nn as nn
-from torch.optim import Adam
-
-import os
-import math
-import imageio
-
 from config import Config
 from highway_env.envs import AbstractEnv
 
