@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -30,7 +32,7 @@ class IPPO(object):
         # self.actor_path = os.path.join(self.model_path, "actor.pth")
         # self.critic_path = os.path.join(self.model_path, "critic.pth")
 
-    def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode:int = 0):
+    def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
         """
         Interacts with the environment and trains the model, once (i.e 1 episode).
         """
@@ -95,7 +97,7 @@ class IPPO(object):
                 delta = rewards[t] + args.gamma * nextvalues * nextnonterminal - values[t]
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
-        
+
         batch_size = min(args.batch_size, num_steps)
         minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
@@ -155,7 +157,8 @@ class IPPO(object):
                     nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                     self.optimizer.step()
 
-    def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int):
+    def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int)\
+            -> Tuple[List[List[float]], List[List[dict]]]:
         # set up variables
         infos = []
         rewards = []
@@ -231,7 +234,7 @@ class IPPO(object):
         # crash_rate /= len(self.config.model.test_seeds)
         # return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
         return rewards, infos
-    
+
     def save_model(self):
         pass
 
