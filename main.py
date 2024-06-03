@@ -63,12 +63,14 @@ def train(args):
 
 def parse_args():
     default_base_dir = "./results/"
+    implemented_algorithm_list = ['ippo']
+
     parser = argparse.ArgumentParser(description='Train or evaluate policy on RL environment')
     parser.add_argument('--base-dir', type=str, required=False,
                         default=default_base_dir,
                         help="experiment base dir")
     parser.add_argument('--algorithm', type=str, required=False,
-                        choices=['mappo', 'ippo'],
+                        choices=implemented_algorithm_list,
                         default='ippo',
                         help='which algorithm to use (in all lowercase)')
     parser.add_argument('--option', type=str, required=False,

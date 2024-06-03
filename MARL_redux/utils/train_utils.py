@@ -39,6 +39,7 @@ def init_dir(base_dir: str) -> Dict[str, str]:
         dirs[path] = cur_dir
     return dirs
 
+
 def extract_data(infos: List[List[dict]], config: Config):
     assert len(infos) == len(config.model.test_seeds)
     avg_speeds = []
@@ -52,8 +53,8 @@ def extract_data(infos: List[List[dict]], config: Config):
 
         avg_speeds.append(avg_speed / steps)
         avg_steps += steps
-        crash_rate += (infos[-1]["crashed"] / infos[-1]["vehicles_count"])
+        crash_rate += (infos_i[-1]["crashed"] / infos_i[-1]["vehicles_count"])
         # TODO: maybe extract vehicle count from config directly? would that fasten the code? is it needed?
-    
+
     avg_steps /= len(infos)
     return avg_steps, avg_speeds, crash_rate
