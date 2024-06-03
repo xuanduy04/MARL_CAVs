@@ -29,7 +29,7 @@ model: # Algorithm specific arguments
   # the number of mini-batches
   update_epochs: 4
   # the K epochs to update the policy
-  norm_adv: True
+  norm_adv: False
   # Toggles advantages normalization (may 'cause numerical instability errors)
   clip_coef: 0.2
   # the surrogate clipping coefficient
@@ -38,7 +38,7 @@ model: # Algorithm specific arguments
   ent_coef: 0.005
   # coefficient of the entropy
   vf_coef: 2
-  # coefficient of the value function (i.e. critic_coefficient)
+  # coefficient of the value function (i.e. critic coefficient)
   max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
 

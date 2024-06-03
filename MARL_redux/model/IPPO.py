@@ -148,7 +148,7 @@ class IPPO(object):
                         v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
 
                     entropy_loss = entropy.mean()
-                    loss = pg_loss - args.ent_coef * entropy_loss + args.vf_coef * v_loss
+                    loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
 
                     self.optimizer.zero_grad()
                     loss.backward()
