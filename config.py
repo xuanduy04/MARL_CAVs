@@ -31,7 +31,7 @@ class Config:
 
 
 def import_config(model_name: str) -> Config:
-    # TODO: fix this when it's all over.
+    # TODO: fix this directory when it's all over.
     config_path = 'MARL_redux/configs/configs_' + model_name + '.yaml'
     with open(config_path, 'r') as file:
         config = yaml.safe_load(file)
