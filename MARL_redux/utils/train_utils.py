@@ -9,6 +9,8 @@ import os
 from highway_env.envs import AbstractEnv
 from config import Config
 
+ROUND_NDIGITS = 2
+
 
 def init_env(env: AbstractEnv, config: Config) -> AbstractEnv:
     env.config['flatten_obs'] = 'use_attention_module' not in config.model
@@ -46,24 +48,27 @@ def get_mean_std(l: List[List[float]]) -> Tuple[float, float]:
     s = [np.sum(np.array(l_i), 0) for l_i in l]
     s_mu = np.mean(np.array(s), 0)
     s_std = np.std(np.array(s), 0)
+    s_mu, s_std = round(s_mu, ROUND_NDIGITS), round(s_std, ROUND_NDIGITS)
     return s_mu, s_std
 
 
 def extract_data(infos: List[List[dict]], config: Config):
+    """returns (avg_steps, avg_speeds_mean, crash_rate) from infos"""
     assert len(infos) == len(config.model.test_seeds)
     avg_speeds = []
     avg_steps = 0
     crash_rate = 0.0
     for i, infos_i in enumerate(infos):
         steps = len(infos_i)
-        avg_speed = 0.0
+        avg_speed = []
         for info in infos_i:
-            avg_speed += info["average_speed"]
+            avg_speed.append(info["average_speed"])
 
-        avg_speeds.append(avg_speed / steps)
+        avg_speeds.append(avg_speed)
         avg_steps += steps
         crash_rate += (infos_i[-1]["crashed"] / infos_i[-1]["vehicle_count"])
         # TODO: maybe extract vehicle count from config directly? would that fasten the code? is it needed?
 
     avg_steps /= len(infos)
-    return avg_steps, avg_speeds, crash_rate
+    avg_speeds_mean, _ = get_mean_std(avg_speeds)
+    return avg_steps, avg_speeds_mean, crash_rate

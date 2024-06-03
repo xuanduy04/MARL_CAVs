@@ -17,15 +17,15 @@ from config import import_config
 
 def train(args):
     config = import_config(args.algorithm)
-    print(f'seed: {config.seed}')
     set_seed(config.seed)
 
     # update configs
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'seed: {config.seed}')
 
     # create an experiment folder
     now = datetime.now().strftime("%b_%d_%H_%M_%S")
-    output_dir = args.base_dir + now
+    output_dir = args.base_dir + f'{args.algorithm}-{now}'
     dirs = init_dir(output_dir)
 
     # init envs
@@ -44,22 +44,40 @@ def train(args):
 
     # Training loop
     results = []
+    avg_steps = []
+    avg_speeds = []
+    crash_rates = []
     for episode in range(0, config.model.train_episodes):
         # Model interacts with env and trains
         model.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, global_episode=episode)
 
         if (episode + 1) % config.model.eval_interval == 0:
             # evaluate the model
-            eval_result, eval_infos = model.evaluate(env_eval, output_dir, global_episode=episode)
-            eval_result_mean, _ = get_mean_std(eval_result)
-            print(f"Episode {episode + 1}:\n{eval_result_mean}")
-            print(extract_data(eval_infos, config), sep='\n', end='\n\n')
+            eval_rewards, eval_infos = model.evaluate(env_eval, output_dir, global_episode=episode)
+            eval_rewards_mean, _ = get_mean_std(eval_rewards)
 
-            results.append(eval_result_mean)
+            avg_step, avg_speed_mean, crash_rate = extract_data(eval_infos, config)
+            results.append(eval_rewards_mean)
+            avg_steps.append(avg_step)
+            avg_speeds.append(avg_speed_mean)
+            crash_rates.append(crash_rate)
+
+            print("Episode %d, Average Reward %.2f, Average Speed %.2f, Crash rate %.2f" \
+                  % (episode + 1, eval_rewards_mean, avg_speed_mean, crash_rate))
+            print("Average rewards:", results)
+            print("  Average steps:", avg_speeds)
+            print(" Average speeds:", avg_speeds)
+            print("    Crash rates:", crash_rates)
+
             # Save the model.
             model.save_model(dirs['models'], global_episode=episode)
 
-    print(results)
+    print("Average rewards:", results,
+          "Average speeds:", avg_speeds,
+          "Final crash rate:", crash_rates[-1],
+          "Output_dir:", output_dir,
+          sep='\n')
+
 
 def parse_args():
     default_base_dir = "./results/"
@@ -82,9 +100,6 @@ def parse_args():
     # parser.add_argument('--model-dir', type=str, required=False,
     #                     default='',
     #                     help="pretrained model path")
-    # parser.add_argument('--evaluation-seeds', type=str, required=False,
-    #                     default=','.join([str(i) for i in range(0, 600, 20)]),
-    #                     help="random seeds for evaluation, split by ,")
     return parser.parse_args()
 
 
