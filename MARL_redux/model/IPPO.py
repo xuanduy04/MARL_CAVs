@@ -1,20 +1,64 @@
+"""
+'Almost' single-file implementation of IPPO
+
+based on cleanrl's PPO implementation.
+"""
+
 from typing import List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
+from torch import Tensor
 from torch.optim import Adam
+from torch.distributions.categorical import Categorical
 
 import os
 import math
 import imageio
 
+# for type hints
 from config import Config
 from highway_env.envs import AbstractEnv
+# for standardization between multiple algorithms
 from MARL_redux.model import BaseModel
-from MARL_redux.common.network import ActorCriticNetwork
+# for quick network initialization
+from MARL_redux.common.network import layer_init
+# debug utilities
+from MARL_redux.utils.debug_utils import checknan, checknan_Sequential, analyze, printd
 
-from MARL_redux.utils.debug_utils import checknan, printd
+
+class ActorCriticNetwork(nn.Module):
+    """An actor critic network, similar to that of cleanrl"""
+    def __init__(self, state_dim: int, action_dim: int, hidden_size: int):
+        super(ActorCriticNetwork, self).__init__()
+        self.actor = nn.Sequential(
+            layer_init(nn.Linear(state_dim, hidden_size)),
+            nn.Tanh(),
+            layer_init(nn.Linear(hidden_size, hidden_size)),
+            nn.Tanh(),
+            layer_init(nn.Linear(hidden_size, action_dim)),
+            nn.Tanh(),
+        )
+
+        self.critic = nn.Sequential(
+            layer_init(nn.Linear(state_dim, hidden_size)),
+            nn.Tanh(),
+            layer_init(nn.Linear(hidden_size, hidden_size)),
+            nn.Tanh(),
+            layer_init(nn.Linear(hidden_size, 1))
+        )
+
+    def get_value(self, state: Tensor) -> Tensor:
+        return self.critic(state)
+
+    def get_action_and_value(self, state: Tensor, action: Optional[Tensor] = None):
+        logits = self.actor(state)
+        probs = Categorical(logits=logits)
+        if action is None:
+            # Sample an action
+            action = probs.sample()
+        return action, probs.log_prob(action), probs.entropy(), self.critic(state)
 
 
 class IPPO(BaseModel):
@@ -157,22 +201,14 @@ class IPPO(BaseModel):
     def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int)\
             -> Tuple[List[List[float]], List[List[dict]]]:
         # set up variables
-        infos = []
-        rewards = []
-        # vehicle_speed = []
-        # vehicle_position = []
-        # steps = []
-        # avg_speeds = []
-        # crash_rate = 0.0
-
         device = self.config.device
 
+        infos = []
+        rewards = []
         for i, seed in enumerate(self.config.model.test_seeds):
             # set up variables
             infos_i = []
             rewards_i = []
-            # step = 0
-            # avg_speed = 0
             Recorded_frames = []
 
             # TRY NOT TO MODIFY: start the game
@@ -197,7 +233,6 @@ class IPPO(BaseModel):
                     rendered_frame = env.render(mode="rgb_array")
                     Recorded_frames.append(rendered_frame)
 
-                # avg_speed += info["average_speed"]
                 rewards_i.append(reward)
                 infos_i.append(info)
 
@@ -212,24 +247,16 @@ class IPPO(BaseModel):
 
             rewards.append(rewards_i)
             infos.append(infos_i)
-            # vehicle_speed.append(infos["vehicle_speed"])
-            # vehicle_position.append(infos["vehicle_position"])
-            # steps.append(step)
-            # avg_speeds.append(avg_speed / step)
-            # crash_rate += infos["crashed"] / num_CAV
 
             if video_filename is not None:
-                imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames],
-                                fps=5)
-                # Alternate writer.
+                imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames], fps=5)
+                # Alternate writer:
                 # writer = imageio.get_writer(video_filename, fps=5)
                 # for frame in Recorded_frames:
                 #     writer.append_data(np.array(frame))
                 # writer.close()
 
         env.close()
-        # crash_rate /= len(self.config.model.test_seeds)
-        # return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
         return rewards, infos
 
     def save_model(self, model_dir: str, global_episode: int):
