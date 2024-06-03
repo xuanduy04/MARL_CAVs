@@ -4,7 +4,7 @@
 based on cleanrl's PPO implementation.
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import numpy as np
 import torch
