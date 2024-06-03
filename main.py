@@ -15,7 +15,7 @@ from MARL_redux.utils.train_utils import init_env, set_seed, init_dir, extract_d
 from MARL_redux.utils.model_utils import init_model
 from config import import_config
 
-warnings.simplefilter("once")
+warnings.simplefilter("ignore")
 
 
 def train(args):
