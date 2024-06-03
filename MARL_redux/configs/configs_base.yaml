@@ -19,22 +19,6 @@ model:
   # --- Algorithm specific arguments ---
   learning_rate: !!float 1e-4
   # the learning rate of the optimizer
-  buffer_size: !!int 1e6
-  # the replay memory buffer size
-  gamma: 0.99
-  # the discount factor gamma
-  tau: 0.005
-  # target smoothing coefficient (default: 0.005)
-  batch_size: 256
-  # the batch size of sample from the reply memory
-  exploration_noise: 0.1
-  # the scale of exploration noise
-  learning_starts: !!int 25e3
-  # timestep to start learning
-  policy_frequency: 2
-  # the frequency of training policy (delayed)
-  noise_clip: 0.5
-  # noise clip parameter of the Target Policy Smoothing Regularization
 
   reward_scale: 25.0
   # scales the reward by a factor of (1 / reward_scale)
