@@ -64,7 +64,7 @@ def train(args):
             avg_speeds.append(avg_speed_mean)
             crash_rates.append(crash_rate)
 
-            print("Episode %d, Average Reward %f, Average Speed %f, Crash rate %f"
+            print("Episode %d, Average Reward %.2f, Average Speed %.2f, Crash rate %.2f"
                   % (episode + 1, eval_rewards_mean, avg_speed_mean, crash_rate))
             print("Average rewards:", results)
             print("  Average steps:", avg_steps)
