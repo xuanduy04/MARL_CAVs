@@ -53,7 +53,7 @@ def extract_data(infos: List[List[dict]], config: Config):
 
         avg_speeds.append(avg_speed / steps)
         avg_steps += steps
-        crash_rate += (infos_i[-1]["crashed"] / infos_i[-1]["vehicles_count"])
+        crash_rate += (infos_i[-1]["crashed"] / infos_i[-1]["vehicle_count"])
         # TODO: maybe extract vehicle count from config directly? would that fasten the code? is it needed?
 
     avg_steps /= len(infos)
