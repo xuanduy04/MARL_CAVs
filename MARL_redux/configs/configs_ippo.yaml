@@ -1,6 +1,7 @@
 seed: 2000
 
-model: # Algorithm specific arguments
+model:
+  # --- Training specific arguments ---
   train_episodes: 1000
   # Total episodes to train
   curriculum_episodes: 0
@@ -15,6 +16,7 @@ model: # Algorithm specific arguments
     - 150
   # List of seeds for evaluation
 
+  # --- Algorithm specific arguments ---
   learning_rate: !!float 1e-4
   # the learning rate of the optimizer
   num_steps: 128
