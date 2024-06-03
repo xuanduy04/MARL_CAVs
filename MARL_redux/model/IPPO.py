@@ -11,15 +11,15 @@ import imageio
 
 from config import Config
 from highway_env.envs import AbstractEnv
+from MARL_redux.model import BaseModel
 from MARL_redux.common.network import ActorCriticNetwork
 
 from MARL_redux.utils.debug_utils import checknan, printd
 
 
-class IPPO(object):
+class IPPO(BaseModel):
     def __init__(self, config: Config):
-        super(IPPO, self).__init__()
-        self.config = config
+        super(IPPO, self).__init__(config)
         self.config.model.batch_size = self.config.model.num_steps  # on-policy so use all data we get.
         # batch_size is "per agent", 'cause IPPO.
 
@@ -33,9 +33,6 @@ class IPPO(object):
         # self.critic_path = os.path.join(self.model_path, "critic.pth")
 
     def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
-        """
-        Interacts with the environment and trains the model, once (i.e 1 episode).
-        """
         printd(f'Begin training for episode {global_episode + 1}')
         # set up variables
         device = self.config.device
@@ -235,8 +232,12 @@ class IPPO(object):
         # return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
         return rewards, infos
 
-    def save_model(self):
-        pass
+    def save_model(self, model_dir: str, global_episode: int):
+        file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
+        torch.save({'global_step': global_episode,
+                    'model_state_dict': self.network.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict()},
+                   file_path)
 
-    def load_model(self):
+    def load_model(self, model_dir: str):
         pass
