@@ -14,8 +14,6 @@ from MARL_redux.utils.train_utils import init_env, set_seed, init_dir, extract_d
 from MARL_redux.utils.model_utils import init_model
 from config import import_config
 
-from MARL_redux.model import IPPO
-
 
 def train(args):
     config = import_config(args.algorithm)
@@ -38,10 +36,11 @@ def train(args):
     env_eval = init_env(env_eval, config)
     config.env.state_dim = env_train.state_dim
     config.env.action_dim = env_train.action_dim
+    print(f'Env has {config.env.num_CAV} CAVs, {config.env.num_HDV} HDVs and 1 PV')
 
     # init model
     model = init_model(model_name=args.algorithm, config=config)
-    print(f'Training {args.algorithm} model')
+    print(f'Training {args.algorithm} model\n')
 
     # Training loop
     results = []
@@ -57,7 +56,7 @@ def train(args):
 
             results.append(eval_result)
             # Save the model.
-            model.save_model()
+            model.save_model(dirs['models'], global_episode=episode)
     return results
 
 
