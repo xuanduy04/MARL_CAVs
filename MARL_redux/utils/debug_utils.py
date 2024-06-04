@@ -5,7 +5,7 @@ from torch import Tensor
 # scroll to bottom for templates
 
 # set DEBUG to True to run debug funtions when called.
-DEBUG = False
+DEBUG = True
 
 
 def printd(*args, **kwargs):
