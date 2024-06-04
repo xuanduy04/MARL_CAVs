@@ -1,15 +1,19 @@
+"""
+'Almost' single-file implementation of MADDPG, with it's ReplayBuffer on a seperate file
+
+based on cleanrl's DDPG implementation and openai's original MADDPG implementation
+"""
+
 from typing import Tuple, List, Union
 
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from numpy import ndarray
 from torch import Tensor
 from torch.optim import Adam
 
 import os
-import math
 import imageio
 
 # replay buffer
@@ -59,8 +63,7 @@ class Actor(nn.Module):
         )
 
     def forward(self, state: Tensor) -> Tensor:
-        x = self.fc(state)
-        return x
+        return self.fc(state)
 
 
 class MADDPG(BaseModel):
@@ -86,7 +89,7 @@ class MADDPG(BaseModel):
         self.actor_optimizer = Adam(self.actor.parameters(), lr=config.model.learning_rate)
         self.qnet_optimizer = Adam(self.qnet.parameters(), lr=config.model.learning_rate)
 
-    def _random_action(self, num_CAV: int) -> Union[int, ndarray[int]]:
+    def _random_action(self, num_CAV: int) -> Union[int, ndarray]:
         """Takes a random exploration action."""
         return np.random.randint(0, self.action_dim, (num_CAV,))
 
