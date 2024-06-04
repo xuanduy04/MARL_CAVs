@@ -131,7 +131,7 @@ class AbstractEnv(gym.Env):
             "n_step": 5,  # do n step prediction
             "seed": 0,
             # "action_masking": False,
-            "flatten_obs": True, 
+            "flatten_obs": True,
         }
 
     def seed(self, seeding: int = None) -> List[int]:
@@ -178,8 +178,8 @@ class AbstractEnv(gym.Env):
         """
         raise NotImplementedError
 
-    def reset(self, is_training: bool = True, testing_seeds: int = 0, curriculum_learning: bool = False) \
-        -> Tuple[Union[ndarray, Any], Tuple[int, int]]:
+    def reset(self, is_training: bool = True, testing_seeds: int = 0, curriculum_training: bool = False) \
+            -> Tuple[ndarray, Tuple[int, int]]:
         """
         Reset the environment to it's initial configuration
 
@@ -189,7 +189,7 @@ class AbstractEnv(gym.Env):
             np.random.seed(self.seed)
             random.seed(self.seed)
         else:
-            curriculum_learning = False
+            curriculum_training = False
             np.random.seed(testing_seeds)
             random.seed(testing_seeds)
         self.define_spaces()  # First, to set the controlled vehicle class depending on action space
@@ -198,7 +198,7 @@ class AbstractEnv(gym.Env):
         self.done = False
         self.vehicle_speed = []
         self.vehicle_pos = []
-        vehicle_count = self._reset(curriculum_learning=curriculum_learning)
+        vehicle_count = self._reset(curriculum_training=curriculum_training)
         self.define_spaces()  # Second, to link the obs and actions to the vehicles once the scene is created
         # set the vehicle id for visualizing
         for i, v in enumerate(self.road.vehicles):
@@ -208,7 +208,7 @@ class AbstractEnv(gym.Env):
         obs = np.asarray(obs).reshape((len(obs), -1)) if self.config["flatten_obs"] else np.asarray(obs)
         return obs, vehicle_count
 
-    def _reset(self, curriculum_learning: bool) -> Tuple[int, int]:
+    def _reset(self, curriculum_training: bool) -> Tuple[int, int]:
         """
         Reset the scene: roads and vehicles.
         returns the vehicle counts (num_CAVs, num_HDVs)
@@ -315,11 +315,11 @@ class AbstractEnv(gym.Env):
                 priority_number -= (self.ends[2] - distance_to_merging_end) / self.ends[2]
                 headway_distance = self._compute_headway_distance(vehicle)
                 priority_number += 0.5 * np.log(headway_distance
-                                          / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
+                                                / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
             else:
                 headway_distance = self._compute_headway_distance(vehicle)
                 priority_number += 0.5 * np.log(headway_distance
-                                          / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
+                                                / (self.config["HEADWAY_TIME"] * vehicle.speed)) if vehicle.speed > 0 else 0
 
             priority_number += np.random.rand() * 0.001  # to avoid the same priority number for two vehicles
             q.put((priority_number, [vehicle, action, index]))
@@ -396,7 +396,7 @@ class AbstractEnv(gym.Env):
 
                         elif type(v) is MDPVehicle and v is not vehicle:
                             # use the previous action: idle
-                            mdp_controller(v, env_copy,  actions[v.id])
+                            mdp_controller(v, env_copy, actions[v.id])
                         elif type(v) is MDPVehicle and v is vehicle:
                             if actions[index] == action:
                                 mdp_controller(v, env_copy, action)

@@ -101,7 +101,7 @@ class MAPPO:
     def interact(self):
         if (self.max_steps is not None) and (self.n_steps >= self.max_steps):
             self.env_state, _ = self.env.reset(
-                curriculum_learning=self.n_episodes < self.n_curriculum_episodes)
+                curriculum_training=self.n_episodes < self.n_curriculum_episodes)
             self.n_steps = 0
         states = []
         actions = []

@@ -90,7 +90,7 @@ class IPPO(BaseModel):
             self.optimizer.param_groups[0]["lr"] = lrnow
 
         # TRY NOT TO MODIFY: start the game
-        next_obs, (num_CAV, _) = env.reset(curriculum_learning=curriculum_training)
+        next_obs, (num_CAV, _) = env.reset(curriculum_training=curriculum_training)
         next_obs = torch.Tensor(next_obs).to(device)
         next_done = torch.zeros(1).to(device)
 
