@@ -77,7 +77,7 @@ class IPPO(BaseModel):
         # self.critic_path = os.path.join(self.model_path, "critic.pth")
 
     def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
-        printd(f'Begin training for episode {global_episode + 1}')
+        # printd(f'Begin training for episode {global_episode + 1}')
         # set up variables
         device = self.config.device
         num_steps = self.config.model.num_steps
