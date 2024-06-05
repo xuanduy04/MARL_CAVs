@@ -113,7 +113,7 @@ class MADDPG(BaseModel):
             # ALGO LOGIC: put actions logic here
             if self.current_step > args.learning_starts:
                 with torch.no_grad():
-                    actions = self.actor(torch.Tensor(obs).to(device))
+                    actions = self.actor(torch.Tensor(obs).to(device)).cpu().numpy()
             else:
                 actions = self._random_action(num_CAV)
 
