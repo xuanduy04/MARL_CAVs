@@ -72,10 +72,6 @@ class IPPO(BaseModel):
                                           config.model.hidden_size)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
-        # self.model_path = ""
-        # self.actor_path = os.path.join(self.model_path, "actor.pth")
-        # self.critic_path = os.path.join(self.model_path, "critic.pth")
-
     def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
         # printd(f'Begin training for episode {global_episode + 1}')
         # set up variables
