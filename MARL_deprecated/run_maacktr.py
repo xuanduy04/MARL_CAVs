@@ -1,4 +1,4 @@
-from MARL.multi_agent.MAACKTR import JointACKTR as MAACKTR
+from MARL_deprecated.multi_agent.MAACKTR import JointACKTR as MAACKTR
 from common.utils import agg_double_list, copy_file_akctr, init_dir
 
 import sys

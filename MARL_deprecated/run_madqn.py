@@ -1,4 +1,4 @@
-from MARL.multi_agent.MADQN import MADQN
+from MARL_deprecated.multi_agent.MADQN import MADQN
 from single_agent.utils_common import agg_double_list
 
 import sys
