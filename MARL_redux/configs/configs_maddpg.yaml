@@ -19,7 +19,7 @@ model:
   # --- Algorithm specific arguments ---
   learning_rate: !!float 0.01
   # the learning rate of the optimizer
-  buffer_size: !!int 1e6
+  buffer_size: !!int 1_000_000
   # the replay memory buffer size
   gamma: 0.95
   # the discount factor gamma
@@ -29,7 +29,7 @@ model:
   # the batch size of samples from the reply memory
   exploration_noise: 0.1
   # the scale of exploration noise
-  learning_starts: !!int 2e3
+  learning_starts: !!int 2_000
   # after this many timesteps, agents begin learning.
   policy_frequency: 100
   # the frequency of training policy (delayed)
