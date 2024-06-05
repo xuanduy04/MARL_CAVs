@@ -101,6 +101,7 @@ class MADDPG(BaseModel):
         # set up variables
         device = self.config.device
         args = self.config.model
+        begin_step = self.current_step
 
         # TRY NOT TO MODIFY: start the game
         obs, (num_CAV, _) = env.reset(curriculum_training=curriculum_training)
@@ -143,7 +144,7 @@ class MADDPG(BaseModel):
                     qnet_loss.backward()
                     self.qnet_optimizer.step()
 
-                    if (self.current_step - args.learning_starts - 1) % args.policy_frequency == 0:
+                    if (self.current_step - begin_step) >= args.policy_frequency:
                         actor_loss = -self.qnet(b_obs, self.actor(b_obs)).mean()
                         self.actor_optimizer.zero_grad()
                         actor_loss.backward()
@@ -154,6 +155,8 @@ class MADDPG(BaseModel):
                             target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
                         for param, target_param in zip(self.qnet.parameters(), self.qnet_target.parameters()):
                             target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
+
+                        begin_step = self.current_step
 
     def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int) \
             -> Tuple[List[List[float]], List[List[dict]]]:
