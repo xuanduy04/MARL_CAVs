@@ -1,6 +1,6 @@
 from typing import List
 
-from MARL_redux.model import *
+from MARL.model import *
 from config import Config
 
 model_list = {

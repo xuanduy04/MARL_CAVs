@@ -3,7 +3,7 @@ import imageio
 
 import numpy as np
 
-from MARL_redux.model import IPPO
+from MARL.model import IPPO
 from config import Config
 
 

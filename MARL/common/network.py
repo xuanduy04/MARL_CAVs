@@ -6,7 +6,7 @@ from torch import nn
 from torch import Tensor
 from torch.distributions.categorical import Categorical
 
-from MARL_redux.utils.debug_utils import checknan, checknan_Sequential, analyze
+from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze
 
 
 def layer_init(layer: nn.Linear, method: str = 'xavier', **kwargs) -> nn.Linear:

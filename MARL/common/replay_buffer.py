@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 from numpy import ndarray
-from MARL_redux.utils.debug_utils import DEBUG
+from MARL.utils.debug_utils import DEBUG
 
 class ReplayBuffer(object):
     def __init__(self, size):

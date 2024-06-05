@@ -9,8 +9,8 @@ import logging
 import warnings
 from datetime import datetime
 
-from MARL_redux.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
-from MARL_redux.utils.model_utils import init_model, supported_models
+from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
+from MARL.utils.model_utils import init_model, supported_models
 from config import import_config
 
 warnings.simplefilter("ignore")

@@ -21,11 +21,13 @@ import imageio
 from config import Config
 from highway_env.envs import AbstractEnv
 # for standardization between multiple algorithms
-from MARL_redux.model import BaseModel
+from MARL.model import BaseModel
 # for quick network initialization
-from MARL_redux.common.network import layer_init
+from MARL.common.network import layer_init
+
+# noinspection PyUnresolvedReferences
 # debug utilities
-from MARL_redux.utils.debug_utils import checknan, checknan_Sequential, analyze, printd
+from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze, printd
 
 
 class ActorCriticNetwork(nn.Module):
@@ -61,6 +63,7 @@ class ActorCriticNetwork(nn.Module):
         return action, probs.log_prob(action), probs.entropy(), self.critic(state)
 
 
+# noinspection PyUnusedLocal
 class IPPO(BaseModel):
     def __init__(self, config: Config):
         super(IPPO, self).__init__(config)

@@ -17,17 +17,19 @@ import os
 import imageio
 
 # replay buffer
-from MARL_redux.common.replay_buffer import ReplayBuffer
+from MARL.common.replay_buffer import ReplayBuffer
 
 # for type hints
 from config import Config
 from highway_env.envs import AbstractEnv
 # for standardization between multiple algorithms
-from MARL_redux.model import BaseModel
+from MARL.model import BaseModel
 # for quick network initialization
-from MARL_redux.common.network import layer_init
+from MARL.common.network import layer_init
+
+# noinspection PyUnresolvedReferences
 # debug utilities
-from MARL_redux.utils.debug_utils import checknan, checknan_Sequential, analyze, printd
+from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze, printd
 
 
 # ALGO LOGIC: initialize agent here (similar to cleanrl, but uses nn.Sequential)
@@ -66,6 +68,7 @@ class Actor(nn.Module):
         return self.fc(state)
 
 
+# noinspection PyUnusedLocal
 class MADDPG(BaseModel):
     def __init__(self, config: Config):
         super(MADDPG, self).__init__(config)
