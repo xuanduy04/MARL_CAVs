@@ -3,6 +3,7 @@ from typing import Union
 import numpy as np
 import random
 
+import torch
 from numpy import ndarray
 from MARL.utils.debug_utils import DEBUG
 
@@ -64,13 +65,17 @@ class ReplayBuffer(object):
     def sample_index(self, idxes):
         return self._encode_sample(idxes)
 
-    def sample(self, batch_size):
+    def sample(self, batch_size: int, as_tensor: bool = False, device: torch.DeviceObjType = 'cpu'):
         """Sample a batch of experiences.
 
         Parameters
         ----------
         batch_size: int
             How many transitions to sample.
+        as_tensor: bool
+            should the return type be a torch.Tensor
+        device:
+            when `as_tensor` is True, move the output to device.
 
         Returns
         -------
@@ -90,5 +95,13 @@ class ReplayBuffer(object):
             idxes = self.make_index(batch_size)
         else:
             idxes = range(0, len(self._storage))
+        if as_tensor:
+            obs, act, rew, next_obs, done = self._encode_sample(idxes)
+            obs = torch.Tensor(obs).to(device)
+            act = torch.Tensor(act).to(device)
+            rew = torch.Tensor(rew).to(device)
+            next_obs = torch.Tensor(next_obs).to(device)
+            done = torch.Tensor(done).to(device)
+            return obs, act, rew, next_obs, done
         return self._encode_sample(idxes)
 

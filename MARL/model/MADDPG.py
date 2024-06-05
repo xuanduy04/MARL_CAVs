@@ -134,7 +134,7 @@ class MADDPG(BaseModel):
             if self.current_step > args.learning_starts:
                 for agent_id in range(num_CAV):
                     # Sample random batch from replay buffer
-                    b_obs, b_actions, b_rewards, b_next_obs, b_dones = self.rb.sample(args.batch_size)
+                    b_obs, b_actions, b_rewards, b_next_obs, b_dones = self.rb.sample(args.batch_size, as_tensor=True, device=device)
                     with torch.no_grad():
                         next_state_actions = self.actor_target(b_next_obs)
                         qnet_next_target = self.qnet_target(b_next_obs, next_state_actions)
