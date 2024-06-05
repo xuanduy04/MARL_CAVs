@@ -74,7 +74,7 @@ def train(args):
             print("    Crash rates:", crash_rates, end='\n\n')
 
             # Save the model.
-            model.save_model(dirs['models'], global_episode=episode)
+            # model.save_model(dirs['models'], global_episode=episode)
 
     print("Average rewards:", results,
           "Average steps:", avg_steps,
