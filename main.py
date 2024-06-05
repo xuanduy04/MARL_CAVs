@@ -22,6 +22,7 @@ def train(args):
 
     # update configs
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'Device = {config.device}')
     print(f'Seed = {config.seed}')
 
     # create an experiment folder
