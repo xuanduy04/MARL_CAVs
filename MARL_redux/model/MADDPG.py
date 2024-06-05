@@ -77,7 +77,7 @@ class MADDPG(BaseModel):
 
         self.action_dim = config.env.action_dim
         network_args = (config.env.state_dim, config.env.action_dim, config.model.hidden_size)
-        device = self.config.device
+        device = config.device
         # init networks
         self.actor = Actor(*network_args).to(device)
         self.qnet = QNetwork(*network_args).to(device)

@@ -69,7 +69,7 @@ class IPPO(BaseModel):
 
         # Actor & Critic
         self.network = ActorCriticNetwork(config.env.state_dim, config.env.action_dim,
-                                          config.model.hidden_size)
+                                          config.model.hidden_size).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
     def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
