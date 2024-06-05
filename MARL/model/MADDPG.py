@@ -162,64 +162,6 @@ class MADDPG(BaseModel):
 
                         begin_step = self.current_step
 
-    def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int) \
-            -> Tuple[List[List[float]], List[List[dict]]]:
-        # set up variables
-        device = self.config.device
-
-        infos = []
-        rewards = []
-        for i, seed in enumerate(self.config.model.test_seeds):
-            # set up variables
-            infos_i = []
-            rewards_i = []
-            Recorded_frames = []
-
-            # TRY NOT TO MODIFY: start the game
-            next_obs, (num_CAV, _) = env.reset(is_training=False, testing_seeds=seed)
-            next_obs = torch.Tensor(next_obs).to(device)
-            next_done = torch.zeros(1).to(device)
-
-            # TRY NOT TO MODIFY: init video recorder
-            rendered_frame = env.render(mode="rgb_array")
-            video_filename = os.path.join(output_dir, f"testing_episode{global_episode + 1}_{i}.mp4")
-            print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape, 5))
-
-            for step in range(0, 1_000):
-                # ALGO LOGIC: action logic
-                with torch.no_grad():
-                    # TODO: if it's so similar, might as well just overrides this to BaseModel.
-                    action = self.actor(torch.Tensor(next_obs).to(device))
-
-                # TRY NOT TO MODIFY: execute the game and log data.
-                next_obs, reward, next_done, info = env.step(action.cpu().numpy())
-
-                if video_filename is not None:
-                    rendered_frame = env.render(mode="rgb_array")
-                    Recorded_frames.append(rendered_frame)
-
-                rewards_i.append(reward)
-                infos_i.append(info)
-
-                if next_done:
-                    break
-                next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor([float(next_done)]).to(device)
-
-            # records final frame
-            if video_filename is not None:
-                rendered_frame = env.render(mode="rgb_array")
-                Recorded_frames.append(rendered_frame)
-
-            rewards.append(rewards_i)
-            infos.append(infos_i)
-
-            if video_filename is not None:
-                imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames], fps=5)
-                # Alternate writer:
-                # writer = imageio.get_writer(video_filename, fps=5)
-                # for frame in Recorded_frames:
-                #     writer.append_data(np.array(frame))
-                # writer.close()
-
-        env.close()
-        return rewards, infos
+    def _act(self, obs: Tensor) -> np.ndarray:
+        action = self.actor(obs)
+        return action

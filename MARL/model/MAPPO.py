@@ -207,79 +207,9 @@ class MAPPO(BaseModel):
                 nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                 self.optimizer.step()
 
-    def evaluate(self, env: AbstractEnv, output_dir: str, global_episode: int):
-        # set up variables
-        rewards = []
-        vehicle_speed = []
-        vehicle_position = []
-        steps = []
-        avg_speeds = []
-        crash_rate = 0.0
-
-        device = self.config.device
-
-        for i, seed in enumerate(self.config.model.test_seeds):
-            # set up variables
-            rewards_i = []
-            step = 0
-            avg_speed = 0
-            Recorded_frames = []
-
-            # TRY NOT TO MODIFY: start the game
-            next_obs, (num_CAV, _) = env.reset(is_training=False, testing_seeds=seed)
-            next_obs = torch.Tensor(next_obs).to(device)
-            next_done = torch.zeros(1).to(device)
-
-            # TRY NOT TO MODIFY: init video recorder
-            rendered_frame = env.render(mode="rgb_array")
-            video_filename = os.path.join(output_dir, f"testing_episode{global_episode + 1}_{i}.mp4")
-            print("Recording video to {} ({}x{}x{}@{}fps)".format(video_filename, *rendered_frame.shape, 5))
-
-            for step in range(0, 1_000):
-                # ALGO LOGIC: action logic
-                with torch.no_grad():
-                    action, _, _, _ = self.network.get_action_and_value(next_obs)
-
-                # TRY NOT TO MODIFY: execute the game and log data.
-                next_obs, reward, next_done, infos = env.step(action.cpu().numpy())
-
-                if video_filename is not None:
-                    rendered_frame = env.render(mode="rgb_array")
-                    Recorded_frames.append(rendered_frame)
-
-                avg_speed += infos["average_speed"]
-                rewards_i.append(reward)
-                # infos_i.append(infos)
-
-                if next_done:
-                    break
-                next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(float(next_done)).to(device)
-
-            # records final frame
-            if video_filename is not None:
-                rendered_frame = env.render(mode="rgb_array")
-                Recorded_frames.append(rendered_frame)
-
-            rewards.append(rewards_i)
-            # infos.append(infos_i)
-            vehicle_speed.append(infos["vehicle_speed"])
-            vehicle_position.append(infos["vehicle_position"])
-            steps.append(step)
-            avg_speeds.append(avg_speed / step)
-            crash_rate += infos["crashed"] / num_CAV
-
-            if video_filename is not None:
-                imageio.mimsave(video_filename, [np.array(frame) for frame in Recorded_frames],
-                                fps=5)
-                # Alternate writer.
-                # writer = imageio.get_writer(video_filename, fps=5)
-                # for frame in Recorded_frames:
-                #     writer.append_data(np.array(frame))
-                # writer.close()
-
-        env.close()
-        crash_rate /= len(self.config.model.test_seeds)
-        return rewards, ((vehicle_speed, vehicle_position), steps, avg_speeds, crash_rate)
+    def _act(self, obs: Tensor) -> Tensor:
+        action, _, _, _ = self.network.get_action_and_value(obs)
+        return action
 
     def save_model(self, model_dir: str, global_episode: int):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
