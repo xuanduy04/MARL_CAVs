@@ -44,7 +44,7 @@ class ReplayBuffer(object):
         self._next_idx = 0
         self._size = 0
 
-    def add(self, obs: ndarray, actions: ndarray, reward: float, next_obs: ndarray, dones: ndarray):
+    def add(self, obs: ndarray, actions: ndarray, rewards: float, next_obs: ndarray, dones: ndarray):
         if DEBUG:
             assert obs.shape[0] == actions.shape[0] == dones.shape[0] == next_obs.shape[0]
 
@@ -53,7 +53,7 @@ class ReplayBuffer(object):
 
         self.obs[idxs] = torch.tensor(obs, device=self.device)
         self.actions[idxs] = torch.tensor(actions, device=self.device)
-        self.rewards[idxs] = torch.tensor(reward, device=self.device)
+        self.rewards[idxs] = torch.tensor(rewards, device=self.device)
         self.next_obs[idxs] = torch.tensor(next_obs, device=self.device)
         self.dones[idxs] = torch.tensor(dones, device=self.device)
 
