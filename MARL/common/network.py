@@ -10,6 +10,7 @@ from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze
 
 
 def layer_init(layer: nn.Linear, method: str = 'xavier', **kwargs) -> nn.Linear:
+    # TODO: move this to utils
     if method == 'xavier':
         nn.init.xavier_uniform_(layer.weight)
     elif method == 'orthogonal':
