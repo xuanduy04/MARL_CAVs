@@ -183,7 +183,7 @@ class AbstractEnv(gym.Env):
         """
         Reset the environment to it's initial configuration
 
-        :return: the observation of the reset state, (num_CAV and num_HDV)
+        :return: (the observation of the reset state, (num_CAV, num_HDV))
         """
         if is_training:
             np.random.seed(self.seed)
@@ -211,7 +211,7 @@ class AbstractEnv(gym.Env):
     def _reset(self, curriculum_training: bool) -> Tuple[int, int]:
         """
         Reset the scene: roads and vehicles.
-        returns the vehicle counts (num_CAVs, num_HDVs)
+        returns the vehicle counts (num_CAV, num_HDV)
 
         This method must be overloaded by the environments.
         """
