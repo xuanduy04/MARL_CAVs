@@ -43,7 +43,7 @@ class QNetwork(nn.Module):
         )
 
     def forward(self, state: Tensor, action: Tensor) -> Tensor:
-        x = torch.cat([state, action], dim=1)
+        x = torch.cat([state.view(state.shape[0], -1), action], dim=1)
         x = self.fc(x)
         return x
 
@@ -141,6 +141,7 @@ class MADDPG(BaseModel):
 
             # ALGO LOGIC: training.
             if self.current_step > args.learning_starts:
+                printd("BEGIN TRAINING MODEL")
                 for agent_id in range(self.num_agents):
                     # Sample random batch from replay buffer
                     b_obs, b_actions, b_rewards, b_next_obs, b_dones = self.rb.sample(args.batch_size)
@@ -173,9 +174,8 @@ class MADDPG(BaseModel):
 
                         begin_step = self.current_step
 
-        printd(f'At end of episode, total number of steps = {self.current_step}')
+        printd(f'At end of episode {global_episode}, total number of steps = {self.current_step}')
 
     def _act(self, obs: Tensor) -> np.ndarray:
         action = self.actor(obs)
-        # TODO: change this, maybe through changing actor.forward()?
-        return action
+        return action.cpu().numpy()
