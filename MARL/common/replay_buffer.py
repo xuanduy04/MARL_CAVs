@@ -46,16 +46,17 @@ class ReplayBuffer(object):
 
     def add(self, obs: ndarray, actions: ndarray, rewards: float, next_obs: ndarray, dones: ndarray):
         if DEBUG:
+            # print(obs.shape, actions.shape, dones.shape, next_obs.shape, sep='\n')
             assert obs.shape[0] == actions.shape[0] == dones.shape[0] == next_obs.shape[0]
 
         batch_size = obs.shape[0]
         idxs = (self._next_idx + torch.arange(batch_size)) % self._maxsize
 
-        self.obs[idxs] = torch.tensor(obs, device=self.device)
-        self.actions[idxs] = torch.tensor(actions, device=self.device)
-        self.rewards[idxs] = torch.tensor(rewards, device=self.device)
-        self.next_obs[idxs] = torch.tensor(next_obs, device=self.device)
-        self.dones[idxs] = torch.tensor(dones, device=self.device)
+        self.obs[idxs] = torch.Tensor(obs).to(self.device)
+        self.actions[idxs] = torch.Tensor(actions).to(self.device)
+        self.rewards[idxs] = rewards
+        self.next_obs[idxs] = torch.Tensor(next_obs).to(self.device)
+        self.dones[idxs] = torch.Tensor(dones).to(self.device)
 
         self._next_idx = (self._next_idx + batch_size) % self._maxsize
         self._size = min(self._size + batch_size, self._maxsize)
