@@ -209,7 +209,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
         agent_info = []
         obs, reward, done, info = super().step(action)
-        info["agents_dones"] = np.asarray(self._agent_is_terminal(vehicle) for vehicle in self.controlled_vehicles)
+        info["agents_dones"] = np.asarray([self._agent_is_terminal(vehicle) for vehicle in self.controlled_vehicles])
         for v in self.controlled_vehicles:
             agent_info.append([v.position[0], v.position[1], v.speed])
         info["agents_info"] = agent_info
