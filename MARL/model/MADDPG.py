@@ -12,9 +12,7 @@ import torch.nn as nn
 from numpy import ndarray
 from torch import Tensor
 from torch.optim import Adam
-
-import os
-import imageio
+from torch.distributions.categorical import Categorical
 
 # replay buffer
 from MARL.common.replay_buffer import ReplayBuffer
@@ -34,10 +32,10 @@ from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze, print
 
 # ALGO LOGIC: initialize agent here (similar to cleanrl, but uses nn.Sequential)
 class QNetwork(nn.Module):
-    def __init__(self, state_dim: int, action_dim: int, hidden_size: int):
+    def __init__(self, state_dim: int, num_agents: int, hidden_size: int):
         super(QNetwork, self).__init__()
         self.fc = nn.Sequential(
-            layer_init(nn.Linear(state_dim + action_dim, hidden_size)),
+            layer_init(nn.Linear(state_dim + num_agents, hidden_size)),
             nn.ReLU(),
             layer_init(nn.Linear(hidden_size, hidden_size)),
             nn.ReLU(),
@@ -65,7 +63,10 @@ class Actor(nn.Module):
         )
 
     def forward(self, state: Tensor) -> Tensor:
-        return self.fc(state)
+        logits = self.fc(state)
+        probs = Categorical(logits=logits)
+        action = probs.sample()
+        return action
 
 
 # noinspection PyUnusedLocal
@@ -76,29 +77,34 @@ class MADDPG(BaseModel):
         # replay buffer
         self.rb = ReplayBuffer(config.model.buffer_size,
                                config.env.state_dim,
-                               config.env.action_dim,
+                               config.env.num_CAV,
                                config.device)
         # updates are based off timesteps, not episode, so this needs to be stored.
         self.current_step = 0  # init = 0 as it's numbered from 1
 
+        # save action_dim for random action
         self.action_dim = config.env.action_dim
-        network_args = (config.env.state_dim, config.env.action_dim, config.model.hidden_size)
+        # save number of agents.
+        self.num_agents = config.env.num_CAV
+
+        actor_args = (config.env.state_dim, config.env.action_dim, config.model.hidden_size)
+        qnet_args = (config.env.state_dim, config.env.num_CAV, config.model.hidden_size)
         device = config.device
         # init networks
-        self.actor = Actor(*network_args).to(device)
-        self.qnet = QNetwork(*network_args).to(device)
+        self.actor = Actor(*actor_args).to(device)
+        self.qnet = QNetwork(*qnet_args).to(device)
         # init target networks
-        self.actor_target = Actor(*network_args).to(device)
-        self.qnet_target = QNetwork(*network_args).to(device)
+        self.actor_target = Actor(*actor_args).to(device)
+        self.qnet_target = QNetwork(*qnet_args).to(device)
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.qnet_target.load_state_dict(self.qnet.state_dict())
         # optimizer
         self.actor_optimizer = Adam(self.actor.parameters(), lr=config.model.learning_rate)
         self.qnet_optimizer = Adam(self.qnet.parameters(), lr=config.model.learning_rate)
 
-    def _random_action(self, num_CAV: int) -> Union[int, ndarray]:
+    def _random_action(self) -> Union[int, ndarray]:
         """Takes a random exploration action."""
-        return np.random.randint(0, self.action_dim, (num_CAV,))
+        return np.random.randint(0, self.action_dim, (self.num_agents,))
 
     def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
         """
@@ -111,7 +117,7 @@ class MADDPG(BaseModel):
         begin_step = self.current_step
 
         # TRY NOT TO MODIFY: start the game
-        obs, (num_CAV, _) = env.reset(curriculum_training=curriculum_training)
+        obs, _ = env.reset(curriculum_training=curriculum_training)
         done = False
         # NOTE: current_step is count from 0
         while not done:
@@ -121,7 +127,7 @@ class MADDPG(BaseModel):
                 with torch.no_grad():
                     actions = self.actor(torch.Tensor(obs).to(device)).cpu().numpy()
             else:
-                actions = self._random_action(num_CAV)
+                actions = self._random_action()
 
             # TRY NOT TO MODIFY: execute the game and log data.
             next_obs, rewards, next_done, infos = env.step(actions)
@@ -135,23 +141,25 @@ class MADDPG(BaseModel):
 
             # ALGO LOGIC: training.
             if self.current_step > args.learning_starts:
-                for agent_id in range(num_CAV):
+                for agent_id in range(self.num_agents):
                     # Sample random batch from replay buffer
                     b_obs, b_actions, b_rewards, b_next_obs, b_dones = self.rb.sample(args.batch_size)
+                    
+                    # Update Q-network
                     with torch.no_grad():
                         next_state_actions = self.actor_target(b_next_obs)
                         qnet_next_target = self.qnet_target(b_next_obs, next_state_actions)
                         next_q_value = b_rewards.flatten() + (1 - b_dones.flatten()) * args.gamma * (qnet_next_target.view(-1))
 
                     qnet_a_values = self.qnet(b_obs, b_actions).view(-1)
-                    qnet_loss = ((qnet_a_values - next_q_value) ** 2).mean()
+                    qnet_loss = ((next_q_value - qnet_a_values) ** 2).mean()
 
-                    # optimize the model
                     self.qnet_optimizer.zero_grad()
                     qnet_loss.backward()
                     self.qnet_optimizer.step()
 
                     if (self.current_step - begin_step) >= args.policy_frequency:
+                        # Update Actor network
                         actor_loss = -self.qnet(b_obs, self.actor(b_obs)).mean()
                         self.actor_optimizer.zero_grad()
                         actor_loss.backward()
@@ -164,6 +172,8 @@ class MADDPG(BaseModel):
                             target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
 
                         begin_step = self.current_step
+
+        printd(f'At end of episode, total number of steps = {self.current_step}')
 
     def _act(self, obs: Tensor) -> np.ndarray:
         action = self.actor(obs)
