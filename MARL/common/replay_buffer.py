@@ -5,7 +5,7 @@ from MARL.utils.debug_utils import DEBUG
 
 
 class ReplayBuffer(object):
-    def __init__(self, size: int, state_dim: int, action_dim: int, device: torch.DeviceObjType = 'cpu'):
+    def __init__(self, size: int, state_dim: int, num_agents: int, device: torch.DeviceObjType = 'cpu'):
         """Create Prioritized Replay buffer.
         (modified from https://github.com/openai/maddpg.git)
 
@@ -18,6 +18,8 @@ class ReplayBuffer(object):
             Shape of the observation space.
         action_dim: int
             Shape of the action space.
+        num_agents: int
+            number of agents
         device: torch.DeviceObjType
             The device on which to store the tensors.
         """
@@ -25,12 +27,12 @@ class ReplayBuffer(object):
         self.device = device
 
         # Pre-allocate storage tensors
-        # TODO: change shape & storage type
-        self.obs = torch.zeros((size, state_dim), dtype=torch.float32, device=device)
-        self.actions = torch.zeros((size, action_dim), dtype=torch.float32, device=device)
-        self.rewards = torch.zeros(size, dtype=torch.float32, device=device)
-        self.next_obs = torch.zeros((size, state_dim), dtype=torch.float32, device=device)
-        self.dones = torch.zeros(size, dtype=torch.float32, device=device)
+        memory_shape = (size, num_agents)
+        self.obs = torch.zeros(memory_shape + (state_dim,)).to(device)
+        self.actions = torch.zeros(memory_shape).to(device)
+        self.rewards = torch.zeros((size,)).to(device)
+        self.next_obs = torch.zeros(memory_shape + (state_dim,)).to(device)
+        self.dones = torch.zeros(memory_shape).to(device)
 
         self._next_idx = 0
         self._size = 0
