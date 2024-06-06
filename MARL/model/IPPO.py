@@ -99,7 +99,7 @@ class IPPO(BaseModel):
         actions = torch.zeros(memory_shape).to(device)
         logprobs = torch.zeros(memory_shape).to(device)
         rewards = torch.zeros(memory_shape).to(device)
-        dones = torch.zeros(memory_shape[0]).to(device)
+        dones = torch.zeros(memory_shape).to(device)
         values = torch.zeros(memory_shape).to(device)
 
         for step in range(0, num_steps):
@@ -117,7 +117,7 @@ class IPPO(BaseModel):
             next_obs, reward, next_done, info = env.step(action.cpu().numpy())
             rewards[step] = torch.tensor(reward / args.reward_scale).to(device).view(-1)
 
-            next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor([float(next_done)]).to(device)
+            next_obs, next_done = torch.Tensor(next_obs).to(device), float(next_done)
             if next_done:
                 num_steps = step
                 break
