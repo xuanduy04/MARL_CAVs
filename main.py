@@ -58,7 +58,7 @@ def train(args):
             # evaluate the model
             eval_rewards, eval_infos = model.evaluate(env_eval, dirs['train_videos'], global_episode=episode)
 
-            # Saves & logs results
+            # Save & log results
             eval_rewards_mean, _ = reward_mean_std(eval_rewards)
             avg_step, avg_speed_mean, crash_rate = extract_data(eval_infos, config)
             results.append(eval_rewards_mean)
