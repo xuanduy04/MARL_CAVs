@@ -74,9 +74,12 @@ class MADDPG(BaseModel):
         super(MADDPG, self).__init__(config)
 
         # replay buffer
-        self.rb = ReplayBuffer(config.model.buffer_size)
+        self.rb = ReplayBuffer(config.model.buffer_size,
+                               config.env.state_dim,
+                               config.env.action_dim,
+                               config.device)
         # updates are based off timesteps, not episode, so this needs to be stored.
-        self.current_step = 0  # init as 0 as it's numbered from 1
+        self.current_step = 0  # init = 0 as it's numbered from 1
 
         self.action_dim = config.env.action_dim
         network_args = (config.env.state_dim, config.env.action_dim, config.model.hidden_size)
@@ -134,7 +137,7 @@ class MADDPG(BaseModel):
             if self.current_step > args.learning_starts:
                 for agent_id in range(num_CAV):
                     # Sample random batch from replay buffer
-                    b_obs, b_actions, b_rewards, b_next_obs, b_dones = self.rb.sample(args.batch_size, as_tensor=True, device=device)
+                    b_obs, b_actions, b_rewards, b_next_obs, b_dones = self.rb.sample(args.batch_size)
                     with torch.no_grad():
                         next_state_actions = self.actor_target(b_next_obs)
                         qnet_next_target = self.qnet_target(b_next_obs, next_state_actions)
@@ -164,4 +167,5 @@ class MADDPG(BaseModel):
 
     def _act(self, obs: Tensor) -> np.ndarray:
         action = self.actor(obs)
+        # TODO: change this, maybe through changing actor.forward()?
         return action
