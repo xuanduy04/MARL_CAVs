@@ -5,4 +5,5 @@ matplotlib
 pygame
 imageio==2.4.1
 imageio-ffmpeg
+tensorflow==1.14.0
 pyyaml
