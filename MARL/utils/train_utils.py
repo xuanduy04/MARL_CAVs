@@ -11,6 +11,8 @@ from config import Config
 
 # Number of digits after the comma to round all data
 ROUND_NDIGITS = 2
+# Default base directory
+DEFAULT_BASE_DIR = "./results/"
 
 
 def init_env(env: AbstractEnv, config: Config, is_eval_env: bool = False) -> AbstractEnv:
@@ -47,8 +49,8 @@ def set_seed(seed: int):
 
 def init_dir(base_dir: str) -> Dict[str, str]:
     paths = ['train_videos', 'configs', 'models', 'eval_videos', 'eval_logs', 'runs']
-    if not os.path.exists("./results/"):
-        os.mkdir("./results/")
+    if not os.path.exists(DEFAULT_BASE_DIR):
+        os.mkdir(DEFAULT_BASE_DIR)
     if not os.path.exists(base_dir):
         os.mkdir(base_dir)
     dirs = {}

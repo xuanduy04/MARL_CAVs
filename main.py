@@ -10,6 +10,7 @@ import logging
 import warnings
 from datetime import datetime
 
+from MARL.utils.train_utils import DEFAULT_BASE_DIR
 from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
 from MARL.utils.model_utils import init_model, supported_models
 from config import import_config
@@ -97,12 +98,10 @@ def train(args):
 
 
 def parse_args():
-    default_base_dir = "./results/"
-
     parser = argparse.ArgumentParser(description='Train or evaluate policy on '
                                      'a merging-ramp environment with a priority vehicle')
     parser.add_argument('--base-dir', type=str, required=False,
-                        default=default_base_dir,
+                        default=DEFAULT_BASE_DIR,
                         help="experiment base dir")
     parser.add_argument('--algorithm', type=str, required=False,
                         choices=supported_models(),
