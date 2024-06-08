@@ -47,6 +47,8 @@ def set_seed(seed: int):
 
 def init_dir(base_dir: str) -> Dict[str, str]:
     paths = ['train_videos', 'configs', 'models', 'eval_videos', 'eval_logs', 'runs']
+    if not os.path.exists("./results/"):
+        os.mkdir("./results/")
     if not os.path.exists(base_dir):
         os.mkdir(base_dir)
     dirs = {}
