@@ -13,6 +13,7 @@ from numpy import ndarray
 from torch import Tensor
 from torch.optim import Adam
 from torch.distributions.categorical import Categorical
+from torch.utils.tensorboard import SummaryWriter
 
 # replay buffer
 from MARL.common.replay_buffer import ReplayBuffer
@@ -106,7 +107,7 @@ class MADDPG(BaseModel):
         """Takes a random exploration action."""
         return np.random.randint(0, self.action_dim, (self.num_agents,))
 
-    def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
+    def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         """
         Interacts with the environment once (till termination).
         Update model parameters once every (config.model.policy_frequency) timesteps.
@@ -175,6 +176,8 @@ class MADDPG(BaseModel):
                         begin_step = self.current_step
 
         printd(f'At end of episode {global_episode}, total number of steps = {self.current_step}')
+        writer.add_scalar("charts/total_steps", self.current_step, global_episode)
+        writer.add_scalar("charts/replay_buffer_items", len(self.rb), global_episode)
 
     def _act(self, obs: Tensor) -> np.ndarray:
         action = self.actor(obs)

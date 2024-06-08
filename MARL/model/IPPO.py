@@ -12,10 +12,10 @@ import torch.nn as nn
 from torch import Tensor
 from torch.optim import Adam
 from torch.distributions.categorical import Categorical
+from torch.utils.tensorboard import SummaryWriter
 
-import os
 import math
-import imageio
+import time
 
 # for type hints
 from config import Config
@@ -75,12 +75,20 @@ class IPPO(BaseModel):
                                           config.model.hidden_size).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
-    def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
+    def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         # printd(f'Begin training for episode {global_episode + 1}')
         # set up variables
+        start_time = time.time()
         device = self.config.device
         num_steps = self.config.model.num_steps
         args = self.config.model
+        # variables for logging
+        overall_losses = []
+        v_losses = []
+        pg_losses = []
+        entropy_losses = []
+        old_approx_kls = []
+        approx_kls = []
 
         # Annealing the rate if instructed to do so.
         if args.anneal_lr:
@@ -164,6 +172,11 @@ class IPPO(BaseModel):
                     logratio = newlogprob - b_logprobs[mb_inds]
                     ratio = logratio.exp()
 
+                    with torch.no_grad():
+                        # calculate approx_kl http://joschu.net/blog/kl-approx.html
+                        old_approx_kl = (-logratio).mean()
+                        approx_kl = ((ratio - 1) - logratio).mean()
+
                     mb_advantages = b_advantages[mb_inds]
                     if args.norm_adv:
                         mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
@@ -197,13 +210,33 @@ class IPPO(BaseModel):
                     nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                     self.optimizer.step()
 
+            overall_losses.append(loss.item())
+            v_losses.append(v_loss.item())
+            pg_losses.append(pg_loss.item())
+            entropy_losses.append(entropy_loss.item())
+            old_approx_kls.append(old_approx_kl.item())
+            approx_kls.append(approx_kl.item())
+
+        # TODO: DEBUG THIS, TEST IF WRITER ACTUALLY WORKS
+        # TRY NOT TO MODIFY: record rewards for plotting purposes
+        writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
+        writer.add_scalar("losses/overall_loss", np.asarray(overall_losses).mean(), global_episode)
+        writer.add_scalar("losses/value_loss", np.asarray(v_losses).mean(), global_episode)
+        writer.add_scalar("losses/policy_loss", np.asarray(pg_losses).mean(), global_episode)
+        writer.add_scalar("losses/entropy", np.asarray(entropy_losses).mean(), global_episode)
+        writer.add_scalar("losses/old_approx_kl", np.asarray(old_approx_kls).mean(), global_episode)
+        writer.add_scalar("losses/approx_kl", np.asarray(approx_kls).mean(), global_episode)
+        # writer.add_scalar("losses/clipfrac", np.mean(clipfracs), global_episode)
+        # writer.add_scalar("losses/explained_variance", explained_var, global_episode)
+        writer.add_scalar("charts/train_episode_per_sec", int(global_episode / (time.time() - start_time)), global_episode)
+
     def _act(self, obs: Tensor) -> np.ndarray:
         action, _, _, _ = self.network.get_action_and_value(obs)
         return action.cpu().numpy()
 
     def save_model(self, model_dir: str, global_episode: int):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
-        torch.save({'global_step': global_episode,
+        torch.save({'global_episode': global_episode,
                     'model_state_dict': self.network.state_dict(),
                     'optimizer_state_dict': self.optimizer.state_dict()},
                    file_path)

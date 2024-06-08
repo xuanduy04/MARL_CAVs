@@ -1,27 +1,22 @@
 """
 BaseModel implementation, for standardization and streamlined evaluation methods
 """
+from typing import List, Tuple
 
-from typing import List, Tuple, Optional
-
+import imageio
 import numpy as np
 import torch
-import torch.nn as nn
 from torch import Tensor
-from torch.optim import Adam
-from torch.distributions.categorical import Categorical
+from torch.utils.tensorboard import SummaryWriter
 
 import os
-import math
-import imageio
 
 # for type hints
 from config import Config
 from highway_env.envs import AbstractEnv
-
 # noinspection PyUnresolvedReferences
 # debug utilities
-from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze, printd
+from MARL.utils.debug_utils import analyze, checknan, checknan_Sequential, printd
 
 
 class BaseModel(object):
@@ -29,7 +24,7 @@ class BaseModel(object):
         super(BaseModel, self).__init__()
         self.config = config
 
-    def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
+    def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         """Interacts with the environment and trains the model, once (i.e 1 episode)."""
         raise NotImplementedError
 
@@ -43,7 +38,7 @@ class BaseModel(object):
         Evaluates the model, returns (rewards, infos)
         Uses self._act() to sample model actions.
 
-        MUST NOT BE OVERRIDEN IN ANYWAY
+        MUST NOT BE OVERRIDEN IN ANY WAY
         """
         # set up variables
         device = self.config.device
