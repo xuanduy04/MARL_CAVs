@@ -33,10 +33,10 @@ from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze, print
 
 # ALGO LOGIC: initialize agent here (similar to cleanrl, but uses nn.Sequential)
 class QNetwork(nn.Module):
-    def __init__(self, state_dim: int, num_agents: int, hidden_size: int):
+    def __init__(self, state_dim: int, action_dim: int, hidden_size: int, num_agents: int):
         super(QNetwork, self).__init__()
         self.fc = nn.Sequential(
-            layer_init(nn.Linear(state_dim + num_agents, hidden_size)),
+            layer_init(nn.Linear((num_agents * state_dim) + action_dim, hidden_size)),
             nn.ReLU(),
             layer_init(nn.Linear(hidden_size, hidden_size)),
             nn.ReLU(),
@@ -89,7 +89,7 @@ class MADDPG(BaseModel):
         self.num_agents = config.env.num_CAV
 
         actor_args = (config.env.state_dim, config.env.action_dim, config.model.hidden_size)
-        qnet_args = (config.env.state_dim, config.env.num_CAV, config.model.hidden_size)
+        qnet_args = actor_args + (config.env.num_CAV,)
         device = config.device
         # init networks
         self.actor = Actor(*actor_args).to(device)
