@@ -1,9 +1,9 @@
-numpy==1.19.0
+numpy==1.19.5
 pandas
 gym==0.21.0
 matplotlib
 pygame
 imageio==2.4.1
 imageio-ffmpeg
-tensorflow==1.14.0
+tensorflow==1.15.0
 pyyaml
