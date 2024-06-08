@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch.utils.tensorboard import SummaryWriter
 
 import sys
 import highway_env
@@ -13,22 +14,25 @@ from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, r
 from MARL.utils.model_utils import init_model, supported_models
 from config import import_config
 
-warnings.simplefilter("ignore")
-
 
 def train(args):
     config = import_config(args.algorithm)
+    # create an experiment folder
+    run_name = f'{args.algorithm}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
+    output_dir = args.base_dir + run_name
+    dirs = init_dir(output_dir)
+
+    writer = SummaryWriter(dirs["runs"] + run_name)
+    writer.add_text(
+        "hyperparameters",
+        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(config).items()])),
+    )
     set_seed(config.seed)
 
     # update configs
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Device = {config.device}')
     print(f'Seed = {config.seed}')
-
-    # create an experiment folder
-    now = datetime.now().strftime("%b_%d_%H_%M_%S")
-    output_dir = args.base_dir + f'{args.algorithm}-{config.seed}-{now}'
-    dirs = init_dir(output_dir)
 
     # init envs
     env_train = gym.make('merge-multilane-priority-multi-agent-v0')
@@ -52,7 +56,7 @@ def train(args):
     crash_rates = []
     for episode in range(0, config.model.train_episodes):
         # Model interacts with env, and trains (when valid)
-        model.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, global_episode=episode)
+        model.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, writer=writer, global_episode=episode)
 
         if (episode + 1) % config.model.eval_interval == 0:
             # evaluate the model
@@ -65,6 +69,10 @@ def train(args):
             avg_steps.append(avg_step)
             avg_speeds.append(avg_speed_mean)
             crash_rates.append(crash_rate)
+            writer.add_scalar("charts/reward", eval_rewards_mean, episode)
+            writer.add_scalar("charts/length", avg_step, episode)
+            writer.add_scalar("charts/speed", avg_speed_mean, episode)
+            writer.add_scalar("charts/crash_rate", crash_rate, episode)
 
             print("Episode %d, Average Reward %.2f, Average Speed %.2f, Crash rate %.2f"
                   % (episode + 1, eval_rewards_mean, avg_speed_mean, crash_rate))
@@ -83,11 +91,16 @@ def train(args):
           "Output_dir:", output_dir,
           sep='\n')
 
+    writer.close()
+    env_train.close()
+    env_eval.close()
+
 
 def parse_args():
     default_base_dir = "./results/"
 
-    parser = argparse.ArgumentParser(description='Train or evaluate policy on RL environment')
+    parser = argparse.ArgumentParser(description='Train or evaluate policy on '
+                                     'a merging-ramp environment with a priority vehicle')
     parser.add_argument('--base-dir', type=str, required=False,
                         default=default_base_dir,
                         help="experiment base dir")
