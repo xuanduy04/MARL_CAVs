@@ -4,10 +4,10 @@ from MARL.model import *
 from config import Config
 
 model_list = {
-    'ippo': IPPO,
-    # 'maddpg': MADDPG,
-    'mappo': MAPPO,
+    'ippo': IPPO,    
     'maa2c': MAA2C,
+    'mappo': MAPPO,
+    'mappo_attn': MAPPO_attention,
 }
 
 
