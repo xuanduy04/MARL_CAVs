@@ -48,7 +48,7 @@ def train(args):
 
     # init model
     model = init_model(model_name=args.algorithm, config=config)
-    print(f'Training {args.algorithm} model\n')
+    print(f'Training {args.algorithm} model for {config.model.train_episodes}\n')
 
     # Training loop
     results = []
