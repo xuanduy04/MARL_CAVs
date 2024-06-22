@@ -32,8 +32,14 @@ def train(args):
 
     # update configs
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    try:
+        config.model.curriculum_episodes = 0
+    except Exception:
+        pass
+
     print(f'Device = {config.device}')
     print(f'Seed = {config.seed}')
+    print(f'Trains for {config.model.train_episodes} episodes')
 
     # init envs
     env_train = gym.make('merge-multilane-priority-multi-agent-v0')
@@ -48,7 +54,7 @@ def train(args):
 
     # init model
     model = init_model(model_name=args.algorithm, config=config)
-    print(f'Training {args.algorithm} model for {config.model.train_episodes}\n')
+    print(f'Training {args.algorithm} model\n')
 
     # Training loop
     results = []
