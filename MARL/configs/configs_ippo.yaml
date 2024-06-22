@@ -1,6 +1,6 @@
 model:
   # --- General training arguments ---
-  train_episodes: 1000
+  train_episodes: 2000
   # Total episodes to train
   curriculum_episodes: 0
   # Amount of curriculum episodes
