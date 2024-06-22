@@ -1,0 +1,21 @@
+seed: 2000 # training seed
+
+env: # Environment specific arguments
+  simulation_frequency: 15 # [Hz]
+  policy_frequency: 5      # [Hz]
+  duration: 25             # (seconds)
+  # A converged model (in a *0* PriorityVehicle environment) should rarely need more than 20 seconds.
+
+  # Rewards
+  COLLISION_COST: 30
+  HIGH_SPEED_REWARD: 1
+  HEADWAY_COST: 4
+  HEADWAY_TIME: 1.5
+  MERGING_LANE_COST: 4
+  PRIORITY_LANE_COST: 1
+  LANE_CHANGE_COST: 0.5
+
+  # Vehicle count
+  num_CAV: 4
+  num_HDV: 2
+  # num_PV: 1 # num_HDV excludes the priority vehicle count
