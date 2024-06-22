@@ -27,7 +27,7 @@ model:
   # the discount factor gamma
   gae_lambda: 0.99
   # the lambda for the general advantage estimation
-  num_minibatches: 4
+  num_minibatches: 5
   # the number of mini-batches
   update_epochs: 4
   # the K epochs to update the policy
@@ -41,7 +41,7 @@ model:
   # coefficient of the entropy
   vf_coef: 1
   # coefficient of the value function (i.e. critic coefficient)
-  max_grad_norm: 2.5
+  max_grad_norm: 2.0
   # the maximum norm for the gradient clipping
 
   reward_scale: 25.0

@@ -23,7 +23,7 @@ model:
   # the discount factor gamma
   gae_lambda: 0.95
   # the lambda for the general advantage estimation
-  num_minibatches: 4
+  num_minibatches: 5
   # the number of mini-batches (per update epochs)
   norm_adv: False
   # Toggles advantages normalization (may 'cause numerical instability errors)

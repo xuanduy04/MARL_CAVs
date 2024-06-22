@@ -25,7 +25,7 @@ model:
   # the discount factor gamma
   gae_lambda: 0.99
   # the lambda for the general advantage estimation
-  num_minibatches: 4
+  num_minibatches: 5
   # the number of mini-batches
   update_epochs: 4
   # the K epochs to update the policy

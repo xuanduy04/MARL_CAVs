@@ -25,9 +25,9 @@ model:
   # the discount factor gamma
   gae_lambda: 0.95
   # the lambda for the general advantage estimation
-  num_minibatches: 4
+  num_minibatches: 5
   # the number of mini-batches (per update epochs)
-  update_epochs: 4
+  update_epochs: 1
   # the K epochs to update the policy (per agent)
   norm_adv: False
   # Toggles advantages normalization (may 'cause numerical instability errors)
