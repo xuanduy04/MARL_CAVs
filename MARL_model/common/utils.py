@@ -117,7 +117,7 @@ def copy_file_ppo(tar_dir):
 
     models = 'multi_agent/MAPPO.py'
     copy(models, tar_dir)
-    main = 'run_mappo_multilane_priority.py'
+    main = 'run_mappo_attention.py'
     copy(main, tar_dir)
     c1 = 'single_agent/Agent_common.py'
     copy(c1, tar_dir)
