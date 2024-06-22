@@ -83,7 +83,7 @@ class MAPPO_attention(BaseModel):
         self.seq_len = config_attention.seq_len
         self.d_model = config_attention.d_model
         assert self.seq_len * self.d_model == config.env.state_dim, \
-        f'seq_len * d_model != state_dim\n{self.seq_len} * {self.d_model} != {config.env.state_dim}'
+        f'seq_len * d_model != state_dim, {self.seq_len} * {self.d_model} != {config.env.state_dim}'
         assert self.d_model % config_attention.num_heads == 0, \
         f'd_model % num_heads = {self.d_model} * {config_attention.num_heads} != 0'
 
