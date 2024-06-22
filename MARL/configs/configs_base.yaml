@@ -1,4 +1,4 @@
-seed: 2000 # training seed
+seed: 0 # training seed
 
 env: # Environment specific arguments
   simulation_frequency: 15 # [Hz]
