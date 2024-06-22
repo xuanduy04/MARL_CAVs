@@ -94,8 +94,9 @@ class MAPPO_attention(BaseModel):
             config_attention.d_model, config_attention.num_heads, config_attention.dropout_p,
         ).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate, weight_decay=config.model.weight_decay)
+        # TODO: compare & contrast w/ normal annealing
         self.scheduler = ReduceLROnPlateau(self.optimizer, 
-            patience=100,
+            patience=200,
             factor=0.5,
             min_lr=config.model.learning_rate / 10_000,
             verbose=True
