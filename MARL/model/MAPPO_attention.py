@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
@@ -92,7 +93,8 @@ class MAPPO_attention(BaseModel):
             config.env.state_dim, config.env.action_dim, config.model.hidden_size,
             config_attention.d_model, config_attention.num_heads, config_attention.dropout_p,
         ).to(config.device)
-        self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
+        self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate, weight_decay=config.model.weight_decay)
+        self.scheduler = ReduceLROnPlateau(self.optimizer)
 
     def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         # printd(f'Begin training for episode {global_episode + 1}')
@@ -110,10 +112,10 @@ class MAPPO_attention(BaseModel):
         approx_kls = []
 
         # Annealing the rate if instructed to do so.
-        if args.anneal_lr:
-            frac = 1.0 - (global_episode / args.train_episodes)
-            lrnow = frac * args.learning_rate
-            self.optimizer.param_groups[0]["lr"] = lrnow
+        # if args.anneal_lr:
+        #     frac = 1.0 - (global_episode / args.train_episodes)
+        #     lrnow = frac * args.learning_rate
+        #     self.optimizer.param_groups[0]["lr"] = lrnow
 
         # TRY NOT TO MODIFY: start the game
         next_obs, (num_CAV, _) = env.reset(curriculum_training=curriculum_training)
@@ -228,6 +230,7 @@ class MAPPO_attention(BaseModel):
                     loss.backward()
                     nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                     self.optimizer.step()
+                    self.scheduler.step()
 
             overall_losses.append(loss.item())
             v_losses.append(v_loss.item())

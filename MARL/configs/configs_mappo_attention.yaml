@@ -2,7 +2,7 @@ model:
   # --- General training arguments ---
   train_episodes: 2000
   # Total episodes to train
-  curriculum_episodes: 500
+  curriculum_episodes: 0
   # Amount of curriculum episodes
   hidden_size: 256
   # network hidden size, for both actor and critic
@@ -15,8 +15,10 @@ model:
   # List of seeds for evaluation
 
   # --- Algorithm specific arguments ---
-  learning_rate: !!float 1e-4
+  learning_rate: !!float 1e-3
   # the learning rate of the optimizer
+  weight_decay: 0.01
+  # the weight_decay of the optimizer
   num_steps: 128
   # the maximum number of steps to run in each environment per policy rollout
   anneal_lr: True
