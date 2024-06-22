@@ -6,6 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
+from MARL.common.network import layer_init
+
 """Based on OpenSpeech: https://github.com/openspeech-team/openspeech"""
 
 
@@ -85,10 +87,10 @@ class MultiHeadAttention(nn.Module):
         self.num_heads = num_heads
         self.d_head = d_model // num_heads
 
-        self.W_query = nn.Linear(d_model, d_model)
-        self.W_key = nn.Linear(d_model, d_model)
-        self.W_value = nn.Linear(d_model, d_model)
-        self.W_output = nn.Linear(d_model, d_model)
+        self.W_query = layer_init(nn.Linear(d_model, d_model))
+        self.W_key = layer_init(nn.Linear(d_model, d_model))
+        self.W_value = layer_init(nn.Linear(d_model, d_model))
+        self.W_output = layer_init(nn.Linear(d_model, d_model))
 
         self.scaled_dot_attn = ScaledDotProductAttention(d_model, dropout_p)
 
@@ -137,7 +139,7 @@ class Encoder(nn.Module):
     def __init__(self, d_model: int, num_heads: int, dropout_p: int, state_dim: int):
         super(Encoder, self).__init__()
         self.self_attention = MultiHeadAttention(d_model, num_heads, dropout_p)
-        self.feed_forward = nn.Linear(state_dim, state_dim)
+        self.feed_forward = layer_init(nn.Linear(state_dim, state_dim))
 
         self.d_model = self.self_attention.d_model
 
