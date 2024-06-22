@@ -100,8 +100,8 @@ class BaseModel(object):
 
     def save_model(self, model_dir: str, global_episode: int):
         """Saves the model"""
-        raise NotImplementedError
+        pass
 
     def load_model(self, model_dir: str):
         """Loads a pre-trained model"""
-        raise NotImplementedError
+        pass
