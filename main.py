@@ -9,6 +9,7 @@ import argparse
 import logging
 import warnings
 from datetime import datetime
+from tqdm.auto import tqdm
 
 from MARL.utils.train_utils import DEFAULT_BASE_DIR
 from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
@@ -18,7 +19,6 @@ from config import import_config
 
 def train(args):
     config = import_config(args.algorithm)
-    from tqdm.notebook import tqdm
     # create an experiment folder
     run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
     output_dir = args.base_dir + run_name
