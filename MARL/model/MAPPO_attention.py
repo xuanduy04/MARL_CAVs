@@ -251,6 +251,7 @@ class MAPPO_attention(BaseModel):
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
         writer.add_scalar("losses/overall_loss", np.asarray(overall_losses).mean(), global_episode)
+        writer.add_scalar("losses/clipped_overall_loss", np.asarray(clipped_losses).mean(), global_episode)
         writer.add_scalar("losses/value_loss", np.asarray(v_losses).mean(), global_episode)
         writer.add_scalar("losses/policy_loss", np.asarray(pg_losses).mean(), global_episode)
         writer.add_scalar("losses/entropy", np.asarray(entropy_losses).mean(), global_episode)
