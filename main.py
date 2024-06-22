@@ -52,7 +52,7 @@ def train(args):
     config.env.action_dim = env_train.action_dim
     if 'attention' in config.model:
         config.model.attention.d_model = env_train.observation_space[0].shape[1]
-        config.model.attention.seq_len = env.observation_space[0].shape
+        config.model.attention.seq_len = env_train.observation_space[0].shape
     print(f'Env has {config.env.num_CAV} CAVs, {config.env.num_HDV} HDVs and 1 PV')
 
     # init model
