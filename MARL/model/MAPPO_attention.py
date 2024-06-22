@@ -230,7 +230,7 @@ class MAPPO_attention(BaseModel):
                     loss.backward()
                     nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                     self.optimizer.step()
-                    self.scheduler.step()
+                    self.scheduler.step(loss)
 
             overall_losses.append(loss.item())
             v_losses.append(v_loss.item())
