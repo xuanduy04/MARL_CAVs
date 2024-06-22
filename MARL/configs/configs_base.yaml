@@ -1,24 +1,21 @@
-seed: 2000
+seed: 2000 # training seed
 
-model:
-  # --- General training arguments ---
-  train_episodes: 1000
-  # Total episodes to train
-  curriculum_episodes: 0
-  # Amount of curriculum episodes
-  hidden_size: 256
-  # network hidden size, for both actor and critic
-  eval_interval: 50
-  # How many training episodes to run an evaluation
-  test_seeds:
-    - 100
-    - 125
-    - 150
-  # List of seeds for evaluation
+env: # Environment specific arguments
+  simulation_frequency: 15 # [Hz]
+  policy_frequency: 5      # [Hz]
+  duration: 25             # (seconds)
+  # A converged model (in a *0* PriorityVehicle environment) should rarely need more than 20 seconds.
 
-  # --- Algorithm specific arguments ---
-  learning_rate: !!float 1e-4
-  # the learning rate of the optimizer
+  # Rewards
+  COLLISION_COST: 30
+  HIGH_SPEED_REWARD: 1
+  HEADWAY_COST: 4
+  HEADWAY_TIME: 1.5
+  MERGING_LANE_COST: 4
+  PRIORITY_LANE_COST: 1
+  LANE_CHANGE_COST: 0.5
 
-  reward_scale: 25.0
-  # scales the reward by a factor of (1 / reward_scale)
+  # Vehicle count
+  num_CAV: 4
+  num_HDV: 2
+  # num_PV: 1 # num_HDV excludes the priority vehicle count
