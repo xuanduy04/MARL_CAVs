@@ -7,3 +7,4 @@ imageio==2.4.1
 imageio-ffmpeg
 tensorflow==1.15.0
 pyyaml
+tqdm

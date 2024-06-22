@@ -18,6 +18,7 @@ from config import import_config
 
 def train(args):
     config = import_config(args.algorithm)
+    from tqdm.notebook import tqdm
     # create an experiment folder
     run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
     output_dir = args.base_dir + run_name
@@ -64,7 +65,7 @@ def train(args):
     avg_steps = []
     avg_speeds = []
     crash_rates = []
-    for episode in range(0, config.model.train_episodes):
+    for episode in tqdm(range(0, config.model.train_episodes)):
         # Model interacts with env, and trains (when valid)
         model.train(env_train, curriculum_training=episode < config.model.curriculum_episodes, writer=writer, global_episode=episode)
 
