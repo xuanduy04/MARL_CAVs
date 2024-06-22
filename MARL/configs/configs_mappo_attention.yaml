@@ -15,7 +15,7 @@ model:
   # List of seeds for evaluation
 
   # --- Algorithm specific arguments ---
-  learning_rate: !!float 1e-3
+  learning_rate: !!float 5e-4
   # the learning rate of the optimizer
   weight_decay: 0.01
   # the weight_decay of the optimizer
