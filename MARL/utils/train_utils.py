@@ -33,7 +33,7 @@ def init_env(env: AbstractEnv, config: Config, is_eval_env: bool = False) -> Abs
     env.config['num_CAV'] = econfig.num_CAV
     env.config['num_HDV'] = econfig.num_HDV
 
-    env.config['flatten_obs'] = 'use_attention_module' not in config.model
+    env.config['flatten_obs'] = 'attention' not in config.model
     return env
 
 
