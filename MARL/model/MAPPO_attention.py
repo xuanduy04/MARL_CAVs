@@ -94,7 +94,7 @@ class MAPPO_attention(BaseModel):
             config_attention.d_model, config_attention.num_heads, config_attention.dropout_p,
         ).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate, weight_decay=config.model.weight_decay)
-        self.scheduler = ReduceLROnPlateau(self.optimizer)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, verbose=True)
 
     def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         # printd(f'Begin training for episode {global_episode + 1}')
