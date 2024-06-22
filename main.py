@@ -19,7 +19,7 @@ from config import import_config
 def train(args):
     config = import_config(args.algorithm)
     # create an experiment folder
-    run_name = f'{args.algorithm}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
+    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
 
