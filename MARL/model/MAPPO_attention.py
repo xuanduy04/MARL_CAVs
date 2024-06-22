@@ -88,8 +88,10 @@ class MAPPO_attention(BaseModel):
         f'd_model % num_heads = {self.d_model} * {config_attention.num_heads} != 0'
 
         # Actor & Critic
-        self.network = ActorCriticNetwork(config.env.state_dim, config.env.action_dim,
-                                          config.model.hidden_size).to(config.device)
+        self.network = ActorCriticNetwork(
+            config.env.state_dim, config.env.action_dim, config.model.hidden_size,
+            config_attention.d_model, config_attention.num_heads, config_attention.dropout_p,
+        ).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
     def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
