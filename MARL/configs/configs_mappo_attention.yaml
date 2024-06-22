@@ -1,8 +1,8 @@
 model:
   # --- General training arguments ---
-  train_episodes: 2000
+  train_episodes: 1000
   # Total episodes to train
-  curriculum_episodes: 0
+  curriculum_episodes: 250
   # Amount of curriculum episodes
   hidden_size: 256
   # network hidden size, for both actor and critic
@@ -41,7 +41,7 @@ model:
   # coefficient of the entropy
   vf_coef: 1
   # coefficient of the value function (i.e. critic coefficient)
-  max_grad_norm: 2.0
+  max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
 
   reward_scale: 25.0
