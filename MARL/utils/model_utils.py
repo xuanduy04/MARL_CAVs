@@ -6,7 +6,7 @@ from config import Config
 model_list = {
     'ippo': IPPO,
     # 'maddpg': MADDPG,
-    # 'mappo': MAPPO,
+    'mappo': MAPPO,
     'maa2c': MAA2C,
 }
 
