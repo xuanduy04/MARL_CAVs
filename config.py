@@ -31,8 +31,12 @@ class Config:
 
 
 def import_config(model_name: str) -> Config:
-    # TODO: fix this directory when it's all over.
-    config_path = 'MARL/configs/configs_' + model_name + '.yaml'
-    with open(config_path, 'r') as file:
-        config = yaml.safe_load(file)
-    return Config(config)
+    base_config_path = 'MARL/configs/configs_base.yaml'
+    with open(base_config_path, 'r') as file:
+        base_config = yaml.safe_load(file)
+
+    model_config_path = 'MARL/configs/configs_' + model_name + '.yaml'
+    with open(model_config_path, 'r') as file:
+        model_config = yaml.safe_load(file)
+
+    return Config(dict(**base_config, **model_config))
