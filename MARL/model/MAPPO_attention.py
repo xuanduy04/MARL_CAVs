@@ -95,7 +95,7 @@ class MAPPO_attention(BaseModel):
         ).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate, weight_decay=config.model.weight_decay)
         self.scheduler = ReduceLROnPlateau(self.optimizer, 
-            patience=100, 
+            patience=100,
             factor=0.5,
             min_lr=config.model.learning_rate / 10_000,
             verbose=True
@@ -242,7 +242,9 @@ class MAPPO_attention(BaseModel):
             old_approx_kls.append(old_approx_kl.item())
             approx_kls.append(approx_kl.item())
 
-        self.scheduler.step(np.asarray(overall_losses).mean())
+        clipped_losses = [np.clip(loss, -args.max_grad_norm, args.max_grad_norm) \
+            for loss in overall_losses]
+        self.scheduler.step(np.asarray(clipped_losses).mean())
 
         # TODO: DEBUG THIS, TEST IF WRITER ACTUALLY WORKS
         # TRY NOT TO MODIFY: record rewards for plotting purposes
