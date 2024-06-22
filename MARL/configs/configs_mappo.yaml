@@ -31,15 +31,15 @@ model:
   # the K epochs to update the policy
   norm_adv: False
   # Toggles advantages normalization (may 'cause numerical instability errors)
-  clip_coef: !!float 1e-5
+  clip_coef: 0.2
   # the surrogate clipping coefficient
   clip_vloss: False
   # Toggles whether to use a clipped loss for the value function, as per the paper.
-  ent_coef: 0.01
+  ent_coef: 0.005
   # coefficient of the entropy
   vf_coef: 1
   # coefficient of the value function (i.e. critic coefficient)
-  max_grad_norm: 0.5
+  max_grad_norm: 2.5
   # the maximum norm for the gradient clipping
 
   reward_scale: 25.0
