@@ -4,7 +4,6 @@ env: # Environment specific arguments
   simulation_frequency: 15 # [Hz]
   policy_frequency: 5      # [Hz]
   duration: 25             # (seconds)
-  # A converged model (in a *0* PriorityVehicle environment) should rarely need more than 20 seconds.
 
   # Rewards
   COLLISION_COST: 30
