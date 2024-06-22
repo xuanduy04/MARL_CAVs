@@ -62,11 +62,11 @@ class ActorCriticNetwork(nn.Module):
         )
 
     def get_value(self, state: Tensor) -> Tensor:
-        state = self.encoder(state)
+        state, attn = self.encoder(state)
         return self.critic(state)
 
     def get_action_and_value(self, state: Tensor, action: Optional[Tensor] = None):
-        state = self.encoder(state)
+        state, attn = self.encoder(state)
         logits = self.actor(state)
         probs = Categorical(logits=logits)
         if action is None:
