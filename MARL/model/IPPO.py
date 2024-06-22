@@ -67,8 +67,6 @@ class ActorCriticNetwork(nn.Module):
 class IPPO(BaseModel):
     def __init__(self, config: Config):
         super(IPPO, self).__init__(config)
-        self.config.model.batch_size = self.config.model.num_steps  # on-policy so use all data we get.
-        # batch_size is "per agent", 'cause IPPO.
 
         # Actor & Critic
         self.network = ActorCriticNetwork(config.env.state_dim, config.env.action_dim,
@@ -146,7 +144,7 @@ class IPPO(BaseModel):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
-        batch_size = min(args.batch_size, num_steps)
+        batch_size = num_steps # per agent
         minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
 
@@ -233,13 +231,3 @@ class IPPO(BaseModel):
     def _act(self, obs: Tensor) -> np.ndarray:
         action, _, _, _ = self.network.get_action_and_value(obs)
         return action.cpu().numpy()
-
-    def save_model(self, model_dir: str, global_episode: int):
-        file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
-        torch.save({'global_episode': global_episode,
-                    'model_state_dict': self.network.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict()},
-                   file_path)
-
-    def load_model(self, model_dir: str):
-        pass

@@ -4,7 +4,7 @@
 based on cleanrl's PPO implementation.
 """
 
-from typing import Optional
+from typing import List, Tuple, Optional
 
 import numpy as np
 import torch
@@ -12,10 +12,10 @@ import torch.nn as nn
 from torch import Tensor
 from torch.optim import Adam
 from torch.distributions.categorical import Categorical
+from torch.utils.tensorboard import SummaryWriter
 
-import os
 import math
-import imageio
+import time
 
 # for type hints
 from config import Config
@@ -32,7 +32,6 @@ from MARL.utils.debug_utils import checknan, checknan_Sequential, analyze, print
 
 class ActorCriticNetwork(nn.Module):
     """An actor critic network, similar to that of cleanrl"""
-
     def __init__(self, state_dim: int, action_dim: int, hidden_size: int):
         super(ActorCriticNetwork, self).__init__()
         self.actor = nn.Sequential(
@@ -64,25 +63,30 @@ class ActorCriticNetwork(nn.Module):
         return action, probs.log_prob(action), probs.entropy(), self.critic(state)
 
 
-# noinspection PyUnboundLocalVariable,PyUnusedLocal
+# noinspection PyUnusedLocal
 class MAPPO(BaseModel):
     def __init__(self, config: Config):
         super(MAPPO, self).__init__(config)
 
         # Actor & Critic
         self.network = ActorCriticNetwork(config.env.state_dim, config.env.action_dim,
-                                          config.model.hidden_size)
+                                          config.model.hidden_size).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
-    def train(self, env: AbstractEnv, curriculum_training: bool = False, global_episode: int = 0):
-        """
-        Interacts with the environment and trains the model, once (i.e 1 episode).
-        """
+    def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         # printd(f'Begin training for episode {global_episode + 1}')
         # set up variables
+        start_time = time.time()
         device = self.config.device
         num_steps = self.config.model.num_steps
         args = self.config.model
+        # variables for logging
+        overall_losses = []
+        v_losses = []
+        pg_losses = []
+        entropy_losses = []
+        old_approx_kls = []
+        approx_kls = []
 
         # Annealing the rate if instructed to do so.
         if args.anneal_lr:
@@ -94,10 +98,6 @@ class MAPPO(BaseModel):
         next_obs, (num_CAV, _) = env.reset(curriculum_training=curriculum_training)
         next_obs = torch.Tensor(next_obs).to(device)
         next_done = torch.zeros(1).to(device)
-        args.batch_size = num_steps * num_CAV
-
-        self.config.model.batch_size = self.config.model.num_steps * num_CAV
-        # on-policy so use all data we get.
 
         # ALGO Logic: Storage setup
         memory_shape = (num_steps, num_CAV)
@@ -105,7 +105,7 @@ class MAPPO(BaseModel):
         actions = torch.zeros(memory_shape).to(device)
         logprobs = torch.zeros(memory_shape).to(device)
         rewards = torch.zeros(memory_shape).to(device)
-        dones = torch.zeros(memory_shape[0]).to(device)
+        dones = torch.zeros(memory_shape).to(device)
         values = torch.zeros(memory_shape).to(device)
 
         for step in range(0, num_steps):
@@ -120,10 +120,10 @@ class MAPPO(BaseModel):
             logprobs[step] = logprob
 
             # TRY NOT TO MODIFY: execute the game and log data.
-            next_obs, reward, next_done, infos = env.step(action.cpu().numpy())
+            next_obs, reward, next_done, info = env.step(action.cpu().numpy())
             rewards[step] = torch.tensor(reward / args.reward_scale).to(device).view(-1)
 
-            next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(float(next_done)).to(device)
+            next_obs, next_done = torch.Tensor(next_obs).to(device), float(next_done)
             if next_done:
                 num_steps = step
                 break
@@ -144,6 +144,10 @@ class MAPPO(BaseModel):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
+        batch_size = num_steps * num_CAV # for all agents
+        minibatch_size = math.ceil(batch_size / args.num_minibatches)
+        b_inds = np.arange(batch_size)
+
         # flatten the batch
         b_obs = obs.reshape((-1, self.config.env.state_dim))
         b_logprobs = logprobs.reshape(-1)
@@ -152,71 +156,78 @@ class MAPPO(BaseModel):
         b_returns = returns.reshape(-1)
         b_values = values.reshape(-1)
 
-        # Optimizing the policy and value network
-        batch_size = min(args.batch_size, num_steps)
-        minibatch_size = math.ceil(batch_size / args.num_minibatches)
-        b_inds = np.arange(batch_size)
-        # clipfracs = []
-        for epoch in range(args.update_epochs):
-            np.random.shuffle(b_inds)
-            for start in range(0, batch_size, minibatch_size):
-                end = min(start + minibatch_size, batch_size)
-                mb_inds = b_inds[start:end]
+        for agent_id in range(num_CAV):
+            # Optimizing the agent's policy and value network
+            for epoch in range(args.update_epochs):
+                # printd(f'Epoch {epoch}:')
+                np.random.shuffle(b_inds)
+                for start in range(0, batch_size, minibatch_size):
+                    end = min(start + minibatch_size, batch_size)
+                    mb_inds = b_inds[start:end]
 
-                _, newlogprob, entropy, newvalue = \
-                    self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
-                logratio = newlogprob - b_logprobs[mb_inds]
-                ratio = logratio.exp()
+                    _, newlogprob, entropy, newvalue = \
+                        self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
+                    logratio = newlogprob - b_logprobs[mb_inds]
+                    ratio = logratio.exp()
 
-                # with torch.no_grad():
-                # calculate approx_kl http://joschu.net/blog/kl-approx.html
-                # old_approx_kl = (-logratio).mean()
-                # approx_kl = ((ratio - 1) - logratio).mean()
-                # clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
+                    with torch.no_grad():
+                        # calculate approx_kl http://joschu.net/blog/kl-approx.html
+                        old_approx_kl = (-logratio).mean()
+                        approx_kl = ((ratio - 1) - logratio).mean()
 
-                mb_advantages = b_advantages[mb_inds]
-                if args.norm_adv:
-                    mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
+                    mb_advantages = b_advantages[mb_inds]
+                    if args.norm_adv:
+                        mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
 
-                # Policy loss
-                pg_loss1 = -mb_advantages * ratio
-                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef,
-                                                        1 + args.clip_coef)
-                pg_loss = torch.max(pg_loss1, pg_loss2).mean()
+                    # Policy loss
+                    pg_loss1 = -mb_advantages * ratio
+                    pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef,
+                                                            1 + args.clip_coef)
+                    pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
-                # Value loss
-                newvalue = newvalue.view(-1)
-                if args.clip_vloss:
-                    v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
-                    v_clipped = b_values[mb_inds] + torch.clamp(
-                        newvalue - b_values[mb_inds],
-                        -args.clip_coef,
-                        args.clip_coef,
-                    )
-                    v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
-                    v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
-                    v_loss = 0.5 * v_loss_max.mean()
-                else:
-                    v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
+                    # Value loss
+                    newvalue = newvalue.view(-1)
+                    if args.clip_vloss:
+                        v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
+                        v_clipped = b_values[mb_inds] + torch.clamp(
+                            newvalue - b_values[mb_inds],
+                            -args.clip_coef,
+                            args.clip_coef,
+                        )
+                        v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
+                        v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
+                        v_loss = 0.5 * v_loss_max.mean()
+                    else:
+                        v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
 
-                entropy_loss = entropy.mean()
-                loss = pg_loss - args.ent_coef * entropy_loss + args.vf_coef * v_loss
+                    entropy_loss = entropy.mean()
+                    loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
 
-                self.optimizer.zero_grad()
-                loss.backward()
-                nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
-                self.optimizer.step()
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
+                    self.optimizer.step()
 
-    def _act(self, obs: Tensor) -> Tensor:
+            overall_losses.append(loss.item())
+            v_losses.append(v_loss.item())
+            pg_losses.append(pg_loss.item())
+            entropy_losses.append(entropy_loss.item())
+            old_approx_kls.append(old_approx_kl.item())
+            approx_kls.append(approx_kl.item())
+
+        # TODO: DEBUG THIS, TEST IF WRITER ACTUALLY WORKS
+        # TRY NOT TO MODIFY: record rewards for plotting purposes
+        writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
+        writer.add_scalar("losses/overall_loss", np.asarray(overall_losses).mean(), global_episode)
+        writer.add_scalar("losses/value_loss", np.asarray(v_losses).mean(), global_episode)
+        writer.add_scalar("losses/policy_loss", np.asarray(pg_losses).mean(), global_episode)
+        writer.add_scalar("losses/entropy", np.asarray(entropy_losses).mean(), global_episode)
+        writer.add_scalar("losses/old_approx_kl", np.asarray(old_approx_kls).mean(), global_episode)
+        writer.add_scalar("losses/approx_kl", np.asarray(approx_kls).mean(), global_episode)
+        # writer.add_scalar("losses/clipfrac", np.mean(clipfracs), global_episode)
+        # writer.add_scalar("losses/explained_variance", explained_var, global_episode)
+        writer.add_scalar("charts/train_episode_per_sec", int(global_episode / (time.time() - start_time)), global_episode)
+
+    def _act(self, obs: Tensor) -> np.ndarray:
         action, _, _, _ = self.network.get_action_and_value(obs)
-        return action
-
-    def save_model(self, model_dir: str, global_episode: int):
-        file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
-        torch.save({'global_step': global_episode,
-                    'model_state_dict': self.network.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict()},
-                   file_path)
-
-    def load_model(self, model_dir: str):
-        pass
+        return action.cpu().numpy()
