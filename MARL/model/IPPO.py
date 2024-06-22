@@ -144,7 +144,7 @@ class IPPO(BaseModel):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
-        batch_size = num_steps # per agent
+        batch_size = num_steps  # per agent
         minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
 

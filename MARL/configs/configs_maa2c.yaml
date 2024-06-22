@@ -31,7 +31,7 @@ model:
   # coefficient of the entropy
   vf_coef: 1
   # coefficient of the value function (i.e. critic coefficient)
-  max_grad_norm: 5.0
+  max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
 
   reward_scale: 25.0
