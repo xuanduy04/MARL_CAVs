@@ -7,7 +7,7 @@ model_list = {
     'ippo': IPPO,    
     'maa2c': MAA2C,
     'mappo': MAPPO,
-    'mappo_attn': MAPPO_attention,
+    'mappo_attention': MAPPO_attention,
 }
 
 
