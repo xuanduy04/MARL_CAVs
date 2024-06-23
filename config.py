@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import yaml
 
 
@@ -30,7 +32,7 @@ class Config:
         return name in self._assigned_attrs
 
 
-def import_config(model_name: str) -> Config:
+def import_config(model_name: str) -> Tuple[Config, Tuple[str,str]]:
     base_config_path = 'MARL/configs/configs_base.yaml'
     with open(base_config_path, 'r') as file:
         base_config = yaml.safe_load(file)
@@ -39,4 +41,4 @@ def import_config(model_name: str) -> Config:
     with open(model_config_path, 'r') as file:
         model_config = yaml.safe_load(file)
 
-    return Config(dict(**base_config, **model_config))
+    return Config(dict(**base_config, **model_config)), (base_config_path, model_config_path)
