@@ -44,6 +44,7 @@ class ActorCriticNetwork(nn.Module):
             dropout_p=dropout_p,
             state_dim=state_dim
         )
+
         self.actor = nn.Sequential(
             layer_init(nn.Linear(state_dim, hidden_size)),
             nn.Tanh(),
@@ -62,9 +63,11 @@ class ActorCriticNetwork(nn.Module):
         )
 
     def get_value(self, state: Tensor) -> Tensor:
+        state, attn = self.encoder(state)
         return self.critic(state)
 
     def get_action_and_value(self, state: Tensor, action: Optional[Tensor] = None):
+        state, attn = self.encoder(state)
         logits = self.actor(state)
         probs = Categorical(logits=logits)
         if action is None:
