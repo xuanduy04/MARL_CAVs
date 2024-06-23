@@ -95,12 +95,12 @@ class MAPPO_attention(BaseModel):
         ).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate, weight_decay=config.model.weight_decay)
         # TODO: compare & contrast w/ normal annealing
-        self.scheduler = ReduceLROnPlateau(self.optimizer, 
-            patience=200,
-            factor=0.5,
-            min_lr=config.model.learning_rate / 10_000,
-            verbose=True
-        )
+        # self.scheduler = ReduceLROnPlateau(self.optimizer, 
+        #     patience=200,
+        #     factor=0.5,
+        #     min_lr=config.model.learning_rate / 10_000,
+        #     verbose=True
+        # )
 
     def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         # printd(f'Begin training for episode {global_episode + 1}')
@@ -118,10 +118,10 @@ class MAPPO_attention(BaseModel):
         approx_kls = []
 
         # Annealing the rate if instructed to do so.
-        # if args.anneal_lr:
-        #     frac = 1.0 - (global_episode / args.train_episodes)
-        #     lrnow = frac * args.learning_rate
-        #     self.optimizer.param_groups[0]["lr"] = lrnow
+        if args.anneal_lr:
+            frac = 1.0 - (global_episode / args.train_episodes)
+            lrnow = frac * args.learning_rate
+            self.optimizer.param_groups[0]["lr"] = lrnow
 
         # TRY NOT TO MODIFY: start the game
         next_obs, (num_CAV, _) = env.reset(curriculum_training=curriculum_training)
@@ -245,7 +245,7 @@ class MAPPO_attention(BaseModel):
 
         clipped_losses = [np.clip(loss, -args.max_grad_norm, args.max_grad_norm) \
             for loss in overall_losses]
-        self.scheduler.step(np.asarray(clipped_losses).mean())
+        # self.scheduler.step(np.asarray(clipped_losses).mean())
 
         # TODO: DEBUG THIS, TEST IF WRITER ACTUALLY WORKS
         # TRY NOT TO MODIFY: record rewards for plotting purposes
