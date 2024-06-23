@@ -1,0 +1,51 @@
+model:
+  # --- General training arguments ---
+  train_episodes: 1000
+  # Total episodes to train
+  curriculum_episodes: 0
+  # Amount of curriculum episodes
+  hidden_size: 256
+  # network hidden size, for both actor and critic
+  eval_interval: 50
+  # How many training episodes to run an evaluation
+  test_seeds:
+    - 100
+    - 125
+    - 150
+  # List of seeds for evaluation
+
+  # --- Algorithm specific arguments ---
+  learning_rate: !!float 1e-4
+  # the learning rate of the optimizer
+  num_steps: 128
+  # the maximum number of steps to run in each environment per policy rollout
+  anneal_lr: True
+  # Toggle learning rate annealing for policy and value networks
+  gamma: 0.99
+  # the discount factor gamma
+  gae_lambda: 0.95
+  # the lambda for the general advantage estimation
+  num_minibatches: 5
+  # the number of mini-batches (per update epochs)
+  update_epochs: 1
+  # the K epochs to update the policy (per agent)
+  norm_adv: False
+  # Toggles advantages normalization (may 'cause numerical instability errors)
+  clip_coef: 0.2
+  # the surrogate clipping coefficient
+  clip_vloss: True
+  # Toggles whether to use a clipped loss for the value function, as per the paper.
+  ent_coef: 0.005
+  # coefficient of the entropy
+  vf_coef: 2
+  # coefficient of the value function (i.e. critic coefficient)
+  max_grad_norm: 0.5
+  # the maximum norm for the gradient clipping
+
+  reward_scale: 25.0
+  # scales the reward by a factor of (1 / reward_scale)
+
+  # --- Attention module arguments ---
+  attention:
+    num_heads: 3
+    dropout_p: 0.3

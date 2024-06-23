@@ -11,7 +11,6 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 from torch.optim import Adam
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
@@ -27,6 +26,7 @@ from MARL.model import BaseModel
 from MARL.common.network import layer_init
 # attention module
 from MARL.common.Attention_Feed_Forward import Encoder
+
 
 # noinspection PyUnresolvedReferences
 # debug utilities
@@ -44,7 +44,6 @@ class ActorCriticNetwork(nn.Module):
             dropout_p=dropout_p,
             state_dim=state_dim
         )
-
         self.actor = nn.Sequential(
             layer_init(nn.Linear(state_dim, hidden_size)),
             nn.Tanh(),
@@ -63,11 +62,9 @@ class ActorCriticNetwork(nn.Module):
         )
 
     def get_value(self, state: Tensor) -> Tensor:
-        state, attn = self.encoder(state)
         return self.critic(state)
 
     def get_action_and_value(self, state: Tensor, action: Optional[Tensor] = None):
-        state, attn = self.encoder(state)
         logits = self.actor(state)
         probs = Categorical(logits=logits)
         if action is None:
@@ -77,9 +74,9 @@ class ActorCriticNetwork(nn.Module):
 
 
 # noinspection PyUnusedLocal
-class MAPPO_attention(BaseModel):
+class IPPO_attention(BaseModel):
     def __init__(self, config: Config):
-        super(MAPPO_attention, self).__init__(config)
+        super(IPPO_attention, self).__init__(config)
         config_attention = config.model.attention
         self.seq_len = config_attention.seq_len
         self.d_model = config_attention.d_model
@@ -94,14 +91,7 @@ class MAPPO_attention(BaseModel):
             config_attention.d_model, config_attention.num_heads, config_attention.dropout_p,
         ).to(config.device)
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
-        # TODO: compare & contrast w/ normal annealing
-        # self.scheduler = ReduceLROnPlateau(self.optimizer, 
-        #     patience=200,
-        #     factor=0.5,
-        #     min_lr=config.model.learning_rate / 10_000,
-        #     verbose=True
-        # )
-
+    
     def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         # printd(f'Begin training for episode {global_episode + 1}')
         # set up variables
@@ -173,68 +163,69 @@ class MAPPO_attention(BaseModel):
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
 
-        batch_size = num_steps * num_CAV # for all agents
+        batch_size = num_steps  # per agent
         minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
 
-        # flatten the batch
-        b_obs = obs.reshape((-1, self.seq_len, self.d_model))
-        b_logprobs = logprobs.reshape(-1)
-        b_actions = actions.reshape(-1)
-        b_advantages = advantages.reshape(-1)
-        b_returns = returns.reshape(-1)
-        b_values = values.reshape(-1)
+        for agent_id in range(num_CAV):
+            # flatten the agent's batch
+            b_obs = obs[:, agent_id, :].reshape((-1, self.seq_len, self.d_model))
+            b_logprobs = logprobs[:, agent_id].reshape(-1)
+            b_actions = actions[:, agent_id].reshape(-1)
+            b_advantages = advantages[:, agent_id].reshape(-1)
+            b_returns = returns[:, agent_id].reshape(-1)
+            b_values = values[:, agent_id].reshape(-1)
 
-        # Optimizing the agent's policy and value network
-        for epoch in range(args.update_epochs):
-            # printd(f'Epoch {epoch}:')
-            np.random.shuffle(b_inds)
-            for start in range(0, batch_size, minibatch_size):
-                end = min(start + minibatch_size, batch_size)
-                mb_inds = b_inds[start:end]
+            # Optimizing the agent's policy and value network
+            for epoch in range(args.update_epochs):
+                # printd(f'Epoch {epoch}:')
+                np.random.shuffle(b_inds)
+                for start in range(0, batch_size, minibatch_size):
+                    end = min(start + minibatch_size, batch_size)
+                    mb_inds = b_inds[start:end]
 
-                _, newlogprob, entropy, newvalue = \
-                    self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
-                logratio = newlogprob - b_logprobs[mb_inds]
-                ratio = logratio.exp()
+                    _, newlogprob, entropy, newvalue = \
+                        self.network.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
+                    logratio = newlogprob - b_logprobs[mb_inds]
+                    ratio = logratio.exp()
 
-                with torch.no_grad():
-                    # calculate approx_kl http://joschu.net/blog/kl-approx.html
-                    old_approx_kl = (-logratio).mean()
-                    approx_kl = ((ratio - 1) - logratio).mean()
+                    with torch.no_grad():
+                        # calculate approx_kl http://joschu.net/blog/kl-approx.html
+                        old_approx_kl = (-logratio).mean()
+                        approx_kl = ((ratio - 1) - logratio).mean()
 
-                mb_advantages = b_advantages[mb_inds]
-                if args.norm_adv:
-                    mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
+                    mb_advantages = b_advantages[mb_inds]
+                    if args.norm_adv:
+                        mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
 
-                # Policy loss
-                pg_loss1 = -mb_advantages * ratio
-                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef,
-                                                        1 + args.clip_coef)
-                pg_loss = torch.max(pg_loss1, pg_loss2).mean()
+                    # Policy loss
+                    pg_loss1 = -mb_advantages * ratio
+                    pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef,
+                                                            1 + args.clip_coef)
+                    pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
-                # Value loss
-                newvalue = newvalue.view(-1)
-                if args.clip_vloss:
-                    v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
-                    v_clipped = b_values[mb_inds] + torch.clamp(
-                        newvalue - b_values[mb_inds],
-                        -args.clip_coef,
-                        args.clip_coef,
-                    )
-                    v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
-                    v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
-                    v_loss = 0.5 * v_loss_max.mean()
-                else:
-                    v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
+                    # Value loss
+                    newvalue = newvalue.view(-1)
+                    if args.clip_vloss:
+                        v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
+                        v_clipped = b_values[mb_inds] + torch.clamp(
+                            newvalue - b_values[mb_inds],
+                            -args.clip_coef,
+                            args.clip_coef,
+                        )
+                        v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
+                        v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
+                        v_loss = 0.5 * v_loss_max.mean()
+                    else:
+                        v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
 
-                entropy_loss = entropy.mean()
-                loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
+                    entropy_loss = entropy.mean()
+                    loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
 
-                self.optimizer.zero_grad()
-                loss.backward()
-                nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
-                self.optimizer.step()
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
+                    self.optimizer.step()
 
             overall_losses.append(loss.item())
             v_losses.append(v_loss.item())
@@ -243,15 +234,10 @@ class MAPPO_attention(BaseModel):
             old_approx_kls.append(old_approx_kl.item())
             approx_kls.append(approx_kl.item())
 
-        clipped_losses = [np.clip(loss, -args.max_grad_norm, args.max_grad_norm) \
-            for loss in overall_losses]
-        # self.scheduler.step(np.asarray(clipped_losses).mean())
-
         # TODO: DEBUG THIS, TEST IF WRITER ACTUALLY WORKS
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
         writer.add_scalar("losses/overall_loss", np.asarray(overall_losses).mean(), global_episode)
-        writer.add_scalar("losses/clipped_overall_loss", np.asarray(clipped_losses).mean(), global_episode)
         writer.add_scalar("losses/value_loss", np.asarray(v_losses).mean(), global_episode)
         writer.add_scalar("losses/policy_loss", np.asarray(pg_losses).mean(), global_episode)
         writer.add_scalar("losses/entropy", np.asarray(entropy_losses).mean(), global_episode)
