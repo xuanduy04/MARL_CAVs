@@ -155,8 +155,9 @@ class MAA2C(BaseModel):
         b_logprobs = logprobs.reshape(-1)
         b_actions = actions.reshape(-1)
         b_advantages = advantages.reshape(-1)
-        b_returns = returns.reshape(-1)
-        b_values = values.reshape(-1)
+        b_rewards = rewards.reshape(-1)
+        # b_returns = returns.reshape(-1)
+        # b_values = values.reshape(-1)
 
         for agent_id in range(num_CAV):
             # Optimizing the agent's policy and value network
@@ -178,7 +179,7 @@ class MAA2C(BaseModel):
 
                 # Value loss
                 newvalue = newvalue.view(-1)
-                v_loss = 0.5 * ((newvalue - b_values[mb_inds]) ** 2).mean()
+                v_loss = 0.5 * ((newvalue - b_rewards[mb_inds]) ** 2).mean()
 
                 entropy_loss = entropy.mean()
                 loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
