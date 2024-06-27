@@ -90,7 +90,7 @@ class IPPO(BaseModel):
 
         # Annealing the rate if instructed to do so.
         if args.anneal_lr:
-            frac = 1.0 - (global_episode / args.train_episodes)
+            frac = 1.0 - (global_episode / 1000)
             lrnow = frac * args.learning_rate
             self.optimizer.param_groups[0]["lr"] = lrnow
 
@@ -215,7 +215,7 @@ class IPPO(BaseModel):
             old_approx_kls.append(old_approx_kl.item())
             approx_kls.append(approx_kl.item())
 
-        # TODO: DEBUG THIS, TEST IF WRITER ACTUALLY WORKS
+
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
         writer.add_scalar("losses/overall_loss", np.asarray(overall_losses).mean(), global_episode)
