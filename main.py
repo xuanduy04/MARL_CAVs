@@ -20,8 +20,16 @@ from config import import_config
 
 def train(args):
     config, config_files = import_config(args.algorithm)
+    # update missing configs
+    config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    try:
+        config.model.curriculum_episodes = 0
+    except Exception:
+        pass
+
     # create an experiment folder
-    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
+    curri_ = "2" if config.model.curriculum_episodes > 0 else ""
+    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}{curri_}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
     for file in config_files:
@@ -33,13 +41,6 @@ def train(args):
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(config).items()])),
     )
     set_seed(config.seed)
-
-    # update configs
-    config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    try:
-        config.model.curriculum_episodes = 0
-    except Exception:
-        pass
 
     print(f'Device = {config.device}')
     print(f'Seed = {config.seed}')
