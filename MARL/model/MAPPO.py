@@ -229,3 +229,10 @@ class MAPPO(BaseModel):
     def _act(self, obs: Tensor) -> np.ndarray:
         action, _, _, _ = self.network.get_action_and_value(obs)
         return action.cpu().numpy()
+    
+    def save_model(self, model_dir: str, global_episode: int):
+        file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
+        torch.save({'global_episode': global_episode,
+                    'model_state_dict': self.network.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict()},
+                   file_path)
