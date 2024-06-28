@@ -14,11 +14,12 @@ from tqdm.auto import tqdm
 
 from MARL.utils.train_utils import DEFAULT_BASE_DIR
 from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
-from MARL.utils.model_utils import init_model, supported_models
+from MARL.utils.model_utils import init_model, supported_models, verify_consistancy
 from config import import_config
 
 
 def train(args):
+    verify_consistancy(args.algorithm)
     config, config_files = import_config(args.algorithm)
     # update missing configs
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
