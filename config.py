@@ -32,13 +32,15 @@ class Config:
         return name in self._assigned_attrs
 
 
-def import_config(model_name: str) -> Tuple[Config, Tuple[str,str]]:
-    base_config_path = 'MARL/configs/configs_base.yaml'
-    with open(base_config_path, 'r') as file:
-        base_config = yaml.safe_load(file)
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        return yaml.safe_load(file)
 
-    model_config_path = 'MARL/configs/configs_' + model_name + '.yaml'
-    with open(model_config_path, 'r') as file:
-        model_config = yaml.safe_load(file)
 
+def import_config(model_name: str) -> Tuple[Config, Tuple[str, str]]:
+    base_config_path = 'MARL/configs/base_config.yaml'
+    base_config = load_config(base_config_path)
+
+    model_config_path = 'MARL/configs/' + model_name + '.yaml'
+    model_config = load_config(model_config_path)
     return Config(dict(**base_config, **model_config)), (base_config_path, model_config_path)
