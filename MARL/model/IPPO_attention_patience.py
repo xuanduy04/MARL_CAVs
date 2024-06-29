@@ -316,8 +316,9 @@ class IPPO_attention_patience(BaseModel):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
         torch.save({
             'global_episode': global_episode,
-            'model_state_dict': self.network.state_dict(),
+            'network_state_dict': self.network.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            'best_network': self.best_network,
-            'best_network_epoch': self.best_network_epoch,
+            'scheduler_state_dict': self.scheduler.state_dict(),
+            'best_state': self.best_state,
+            'update_step': self.update_steps,
         }, file_path)
