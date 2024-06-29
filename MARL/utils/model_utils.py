@@ -41,6 +41,7 @@ def verify_consistancy(current_algo: str):
     configs = dict()
     for model in supported_models():
         if base_algo in model:
+            # noinspection PyProtectedMember
             configs[model] = import_config(model)[0]._config_dict['model']
 
     model_names = list(configs.keys())
