@@ -100,10 +100,13 @@ class IPPO_attention_patience(BaseModel):
 
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
+        num_training_steps= config.model.train_episodes + 1
+        num_warmup_steps = int(config.model.warmup_steps * num_training_steps) \
+            if config.model.warmup_steps < 1 else config.model.warmup_steps
         self.scheduler = get_linear_schedule_with_warmup(
             self.optimizer,
-            num_warmup_steps=config.model.warmup_steps,
-            num_training_steps=config.model.train_episodes + 1,
+            num_warmup_steps=num_warmup_steps,
+            num_training_steps=num_training_steps,
         )
 
         # update epochs & patience

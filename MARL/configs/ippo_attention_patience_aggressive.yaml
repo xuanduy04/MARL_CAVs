@@ -52,5 +52,5 @@ model:
 
   patience: !!int 10
   # how often to undo optimizations ("aggressive") (in update steps)
-  warmup_steps: !!int 0
-  # number of warm up steps (default = 0)
+  warmup_steps: 0
+  # number of warm up steps (default = 0), less then 1 for percentage
