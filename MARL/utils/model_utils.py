@@ -40,8 +40,8 @@ def verify_consistancy(current_algo: str):
     
     configs = dict()
     for model in supported_models():
-        if algo in model:
-            configs[model] = import_config(model)[0]._config_dict
+        if base_algo in model:
+            configs[model] = import_config(model)[0]._config_dict['model']
 
     model_names = list(configs.keys())
     compared_keys = set()
@@ -51,7 +51,9 @@ def verify_consistancy(current_algo: str):
 
     for key in reference_config:
         if key not in compared_keys:
-            for model in model_names[i+1:]:
+            for model in model_names:
+                if model == current_algo:
+                    continue
                 current_config = configs[model]
                 if key in current_config:
                     if reference_config[key] != current_config[key]:
