@@ -108,7 +108,7 @@ class IPPO_attention_patience(BaseModel):
 
         # update epochs & patience
         self.update_steps = 0
-        assert config.model.patience >= 0
+        assert config.model.patience > 0
         self.patience = config.model.patience
         self.best_state = {
             'network_state_dict': self.network.state_dict(),
@@ -199,20 +199,20 @@ class IPPO_attention_patience(BaseModel):
         minibatch_size = math.ceil(batch_size / args.num_minibatches)
         b_inds = np.arange(batch_size)
 
-        for agent_id in range(num_CAV):
-            # flatten the agent's batch
-            b_obs = obs[:, agent_id, :].reshape((-1, self.seq_len, self.d_model))
-            b_logprobs = logprobs[:, agent_id].reshape(-1)
-            b_actions = actions[:, agent_id].reshape(-1)
-            b_advantages = advantages[:, agent_id].reshape(-1)
-            b_returns = returns[:, agent_id].reshape(-1)
-            b_values = values[:, agent_id].reshape(-1)
+        for epoch in range(args.update_epochs):
+            # printd(f'Epoch {epoch}:')
+            epoch_loss = 0.0
+            for agent_id in range(num_CAV):
+                # flatten the agent's batch
+                b_obs = obs[:, agent_id, :].reshape((-1, self.seq_len, self.d_model))
+                b_logprobs = logprobs[:, agent_id].reshape(-1)
+                b_actions = actions[:, agent_id].reshape(-1)
+                b_advantages = advantages[:, agent_id].reshape(-1)
+                b_returns = returns[:, agent_id].reshape(-1)
+                b_values = values[:, agent_id].reshape(-1)
 
-            # Optimizing the agent's policy and value network
-            for epoch in range(args.update_epochs):
-                # printd(f'Epoch {epoch}:')
+                # Optimizing the agent's policy and value network
                 np.random.shuffle(b_inds)
-                epoch_loss = 0.0
                 for start in range(0, batch_size, minibatch_size):
                     end = min(start + minibatch_size, batch_size)
                     mb_inds = b_inds[start:end]
@@ -261,23 +261,6 @@ class IPPO_attention_patience(BaseModel):
                     nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                     self.optimizer.step()
 
-                self.update_steps += 1
-                if self.update_steps % self.patience == 0:
-                    if epoch_loss > self.best_state['epoch_loss']:
-                        # loss was worse, undo optimizations
-                        self.network.load_state_dict(self.best_state['network_state_dict'])
-                        self.optimizer.load_state_dict(self.best_state['optimizer_state_dict'])
-                        self.scheduler.load_state_dict(self.best_state['scheduler_state_dict'])
-                        continue
-                    else:
-                        # loss was better, update best_state
-                        self.best_state = {
-                            'network_state_dict': self.network.state_dict(),
-                            'optimizer_state_dict': self.optimizer.state_dict(),
-                            'scheduler_state_dict': self.scheduler.state_dict(),
-                            'epoch_loss': epoch_loss,
-                        }
-
             # Logs data
             overall_losses.append(epoch_loss / args.num_minibatches)
             v_losses.append(v_loss.item())
@@ -286,7 +269,26 @@ class IPPO_attention_patience(BaseModel):
             old_approx_kls.append(old_approx_kl.item())
             approx_kls.append(approx_kl.item())
 
-        # finished all updates, steps scheduler.
+            # 1 update step (epoch) has finished.
+            self.update_steps += 1
+            epoch_loss /= num_CAV
+            if self.update_steps % self.patience == 0:
+                if epoch_loss > self.best_state['epoch_loss']:
+                    # loss was worse, undo optimizations
+                    self.network.load_state_dict(self.best_state['network_state_dict'])
+                    self.optimizer.load_state_dict(self.best_state['optimizer_state_dict'])
+                    self.scheduler.load_state_dict(self.best_state['scheduler_state_dict'])
+                    continue
+                else:
+                    # loss was better, update best_state
+                    self.best_state = {
+                        'network_state_dict': self.network.state_dict(),
+                        'optimizer_state_dict': self.optimizer.state_dict(),
+                        'scheduler_state_dict': self.scheduler.state_dict(),
+                        'epoch_loss': epoch_loss,
+                    }
+
+        # finished all updates for this episode, steps scheduler.
         self.scheduler.step()
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
