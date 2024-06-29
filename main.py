@@ -17,6 +17,8 @@ from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, r
 from MARL.utils.model_utils import init_model, supported_models, verify_consistancy
 from config import import_config
 
+warnings.filterwarnings("ignore", message="Please also save or load the state of the optimizer when saving or loading the scheduler.")
+
 
 def train(args):
     verify_consistancy(args.algorithm)
