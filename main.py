@@ -32,7 +32,8 @@ def train(args):
 
     # create an experiment folder
     curri_ = "2" if config.model.curriculum_episodes > 0 else ""
-    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}{curri_}-{config.seed}-{datetime.now().strftime("%b_%d_%H_%M_%S")}'
+    run_date = datetime.now().strftime("%b_%d_%H_%M_%S")
+    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}{curri_}-{config.seed}-{run_date}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
     for file in config_files:
@@ -105,8 +106,9 @@ def train(args):
     print("Average rewards:", results,
           "Average steps:", avg_steps,
           "Average speeds:", avg_speeds,
-          "Crash rates", crash_rates,
+          "Crash rates:", crash_rates,
           "Output_dir:", output_dir,
+          "Run date:", run_date,
           sep='\n')
 
     writer.close()
