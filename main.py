@@ -33,8 +33,13 @@ def train(args):
     # create an experiment folder
     curri_ = "2" if config.model.curriculum_episodes > 0 else ""
     pte_ = f"_p{config.model.patience}" if 'patience' in config.model else ""
+    try:
+        warmup_ = f"_w{config.model.warmup_steps}" if config.model.warmup_steps > 0 else ""
+    except Exception:
+        warmup_ = ""
     run_date = datetime.now().strftime("%b_%d_%H_%M_%S")
-    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}{curri_}{pte_}-{config.seed}-{run_date}'
+    
+    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{args.algorithm}{curri_}{pte_}{warmup_}-{config.seed}-{run_date}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
     for file in config_files:
