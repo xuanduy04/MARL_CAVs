@@ -57,7 +57,7 @@ def verify_consistancy(current_algo: str):
                 current_config = configs[model]
                 if key in current_config:
                     if reference_config[key] != current_config[key]:
-                        print(f"Difference in {base_algo}: {reference_model} vs {model}")
+                        print(f"Difference between: {reference_model} vs {model}")
                         print(f"Parameter: {key}")
                         print(f"{reference_model}: {reference_config[key]}")
                         print(f"{model}: {current_config[key]}")
