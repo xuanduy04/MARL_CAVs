@@ -108,9 +108,11 @@ class IPPO_attention_patience_aggressive(BaseModel):
 
         # update steps & patience
         # search "aggressive" for details on aggresive save states
-        self.global_step = 0
+        # To sum up: 
+        #   "aggressive" = Undo optimizations on Plateau (metric = average loss per agent)
         assert config.model.patience > 0
         self.patience = config.model.patience
+        self.global_step = 0
         self.last_improvement_step = 0
         self.best_state = {
             'network_state_dict': self.network.state_dict(),

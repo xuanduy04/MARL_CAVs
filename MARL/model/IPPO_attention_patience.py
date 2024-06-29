@@ -107,9 +107,9 @@ class IPPO_attention_patience(BaseModel):
         )
 
         # update epochs & patience
-        self.global_step = 0
         assert config.model.patience > 0
         self.patience = config.model.patience
+        self.global_step = 0
         self.best_state = {
             'network_state_dict': self.network.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
