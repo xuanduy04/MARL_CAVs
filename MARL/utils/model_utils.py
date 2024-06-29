@@ -36,32 +36,48 @@ def verify_consistancy(current_algo: str):
     if base_algo is None:
         return
     
-    print(f'Verifying consistancy between all {base_algo} algs')
+    print(f'Verifying consistancy between {current_algo} and all {base_algo} algs')
     
     configs = dict()
     for model in supported_models():
         if algo in model:
-            configs[model] = import_config(model)._config_dict
+            configs[model] = import_config(model)[0]._config_dict
 
     model_names = list(configs.keys())
     compared_keys = set()
 
-    for i in range(0, len(model_names)-1):
-        reference_model = model_names[i]
-        reference_config = configs[reference_model]
+    reference_model = current_algo
+    reference_config = configs[current_algo]
 
-        for key in reference_config:
-            if key not in compared_keys:
-                for model in model_names[i+1:]:
-                    current_config = configs[model]
-                    if key in current_config:
-                        if reference_config[key] != current_config[key]:
-                            print(f"Difference in {algo}: {reference_model} vs {model}")
-                            print(f"Parameter: {key}")
-                            print(f"{reference_model}: {reference_config[key]}")
-                            print(f"{model}: {current_config[key]}")
-                            print("-" * 30)
-                compared_keys.add(key)
+    for key in reference_config:
+        if key not in compared_keys:
+            for model in model_names[i+1:]:
+                current_config = configs[model]
+                if key in current_config:
+                    if reference_config[key] != current_config[key]:
+                        print(f"Difference in {algo}: {reference_model} vs {model}")
+                        print(f"Parameter: {key}")
+                        print(f"{reference_model}: {reference_config[key]}")
+                        print(f"{model}: {current_config[key]}")
+                        print("-" * 30)
+            compared_keys.add(key)
+
+    # for i in range(0, len(model_names)-1):
+    #     reference_model = model_names[i]
+    #     reference_config = configs[reference_model]
+
+    #     for key in reference_config:
+    #         if key not in compared_keys:
+    #             for model in model_names[i+1:]:
+    #                 current_config = configs[model]
+    #                 if key in current_config:
+    #                     if reference_config[key] != current_config[key]:
+    #                         print(f"Difference in {algo}: {reference_model} vs {model}")
+    #                         print(f"Parameter: {key}")
+    #                         print(f"{reference_model}: {reference_config[key]}")
+    #                         print(f"{model}: {current_config[key]}")
+    #                         print("-" * 30)
+    #             compared_keys.add(key)
 
     # check if config params are consistant across models with the same algo, print all differences to stdout
     # (e.g the 'learning_rate' of mappo_attention, mappo, mappo_lmao, mappo_attention2 are the same.)
