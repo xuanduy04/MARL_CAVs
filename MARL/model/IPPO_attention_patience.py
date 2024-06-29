@@ -107,7 +107,7 @@ class IPPO_attention_patience(BaseModel):
         )
 
         # update epochs & patience
-        self.update_steps = 0
+        self.global_step = 0
         assert config.model.patience > 0
         self.patience = config.model.patience
         self.best_state = {
@@ -270,9 +270,9 @@ class IPPO_attention_patience(BaseModel):
             approx_kls.append(approx_kl.item())
 
             # 1 update step (epoch) has finished.
-            self.update_steps += 1
+            self.global_step += 1
             epoch_loss /= num_CAV
-            if self.update_steps % self.patience == 0:
+            if self.global_step % self.patience == 0:
                 if epoch_loss > self.best_state['epoch_loss']:
                     # loss was worse, undo optimizations
                     self.network.load_state_dict(self.best_state['network_state_dict'])
@@ -305,9 +305,9 @@ class IPPO_attention_patience(BaseModel):
 
     def _act(self, obs: Tensor) -> np.ndarray:
         # check if best_network has changed
-        if self.update_steps - self.best_network_epoch >= self.patience:
+        if self.global_step - self.best_network_epoch >= self.patience:
             self.best_network.load_state_dict(self.best_state['network_state_dict'])
-            self.best_network_epoch = (self.update_steps // self.patience) * self.patience
+            self.best_network_epoch = (self.global_step // self.patience) * self.patience
         # use best network to get action
         action, _, _, _ = self.best_network.get_action_and_value(obs)
         return action.cpu().numpy()
@@ -320,5 +320,5 @@ class IPPO_attention_patience(BaseModel):
             'optimizer_state_dict': self.optimizer.state_dict(),
             'scheduler_state_dict': self.scheduler.state_dict(),
             'best_state': self.best_state,
-            'update_step': self.update_steps,
+            'global_step': self.global_step,
         }, file_path)
