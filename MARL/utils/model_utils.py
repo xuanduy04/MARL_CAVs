@@ -36,6 +36,8 @@ def verify_consistancy(current_algo: str):
     if base_algo is None:
         return
     
+    print(f'Verifying consistancy between all {base_algo} algs')
+    
     configs = dict()
     for model in supported_models():
         if algo in model:
