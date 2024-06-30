@@ -33,7 +33,7 @@ model:
   # Toggles advantages normalization (may 'cause numerical instability errors)
   clip_coef: 0.2
   # the surrogate clipping coefficient
-  clip_vloss: False
+  clip_vloss: True
   # Toggles whether to use a clipped loss for the value function, as per the paper.
   ent_coef: 0.005
   # coefficient of the entropy
