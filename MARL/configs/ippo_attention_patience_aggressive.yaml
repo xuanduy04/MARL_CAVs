@@ -33,13 +33,13 @@ model:
   # Toggles advantages normalization (may 'cause numerical instability errors)
   clip_coef: 0.2
   # the surrogate clipping coefficient
-  clip_vloss: True
+  clip_vloss: False
   # Toggles whether to use a clipped loss for the value function, as per the paper.
   ent_coef: 0.005
   # coefficient of the entropy
   vf_coef: 2
   # coefficient of the value function (i.e. critic coefficient)
-  max_grad_norm: 0.5
+  max_grad_norm: 0
   # the maximum norm for the gradient clipping
 
   reward_scale: 25.0
@@ -48,9 +48,9 @@ model:
   # --- Attention module arguments ---
   attention:
     num_heads: 3
-    dropout_p: 0.3
+    dropout_p: 0.1
 
-  patience: 10
+  patience: 0.09
   # how often to undo optimizations ("aggressive") (in update steps), less then 1 for percentage
   warmup_steps: 0.1
   # number of warm up steps (default = 0), less then 1 for percentage

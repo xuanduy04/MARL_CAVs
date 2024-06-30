@@ -265,7 +265,7 @@ class IPPO_attention_patience_aggressive(BaseModel):
 
                     entropy_loss = entropy.mean()
                     loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
-                    
+                    epoch_loss += loss.item()
 
                     # "aggressive": every update steps is now every time it updates.
                     # 1 update step has finished.
@@ -288,26 +288,23 @@ class IPPO_attention_patience_aggressive(BaseModel):
                             self.network.load_state_dict(self.best_state['network_state_dict'])
                             self.optimizer.load_state_dict(self.best_state['optimizer_state_dict'])
                             self.scheduler.load_state_dict(self.best_state['scheduler_state_dict'])
-                            continue
-                    
-                    # if not revert, logs epoch_loss
-                    epoch_loss += loss.item()
+                            continue                    
 
                     self.optimizer.zero_grad()
                     loss.backward()
-                    nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
+                    if args.max_grad_norm > 0:
+                        nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                     self.optimizer.step()
                     # "aggressive": steps scheduler every update steps
                     self.scheduler.step()
 
             # Logs data
-            overall_losses.append(epoch_loss / (args.num_minibatches * num_CAV))
+            overall_losses.append(epoch_loss / (args.update_epochs * num_CAV))
             v_losses.append(v_loss.item())
             pg_losses.append(pg_loss.item())
             entropy_losses.append(entropy_loss.item())
             old_approx_kls.append(old_approx_kl.item())
             approx_kls.append(approx_kl.item())
-
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
