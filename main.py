@@ -34,7 +34,7 @@ def train(args):
     curri_ = "2" if config.model.curriculum_episodes > 0 else ""
     pte_ = f"_p{config.model.patience}" if 'patience' in config.model else ""
     try:
-        drop_ = config.model.attention.dropout_p if config.model.attention.dropout_p != 0.3 else ""
+        drop_ = f"_d{config.model.attention.dropout_p}" if config.model.attention.dropout_p != 0.3 else ""
         warmup_ = f"_w{config.model.warmup_steps}" if config.model.warmup_steps > 0 else ""
     except Exception:
         warmup_ = ""
