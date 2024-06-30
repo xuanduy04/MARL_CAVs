@@ -50,4 +50,4 @@ model:
   # --- Attention module arguments ---
   attention:
     num_heads: 3
-    dropout_p: 0.3
+    dropout_p: 0.1
