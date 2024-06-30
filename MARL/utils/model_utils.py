@@ -13,6 +13,7 @@ model_list = {
     'ippo_attention': IPPO_attention,
     'ippo_attention_patience': IPPO_attention_patience,
     'ippo_attention_patience_aggressive': IPPO_attention_patience_aggressive,
+    'mappo_attention_patience_aggressive': MAPPO_attention_patience_aggressive,
 }
 
 

@@ -4,14 +4,13 @@
 based on cleanrl's PPO implementation.
 """
 
-from typing import List, Tuple, Optional
+from typing import Optional
 
 import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
 from torch.optim import Adam
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
@@ -27,6 +26,10 @@ from MARL.model import BaseModel
 from MARL.common.network import layer_init
 # attention module
 from MARL.common.Attention_Feed_Forward import Encoder
+# scheduler
+# https://huggingface.co/docs/transformers/en/main_classes/optimizer_schedules#transformers.get_linear_schedule_with_warmup
+# noinspection PyUnresolvedReferences
+from transformers import get_linear_schedule_with_warmup
 
 # noinspection PyUnresolvedReferences
 # debug utilities
@@ -78,9 +81,9 @@ class ActorCriticNetwork(nn.Module):
 
 
 # noinspection PyUnusedLocal
-class MAPPO_attention(BaseModel):
+class MAPPO_attention_patience_aggressive(BaseModel):
     def __init__(self, config: Config):
-        super(MAPPO_attention, self).__init__(config)
+        super(MAPPO_attention_patience_aggressive, self).__init__(config)
         config_attention = config.model.attention
         self.seq_len = config_attention.seq_len
         self.d_model = config_attention.d_model
@@ -94,7 +97,43 @@ class MAPPO_attention(BaseModel):
             config.env.state_dim, config.env.action_dim, config.model.hidden_size,
             config_attention.d_model, config_attention.num_heads, config_attention.dropout_p,
         ).to(config.device)
+
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
+
+        num_training_steps = config.model.update_epochs * config.model.num_minibatches \
+                             * (config.model.train_episodes + 1)
+        num_warmup_steps = int(config.model.warmup_steps * num_training_steps) \
+            if config.model.warmup_steps < 1 else int(config.model.warmup_steps)
+        self.scheduler = get_linear_schedule_with_warmup(
+            self.optimizer,
+            num_warmup_steps=num_warmup_steps,
+            num_training_steps=num_training_steps,
+        )
+        # save value for debug
+        self.num_training_steps = num_training_steps
+
+        # update steps & patience
+        # search "aggressive" for details on aggresive save states
+        # To sum up: 
+        #   "aggressive" = Undo optimizations on Plateau (metric = average loss per agent)
+        assert config.model.patience > 0
+        self.patience = int(config.model.patience * num_training_steps) \
+            if config.model.patience < 1 else int(config.model.patience)
+        self.global_step = 0
+        self.last_improvement_step = 0
+        self.best_state = {
+            'network_state_dict': self.network.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'scheduler_state_dict': self.scheduler.state_dict(),
+            'loss': 1e100,
+        }
+
+        # for ._act() function
+        self.best_network = ActorCriticNetwork(
+            config.env.state_dim, config.env.action_dim, config.model.hidden_size,
+            config_attention.d_model, config_attention.num_heads, config_attention.dropout_p,
+        ).to(config.device)
+        self.best_network_step = -1
 
     def train(self, env: AbstractEnv, curriculum_training: bool, writer: SummaryWriter, global_episode: int):
         # printd(f'Begin training for episode {global_episode + 1}')
@@ -112,10 +151,10 @@ class MAPPO_attention(BaseModel):
         approx_kls = []
 
         # Annealing the rate if instructed to do so.
-        if args.anneal_lr:
-            frac = 1.0 - (global_episode / 1000)
-            lrnow = frac * args.learning_rate
-            self.optimizer.param_groups[0]["lr"] = lrnow
+        # if args.anneal_lr:
+        #     frac = 1.0 - (global_episode / 1000)
+        #     lrnow = frac * args.learning_rate
+        #     self.optimizer.param_groups[0]["lr"] = lrnow
 
         # TRY NOT TO MODIFY: start the game
         next_obs, (num_CAV, _) = env.reset(curriculum_training=curriculum_training)
@@ -182,6 +221,7 @@ class MAPPO_attention(BaseModel):
         # Optimizing the agent's policy and value network
         for epoch in range(args.update_epochs):
             # printd(f'Epoch {epoch}:')
+            epoch_loss = 0.0
             np.random.shuffle(b_inds)
             for start in range(0, batch_size, minibatch_size):
                 end = min(start + minibatch_size, batch_size)
@@ -224,27 +264,50 @@ class MAPPO_attention(BaseModel):
 
                 entropy_loss = entropy.mean()
                 loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
+                epoch_loss += loss.item()
+
+                # "aggressive": every update steps is now every time it updates.
+                # 1 update step has finished.
+                self.global_step += 1
+                assert self.global_step <= self.num_training_steps
+                # "aggressive": check every update steps for improvement
+                if loss.item() < self.best_state['loss']:
+                    # loss was better, update best_state
+                    self.best_state = {
+                        'network_state_dict': self.network.state_dict(),
+                        'optimizer_state_dict': self.optimizer.state_dict(),
+                        'scheduler_state_dict': self.scheduler.state_dict(),
+                        'loss': loss.item(),
+                    }
+                    self.last_improvement_step = self.global_step
+                else:
+                    # loss was worse
+                    if self.global_step - self.last_improvement_step >= self.patience:
+                        # ran out of patience, undo optimizations
+                        self.network.load_state_dict(self.best_state['network_state_dict'])
+                        self.optimizer.load_state_dict(self.best_state['optimizer_state_dict'])
+                        self.scheduler.load_state_dict(self.best_state['scheduler_state_dict'])
+                        continue
 
                 self.optimizer.zero_grad()
                 loss.backward()
-                nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
+                if args.max_grad_norm > 0:
+                    nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                 self.optimizer.step()
+                # "aggressive": steps scheduler every update steps
+                self.scheduler.step()
 
-            overall_losses.append(loss.item())
+            # Logs data
+            overall_losses.append(epoch_loss / (args.update_epochs * num_CAV))
             v_losses.append(v_loss.item())
             pg_losses.append(pg_loss.item())
             entropy_losses.append(entropy_loss.item())
             old_approx_kls.append(old_approx_kl.item())
             approx_kls.append(approx_kl.item())
 
-        clipped_losses = [np.clip(loss, -args.max_grad_norm, args.max_grad_norm) \
-                          for loss in overall_losses]
-        # self.scheduler.step(np.asarray(clipped_losses).mean())
-
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
         writer.add_scalar("losses/overall_loss", np.asarray(overall_losses).mean(), global_episode)
-        writer.add_scalar("losses/clipped_overall_loss", np.asarray(clipped_losses).mean(), global_episode)
         writer.add_scalar("losses/value_loss", np.asarray(v_losses).mean(), global_episode)
         writer.add_scalar("losses/policy_loss", np.asarray(pg_losses).mean(), global_episode)
         writer.add_scalar("losses/entropy", np.asarray(entropy_losses).mean(), global_episode)
@@ -255,12 +318,22 @@ class MAPPO_attention(BaseModel):
         writer.add_scalar("charts/train_episode_per_sec", int(global_episode / (time.time() - start_time)), global_episode)
 
     def _act(self, obs: Tensor) -> np.ndarray:
-        action, _, _, _ = self.network.get_action_and_value(obs)
+        # check if best_network has changed
+        if self.best_network_step != self.last_improvement_step:
+            self.best_network.load_state_dict(self.best_state['network_state_dict'])
+            self.best_network_step = self.last_improvement_step
+        # use best network to get action
+        action, _, _, _ = self.best_network.get_action_and_value(obs)
         return action.cpu().numpy()
 
     def save_model(self, model_dir: str, global_episode: int):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
-        torch.save({'global_episode': global_episode,
-                    'model_state_dict': self.network.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict()},
-                   file_path)
+        torch.save({
+            'global_episode': global_episode,
+            'network_state_dict': self.network.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'scheduler_state_dict': self.scheduler.state_dict(),
+            'best_state': self.best_state,
+            'last_improvement_step': self.last_improvement_step,
+            'global_step': self.global_step,
+        }, file_path)
