@@ -33,13 +33,13 @@ model:
   # Toggles advantages normalization (may 'cause numerical instability errors)
   clip_coef: 0.2
   # the surrogate clipping coefficient
-  clip_vloss: False
+  clip_vloss: True
   # Toggles whether to use a clipped loss for the value function, as per the paper.
   ent_coef: 0.005
   # coefficient of the entropy
   vf_coef: 2
   # coefficient of the value function (i.e. critic coefficient)
-  max_grad_norm: 0
+  max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
 
   reward_scale: 25.0
