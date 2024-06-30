@@ -121,7 +121,7 @@ class IPPO_attention_patience_aggressive(BaseModel):
             'network_state_dict': self.network.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'scheduler_state_dict': self.scheduler.state_dict(),
-            'epoch_loss': 999999999999.99,
+            'epoch_loss': 99999999999999.99,
         }
 
         # for ._act() function
