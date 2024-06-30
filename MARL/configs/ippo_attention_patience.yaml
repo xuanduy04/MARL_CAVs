@@ -50,7 +50,7 @@ model:
     num_heads: 3
     dropout_p: 0.3
 
-  patience: !!int 10
-  # how often to check for improvement (in update steps)
+  patience: 10
+  # how often to check for improvement (in update steps), less then 1 for percentage
   warmup_steps: 0
   # number of warm up steps (default = 0), less then 1 for percentage

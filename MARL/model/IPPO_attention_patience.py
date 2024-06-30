@@ -113,7 +113,8 @@ class IPPO_attention_patience(BaseModel):
 
         # update epochs & patience
         assert config.model.patience > 0
-        self.patience = config.model.patience
+        self.patience = int(config.model.patience  * num_training_steps) \
+            if config.model.patience < 1 else int(config.model.patience)
         self.global_step = 0
         self.best_state = {
             'network_state_dict': self.network.state_dict(),

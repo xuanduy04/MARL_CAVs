@@ -50,7 +50,7 @@ model:
     num_heads: 3
     dropout_p: 0.3
 
-  patience: !!int 10
-  # how often to undo optimizations ("aggressive") (in update steps)
+  patience: 10
+  # how often to undo optimizations ("aggressive") (in update steps), less then 1 for percentage
   warmup_steps: 0.1
   # number of warm up steps (default = 0), less then 1 for percentage

@@ -117,7 +117,8 @@ class IPPO_attention_patience_aggressive(BaseModel):
         # To sum up: 
         #   "aggressive" = Undo optimizations on Plateau (metric = average loss per agent)
         assert config.model.patience > 0
-        self.patience = config.model.patience
+        self.patience = int(config.model.patience  * num_training_steps) \
+            if config.model.patience < 1 else int(config.model.patience)
         self.global_step = 0
         self.last_improvement_step = 0
         self.best_state = {
