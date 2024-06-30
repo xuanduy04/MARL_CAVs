@@ -100,7 +100,7 @@ class IPPO_attention_patience_aggressive(BaseModel):
 
         self.optimizer = Adam(self.network.parameters(), lr=config.model.learning_rate)
 
-        num_training_steps=config.env.num_CAVs * config.model.update_epochs * (config.model.train_episodes + 1)
+        num_training_steps=config.model.update_epochs * (config.model.train_episodes + 1)
         num_warmup_steps = int(config.model.warmup_steps * num_training_steps) \
             if config.model.warmup_steps < 1 else config.model.warmup_steps
         self.scheduler = get_linear_schedule_with_warmup(
@@ -121,7 +121,7 @@ class IPPO_attention_patience_aggressive(BaseModel):
             'network_state_dict': self.network.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'scheduler_state_dict': self.scheduler.state_dict(),
-            'loss': 1e100,
+            'epoch_loss': 1e100,
         }
 
         # for ._act() function
@@ -261,48 +261,46 @@ class IPPO_attention_patience_aggressive(BaseModel):
 
                     entropy_loss = entropy.mean()
                     loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
-                    
-
-                    # "aggressive": every update steps is now every time it updates.
-                    # 1 update step has finished.
-                    self.global_step += 1
-                    # "aggressive": check every update steps for improvement
-                    if loss.item() < self.best_state['loss']:
-                        # loss was better, update best_state
-                        self.best_state = {
-                            'network_state_dict': self.network.state_dict(),
-                            'optimizer_state_dict': self.optimizer.state_dict(),
-                            'scheduler_state_dict': self.scheduler.state_dict(),
-                            'loss': loss.item(),
-                        }
-                        self.last_improvement_step = self.global_step
-                    else:
-                        # loss was worse
-                        if self.global_step - self.last_improvement_step >= self.patience:
-                            # ran out of patience, undo optimizations
-                            self.network.load_state_dict(self.best_state['network_state_dict'])
-                            self.optimizer.load_state_dict(self.best_state['optimizer_state_dict'])
-                            self.scheduler.load_state_dict(self.best_state['scheduler_state_dict'])
-                            continue
-                    
-                    # if not revert, logs epoch_loss
                     epoch_loss += loss.item()
 
                     self.optimizer.zero_grad()
                     loss.backward()
                     nn.utils.clip_grad_norm_(self.network.parameters(), args.max_grad_norm)
                     self.optimizer.step()
-                    # "aggressive": steps scheduler every update steps
-                    self.scheduler.step()
 
             # Logs data
-            overall_losses.append(epoch_loss / (args.num_minibatches * num_CAV))
+            overall_losses.append(epoch_loss / args.num_minibatches)
             v_losses.append(v_loss.item())
             pg_losses.append(pg_loss.item())
             entropy_losses.append(entropy_loss.item())
             old_approx_kls.append(old_approx_kl.item())
             approx_kls.append(approx_kl.item())
 
+            # 1 update step (epoch) has finished.
+            self.global_step += 1
+            epoch_loss /= num_CAV
+            # "aggressive": check every update steps for improvement
+            if epoch_loss < self.best_state['epoch_loss']:
+                # loss was better, update best_state
+                self.best_state = {
+                    'network_state_dict': self.network.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict(),
+                    'scheduler_state_dict': self.scheduler.state_dict(),
+                    'epoch_loss': epoch_loss,
+                }
+                self.last_improvement_step = self.global_step
+            else:
+                # loss was worse
+                if self.global_step - self.last_improvement_step >= self.patience:
+                    # ran out of patience, undo optimizations
+                    self.network.load_state_dict(self.best_state['network_state_dict'])
+                    self.optimizer.load_state_dict(self.best_state['optimizer_state_dict'])
+                    self.scheduler.load_state_dict(self.best_state['scheduler_state_dict'])
+                    continue
+
+            # "aggressive": steps scheduler every epoch
+            # finished all updates for this epoch, steps scheduler.
+            self.scheduler.step()
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         writer.add_scalar("charts/learning_rate", self.optimizer.param_groups[0]["lr"], global_episode)
