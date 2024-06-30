@@ -109,6 +109,8 @@ class IPPO_attention_patience_aggressive(BaseModel):
             num_warmup_steps=num_warmup_steps,
             num_training_steps=num_training_steps,
         )
+        # save value for debug
+        self.num_training_steps = num_training_steps
 
         # update steps & patience
         # search "aggressive" for details on aggresive save states
@@ -267,6 +269,7 @@ class IPPO_attention_patience_aggressive(BaseModel):
                     # "aggressive": every update steps is now every time it updates.
                     # 1 update step has finished.
                     self.global_step += 1
+                    assert self.global_step <= self.num_training_steps
                     # "aggressive": check every update steps for improvement
                     if loss.item() < self.best_state['loss']:
                         # loss was better, update best_state
