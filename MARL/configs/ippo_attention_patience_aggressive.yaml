@@ -2,8 +2,8 @@ model:
   # --- General training arguments ---
   train_episodes: 1000
   # Total episodes to train
-  curriculum_episodes: 0
-  # Amount of curriculum episodes
+  # curriculum_episodes: 0
+  # Amount of curriculum episodes (not supported)
   hidden_size: 256
   # network hidden size, for both actor and critic
   eval_interval: 50
@@ -19,7 +19,7 @@ model:
   # the learning rate of the optimizer
   num_steps: 128
   # the maximum number of steps to run in each environment per policy rollout
-# anneal_lr: True
+  # anneal_lr: True
   # Toggle learning rate annealing for policy and value networks (not supported)
   gamma: 0.99
   # the discount factor gamma
@@ -52,5 +52,5 @@ model:
 
   patience: !!int 10
   # how often to undo optimizations ("aggressive") (in update steps)
-  warmup_steps: 0
+  warmup_steps: 0.1
   # number of warm up steps (default = 0), less then 1 for percentage
