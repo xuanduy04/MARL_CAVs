@@ -33,7 +33,7 @@ def train(args):
 
     # create an experiment folder
     eps_ = f"_eps{config.model.train_episodes}" if config.model.train_episodes != 1000 else ""
-    curri_ = "2" if config.model.curriculum_episodes > 0 else ""
+    curri_ = f"_cu{config.model.curriculum_episodes}" if config.model.curriculum_episodes > 0 else ""
     pte_ = f"_p{config.model.patience}" if 'patience' in config.model else ""
     try:
         drop_ = f"_d{config.model.attention.dropout_p}" if config.model.attention.dropout_p != 0.3 else ""
