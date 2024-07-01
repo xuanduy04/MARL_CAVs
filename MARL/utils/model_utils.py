@@ -9,11 +9,14 @@ model_list = {
     'maa2c': MAA2C,
     'ippo': IPPO,
     'mappo': MAPPO,
+
     'mappo_attention': MAPPO_attention,
+    'mappo_attention_patience': MAPPO_attention_patience,
+    'mappo_attention_patience_aggressive': MAPPO_attention_patience_aggressive,
+
     'ippo_attention': IPPO_attention,
     'ippo_attention_patience': IPPO_attention_patience,
     'ippo_attention_patience_aggressive': IPPO_attention_patience_aggressive,
-    'mappo_attention_patience_aggressive': MAPPO_attention_patience_aggressive,
 }
 
 
