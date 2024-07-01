@@ -23,7 +23,7 @@ model:
   # Toggle learning rate annealing for policy and value networks (not supported)
   gamma: 0.99
   # the discount factor gamma
-  gae_lambda: 0.95
+  gae_lambda: 0.99
   # the lambda for the general advantage estimation
   num_minibatches: 5
   # the number of mini-batches (per update epochs)
@@ -37,7 +37,7 @@ model:
   # Toggles whether to use a clipped loss for the value function, as per the paper.
   ent_coef: 0.005
   # coefficient of the entropy
-  vf_coef: 2
+  vf_coef: 1
   # coefficient of the value function (i.e. critic coefficient)
   max_grad_norm: 0.5
   # the maximum norm for the gradient clipping
