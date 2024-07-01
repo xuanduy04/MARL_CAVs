@@ -46,7 +46,7 @@ def train(args):
     run_date = datetime.now().strftime("%b_%d_%H_%M_%S")
 
     env_name = f'({config.env.num_CAV},{config.env.num_HDV}){eps_}'
-    alg_name = f'{args.algorithm}{eps_}{curri_}{drop_}{pte_}{warmup_}'
+    alg_name = f'{args.algorithm}{curri_}{drop_}{pte_}{warmup_}'
     run_name = f'{env_name}-{alg_name}-{config.seed}-{run_date}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
