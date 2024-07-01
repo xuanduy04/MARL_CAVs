@@ -303,7 +303,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             # max_spawn_s = (num_CAV // 3) + (num_HDV // 3) + 1 (PV) + 1 (density)
             spawn_points_s1 = [10, 50, 90, 130, 170, 210]  #, 250]
             spawn_points_s2 = [5, 45, 85, 125, 165, 205]  #, 245]
-            spawn_points_m = [5, 45, 85, 125, 165] #, 205]
+            spawn_points_m = [5, 45, 85, 125, 165, 205]
 
         """Spawn points for PV"""
         # for now, PV always spawn on straight road.
