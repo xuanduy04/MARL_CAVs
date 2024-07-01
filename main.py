@@ -45,8 +45,9 @@ def train(args):
         warmup_ = ""
     run_date = datetime.now().strftime("%b_%d_%H_%M_%S")
 
+    env_name = f'({config.env.num_CAV},{config.env.num_HDV}){eps_}'
     alg_name = f'{args.algorithm}{eps_}{curri_}{drop_}{pte_}{warmup_}'
-    run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{alg_name}-{config.seed}-{run_date}'
+    run_name = f'{env_name}-{alg_name}-{config.seed}-{run_date}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
     for file in config_files:
