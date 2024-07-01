@@ -32,6 +32,7 @@ def train(args):
         pass
 
     # create an experiment folder
+    eps_ = f"_eps{config.model.train_episodes}" if config.model.train_episodes != 1000 else ""
     curri_ = "2" if config.model.curriculum_episodes > 0 else ""
     pte_ = f"_p{config.model.patience}" if 'patience' in config.model else ""
     try:
@@ -44,7 +45,7 @@ def train(args):
         warmup_ = ""
     run_date = datetime.now().strftime("%b_%d_%H_%M_%S")
 
-    alg_name = f'{args.algorithm}{curri_}{drop_}{pte_}{warmup_}'
+    alg_name = f'{args.algorithm}{eps_}{curri_}{drop_}{pte_}{warmup_}'
     run_name = f'({config.env.num_CAV},{config.env.num_HDV})-{alg_name}-{config.seed}-{run_date}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
