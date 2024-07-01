@@ -237,10 +237,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         num_CAV = self.config["num_CAV"]
         num_HDV = self.config["num_HDV"]
         if curriculum_training:
-            # chance to train with fewer vehicles.
+            # train with fewer vehicles.
             # Simulates curriculum learning, in a way.
-            num_CAV = np.random.choice(np.arange(max(min(3, num_CAV), num_CAV - 2), num_CAV + 1), 1)[0]
-            num_HDV = np.random.choice(np.arange(max(1, num_HDV - 2), num_HDV + 1), 1)[0]
+            num_CAV = np.random.choice(np.arange(max(min(3, num_CAV), num_CAV - 3), num_CAV), 1)[0]
+            num_HDV = np.random.choice(np.arange(max(1, num_HDV - 3), num_HDV), 1)[0]
 
         self._make_vehicles(num_CAV=num_CAV, num_HDV=num_HDV)
         self.action_is_safe = True
