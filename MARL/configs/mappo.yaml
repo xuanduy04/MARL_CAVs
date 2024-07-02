@@ -2,8 +2,8 @@ model:
   # --- General training arguments ---
   train_episodes: 1000
   # Total episodes to train
-  curriculum_episodes: 0
-  # Amount of curriculum episodes
+  # curriculum_episodes: 0
+  # Amount of curriculum episodes (best not to touch this)
   hidden_size: 256
   # network hidden size, for both actor and critic
   eval_interval: 50

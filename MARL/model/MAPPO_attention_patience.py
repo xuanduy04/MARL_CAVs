@@ -265,6 +265,7 @@ class MAPPO_attention_patience(BaseModel):
 
                 entropy_loss = entropy.mean()
                 loss = pg_loss + args.vf_coef * v_loss - args.ent_coef * entropy_loss
+                
                 epoch_loss += loss.item()
                 self.curr_loss += loss.item()
 
@@ -335,5 +336,6 @@ class MAPPO_attention_patience(BaseModel):
             'scheduler_state_dict': self.scheduler.state_dict(),
             'best_state': self.best_state,
             'last_improvement_step': self.last_improvement_step,
+            'curr_loss': self.curr_loss,
             'global_step': self.global_step,
         }, file_path)
