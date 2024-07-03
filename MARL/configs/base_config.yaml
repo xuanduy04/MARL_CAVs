@@ -1,4 +1,5 @@
-seed: 0 # training seed
+# training seed
+seed: 0
 
 env: # Environment specific arguments
   simulation_frequency: 15 # [Hz]
@@ -15,6 +16,11 @@ env: # Environment specific arguments
   LANE_CHANGE_COST: 0.5
 
   # Vehicle count
-  num_CAV: 6
-  num_HDV: 6
+  num_CAV: 4
+  num_HDV: 4
   # num_PV: 1 # num_HDV excludes the priority vehicle count
+
+  # For ablation studies
+  N: 2 # number of vehicles the CAVs sees (including itself, and priority vehicle slot)
+  # TODO: test 2,4, (6 has been done already)
+

@@ -34,6 +34,27 @@ def init_env(env: AbstractEnv, config: Config, is_eval_env: bool = False) -> Abs
     env.config['num_HDV'] = econfig.num_HDV
 
     env.config['flatten_obs'] = 'attention' not in config.model
+
+    # for ablation study
+    env.config['observation']['observation_config']['vehicles_count'] = econfig.N
+    # config.update({
+    #         "action": {
+    #             "type": "MultiAgentAction",
+    #             "action_config": {
+    #                 "type": "DiscreteMetaAction",
+    #                 "lateral": True,
+    #                 "longitudinal": True
+    #             }},
+    #         "observation": {
+    #             "type": "MultiAgentObservation",
+    #             "observation_config": {
+    #                 "type": "Kinematics",
+    #                 "vehicles_count": 6,
+    #                 "see_priority_vehicle": True,
+    #             }},
+    #         "num_CAV": 4,
+    #         "num_HDV": 4,
+    #     })
     return env
 
 

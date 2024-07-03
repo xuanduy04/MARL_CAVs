@@ -31,9 +31,12 @@ def train(args):
     except Exception:
         pass
 
+    assert config.model.curriculum_episodes == 0
+    assert config.env.N >= 1
+
     # create an experiment folder
+    N_ = f"_N{config.env.N}" if config.env.N != 6 else ""
     eps_ = f"_eps{config.model.train_episodes}" if config.model.train_episodes != 1000 else ""
-    curri_ = f"_cu{config.model.curriculum_episodes}" if config.model.curriculum_episodes > 0 else ""
     pte_ = f"_p{config.model.patience}" if 'patience' in config.model else ""
     try:
         drop_ = f"_d{config.model.attention.dropout_p}" if config.model.attention.dropout_p != 0.3 else ""
@@ -45,8 +48,8 @@ def train(args):
         warmup_ = ""
     run_date = datetime.now().strftime("%b_%d_%H_%M_%S")
 
-    env_name = f'({config.env.num_CAV},{config.env.num_HDV}){eps_}'
-    alg_name = f'{args.algorithm}{curri_}{drop_}{pte_}{warmup_}'
+    env_name = f'({config.env.num_CAV},{config.env.num_HDV}){N_}{eps_}'
+    alg_name = f'{args.algorithm}{drop_}{pte_}{warmup_}'
     run_name = f'{env_name}-{alg_name}-{config.seed}-{run_date}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
