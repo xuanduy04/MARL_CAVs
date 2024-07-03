@@ -80,6 +80,8 @@ def train(args):
         config.model.attention.seq_len = config.env.N
         config.model.attention.d_model = env_train.observation_space[0].shape[1]
     print(f'Env has {config.env.num_CAV} CAVs, {config.env.num_HDV} HDVs and 1 PV')
+    if config.env.N != 6:
+        print(f'Testing with N={config.env.N}, state_dim becomes {config.env.state_dim}')
 
     # init model
     model = init_model(model_name=args.algorithm, config=config)

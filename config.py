@@ -31,6 +31,12 @@ class Config:
     def __contains__(self, name):
         return name in self._assigned_attrs
 
+    def __str__(self):
+        return str(self._config_dict)
+
+    def __repr__(self):
+        return f"Config({self._config_dict})"
+
 
 def load_config(config_path):
     with open(config_path, 'r') as file:
