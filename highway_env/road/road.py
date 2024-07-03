@@ -265,9 +265,9 @@ class Road(object):
                     and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
-        if count:
-            vehicles = vehicles[:count]
-        return vehicles
+        if count is None or count <= 0:
+            return None
+        return vehicles[:count]
 
     def act(self) -> None:
         """Decide the actions of each entity on the road."""
