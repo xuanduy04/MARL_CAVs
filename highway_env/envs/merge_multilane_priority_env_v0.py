@@ -294,24 +294,16 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         num_PV = 1
 
         # smaller numbers spawn later.
-        total_nonPV_vehicles = num_CAV + num_HDV
-        if total_nonPV_vehicles <= 9:
-            spawn_points_s1 = [10, 50, 90, 130]  #, 170, 210, 250]
-            spawn_points_s2 = [5, 45, 85, 125]  #, 165, 205, 245]
-            spawn_points_m = [5, 45, 85, 125]  #, 165, 205]
-        else:  # total_vehicles <= 13:
-            # max_spawn_s = (num_CAV // 3) + (num_HDV // 3) + 1 (PV) + 1 (density)
-            spawn_points_s1 = [10, 50, 90, 130, 170, 210]  #, 250]
-            spawn_points_s2 = [5, 45, 85, 125, 165, 205]  #, 245]
-            spawn_points_m = [5, 45, 85, 125, 165, 205]
-
+        spawn_points_s1 = [10*i for i in range(1, 5+1)]
+        spawn_points_s2 = [(sp-5) for sp in spawn_points_s1]
+        spawn_points_m = [sp for sp in spawn_points_s1]
         """Spawn points for PV"""
         # for now, PV always spawn on straight road.
         # if not self.config["priority_vehicle_can_spawn_first"]:
         # print("priority_vehicle_can_spawn_first setting is currently unimplemented")
 
         # priority_vehicle's spawn lane & spawn point index
-        spawn_lane_pv = np.random.choice(np.arange(0, 2), 1)[0]
+        spawn_lane_pv = 0
         spawn_point_pv = None
 
         # TODO: optimize code?
@@ -329,14 +321,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         """Spawn points for CAV"""
         # spawn point indexes on the straight road
-        spawn_point_s_c1 = np.random.choice(spawn_points_s1, num_CAV // 3, replace=False)
-        spawn_point_s_c2 = np.random.choice(spawn_points_s2, num_CAV // 3, replace=False)
+        spawn_point_s_c1 = []
+        spawn_point_s_c2 = [spawn_points_s2[len(spawn_points_s2) // 2]]
         # spawn point indexes on the merging road
-        spawn_point_m_c = np.random.choice(spawn_points_m, num_CAV - 2 * num_CAV // 3,
-                                           replace=False)
-        spawn_point_s_c1 = list(spawn_point_s_c1)
-        spawn_point_s_c2 = list(spawn_point_s_c2)
-        spawn_point_m_c = list(spawn_point_m_c)
+        spawn_point_m_c = []
 
         # remove the points to avoid duplicate
         for a in spawn_point_s_c1:
