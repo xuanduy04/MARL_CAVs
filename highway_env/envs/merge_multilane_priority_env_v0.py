@@ -321,10 +321,10 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         """Spawn points for CAV"""
         # spawn point indexes on the straight road
-        spawn_point_s_c1 = [min(spawn_points_s1)]
+        spawn_point_s_c1 = []
         spawn_point_s_c2 = []
         # spawn point indexes on the merging road
-        spawn_point_m_c = []
+        spawn_point_m_c = [min(spawn_points_m)]
 
         # remove the points to avoid duplicate
         for a in spawn_point_s_c1:
