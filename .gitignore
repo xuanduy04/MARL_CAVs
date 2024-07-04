@@ -15,3 +15,5 @@ highway_env/vehicle/__pycache__/
 Run_lists.xlsx
 .~lock.Run_lists.xlsx#
 MARL/common/replay_buffer.py
+Fig1_img.png
+Fig1.pptx

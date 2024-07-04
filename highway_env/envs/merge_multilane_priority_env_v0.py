@@ -358,20 +358,20 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         road.vehicles.append(road.priority_vehicle)
 
         """spawn the CAV on the straight road first"""
-        for _ in range(num_CAV // 3):
+        for _ in range(len(spawn_point_s_c1)):
             ego_vehicle1 = self.action_type.vehicle_class(road, road.network.get_lane(("a", "b", 0)).position(
                 spawn_point_s_c1.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
             self.controlled_vehicles.append(ego_vehicle1)
             road.vehicles.append(ego_vehicle1)
 
-        for _ in range(num_CAV // 3):
+        for _ in range(len(spawn_point_s_c2)):
             ego_vehicle2 = self.action_type.vehicle_class(road, road.network.get_lane(("a", "b", 1)).position(
                 spawn_point_s_c2.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
             self.controlled_vehicles.append(ego_vehicle2)
             road.vehicles.append(ego_vehicle2)
 
         """spawn the rest CAV on the merging road"""
-        for _ in range(num_CAV - 2 * num_CAV // 3):
+        for _ in range(len(spawn_point_m_c)):
             ego_vehicle = self.action_type.vehicle_class(road, road.network.get_lane(("j", "k", 0)).position(
                 spawn_point_m_c.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
             self.controlled_vehicles.append(ego_vehicle)
