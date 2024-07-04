@@ -318,7 +318,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         elif spawn_lane_pv == 1:
             spawn_lane_pv = ("a", "b", 1)
             # spawn_point_pv = np.random.choice(spawn_points_s2, num_PV, replace=False)[0]
-            spawn_lane_pv = spawn_points_s2[len(spawn_points_s2) // 2]
+            spawn_point_pv = spawn_points_s2[len(spawn_points_s2) // 2]
             spawn_points_s2.remove(spawn_point_pv)
         else:
             raise NotImplementedError
