@@ -294,8 +294,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         num_PV = 1
 
         # smaller numbers spawn later.
-        spawn_points_s1 = [10*i for i in range(1, 5+1)]
-        spawn_points_s2 = [(sp-5) for sp in spawn_points_s1]
+        spawn_points_s1 = [12*i for i in range(1, 5+1)]
+        spawn_points_s2 = [(sp-6) for sp in spawn_points_s1]
         spawn_points_m = [sp for sp in spawn_points_s1]
         """Spawn points for PV"""
         # for now, PV always spawn on straight road.
@@ -321,8 +321,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
 
         """Spawn points for CAV"""
         # spawn point indexes on the straight road
-        spawn_point_s_c1 = []
-        spawn_point_s_c2 = [spawn_points_s2[len(spawn_points_s2) // 2]]
+        spawn_point_s_c1 = [min(spawn_points_s1)]
+        spawn_point_s_c2 = []
         # spawn point indexes on the merging road
         spawn_point_m_c = []
 
