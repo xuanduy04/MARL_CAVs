@@ -23,7 +23,7 @@ class IDMVehicle(ControlledVehicle):
     
     """Longitudinal policy parameters"""
     # Maximum acceleration.
-    ACC_MAX = 4.0  # [m/s2]
+    ACC_MAX = 0.0  # [m/s2]
     # Desired maximum acceleration.
     COMFORT_ACC_MAX = 1.0  # [m/s2]
     # Desired minimum deceleration.
@@ -328,7 +328,7 @@ class PriorityIDMVehicle(IDMVehicle):
 
     """Longitudinal policy parameters"""
     # Maximum acceleration.
-    ACC_MAX = 8.0 # [m/s2] (double the normal value)
+    ACC_MAX = 0.0 # [m/s2] (double the normal value)
     # Desired maximum acceleration.
     COMFORT_ACC_MAX = 3.0  # [m/s2]  (hard acceleration)
     # Desired minimum deceleration.

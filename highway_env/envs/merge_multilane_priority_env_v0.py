@@ -303,7 +303,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         # print("priority_vehicle_can_spawn_first setting is currently unimplemented")
 
         # priority_vehicle's spawn lane & spawn point index
-        spawn_lane_pv = 0
+        spawn_lane_pv = 1
         spawn_point_pv = None
 
         # TODO: optimize code?
@@ -357,6 +357,25 @@ class MergeMultilanePriorityEnv(AbstractEnv):
                 spawn_point_pv + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
         road.vehicles.append(road.priority_vehicle)
 
+        """spawn the HDV on the main road first"""
+        for _ in range(num_HDV // 3):
+            road.vehicles.append(
+                other_vehicles_type(road, road.network.get_lane(("a", "b", 0)).position(
+                    spawn_point_s_h1.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0)))
+
+        for _ in range(num_HDV // 3):
+            road.vehicles.append(
+                other_vehicles_type(road, road.network.get_lane(("a", "b", 1)).position(
+                    spawn_point_s_h2.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0)))
+
+        """spawn the rest HDV on the merging road"""
+        for _ in range(num_HDV - 2 * num_HDV // 3):
+            road.vehicles.append(
+                other_vehicles_type(road, road.network.get_lane(("j", "k", 0)).position(
+                    spawn_point_m_h.pop(0) + loc_noise.pop(0), 0),
+                                    speed=initial_speed.pop(0)))
+            
+
         """spawn the CAV on the straight road first"""
         for _ in range(len(spawn_point_s_c1)):
             ego_vehicle1 = self.action_type.vehicle_class(road, road.network.get_lane(("a", "b", 0)).position(
@@ -376,24 +395,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
                 spawn_point_m_c.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
             self.controlled_vehicles.append(ego_vehicle)
             road.vehicles.append(ego_vehicle)
-
-        """spawn the HDV on the main road first"""
-        for _ in range(num_HDV // 3):
-            road.vehicles.append(
-                other_vehicles_type(road, road.network.get_lane(("a", "b", 0)).position(
-                    spawn_point_s_h1.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0)))
-
-        for _ in range(num_HDV // 3):
-            road.vehicles.append(
-                other_vehicles_type(road, road.network.get_lane(("a", "b", 1)).position(
-                    spawn_point_s_h2.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0)))
-
-        """spawn the rest HDV on the merging road"""
-        for _ in range(num_HDV - 2 * num_HDV // 3):
-            road.vehicles.append(
-                other_vehicles_type(road, road.network.get_lane(("j", "k", 0)).position(
-                    spawn_point_m_h.pop(0) + loc_noise.pop(0), 0),
-                                    speed=initial_speed.pop(0)))
 
     def terminate(self):
         return
