@@ -297,7 +297,7 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         num_PV = 1
 
         # smaller numbers spawn later.
-        spawn_points_s1 = [14*i for i in range(1, 2+1)]
+        spawn_points_s1 = [14*i for i in range(1, 3+1)]
         spawn_points_s2 = [(sp - 6 + np.random.choice([-1,0,1], 1)[0]) for sp in spawn_points_s1]
         spawn_points_m = [sp for sp in spawn_points_s1]
         spawn_points_m.append(spawn_points_m[-1] + 10)
