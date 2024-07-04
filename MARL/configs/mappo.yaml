@@ -1,15 +1,16 @@
 model:
   # --- General training arguments ---
-  train_episodes: 100
+  train_episodes: 1
   # Total episodes to train
   # curriculum_episodes: 0
   # Amount of curriculum episodes (best not to touch this)
   hidden_size: 256
   # network hidden size, for both actor and critic
-  eval_interval: 100
+  eval_interval: 1
   # How many training episodes to run an evaluation
   test_seeds:
     - 100
+    - 150
   # List of seeds for evaluation
 
   # --- Algorithm specific arguments ---
