@@ -301,6 +301,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         spawn_points_s2 = [(sp - 6 + np.random.choice([-1,0,1], 1)[0]) for sp in spawn_points_s1]
         spawn_points_m = [sp for sp in spawn_points_s1]
         spawn_points_m.append(spawn_points_m[-1] + 10)
+
+        print(spawn_points_s1, spawn_points_s2, spawn_points_m, sep="\n")
         """Spawn points for PV"""
         # for now, PV always spawn on straight road.
         # if not self.config["priority_vehicle_can_spawn_first"]:
