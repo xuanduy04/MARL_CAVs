@@ -291,12 +291,16 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         self.controlled_vehicles = []
         road.priority_vehicle = None
 
+
+        num_CAV = 1
+        num_HDV = 2 + 2 + 2
         num_PV = 1
 
         # smaller numbers spawn later.
-        spawn_points_s1 = [14*i for i in range(1, 5+1)]
+        spawn_points_s1 = [14*i for i in range(1, 2+1)]
         spawn_points_s2 = [(sp - 6 + np.random.choice([-1,0,1], 1)[0]) for sp in spawn_points_s1]
         spawn_points_m = [sp for sp in spawn_points_s1]
+        spawn_points_m.append(spawn_points_m[-1] + 10)
         """Spawn points for PV"""
         # for now, PV always spawn on straight road.
         # if not self.config["priority_vehicle_can_spawn_first"]:
@@ -313,7 +317,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
             spawn_points_s1.remove(spawn_point_pv)
         elif spawn_lane_pv == 1:
             spawn_lane_pv = ("a", "b", 1)
-            spawn_point_pv = np.random.choice(spawn_points_s2, num_PV, replace=False)[0]
+            # spawn_point_pv = np.random.choice(spawn_points_s2, num_PV, replace=False)[0]
+            spawn_lane_pv = spawn_points_s2[len(spawn_points_s2) // 2]
             spawn_points_s2.remove(spawn_point_pv)
         else:
             raise NotImplementedError
@@ -351,6 +356,30 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         initial_speed = list(initial_speed)
         loc_noise = list(loc_noise)
 
+        """spawn the CAV on the straight road first"""
+        for _ in range(len(spawn_point_s_c1)):
+            ego_vehicle1 = self.action_type.vehicle_class(road, road.network.get_lane(("a", "b", 0)).position(
+                spawn_point_s_c1.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
+            self.controlled_vehicles.append(ego_vehicle1)
+            road.vehicles.append(ego_vehicle1)
+
+        for _ in range(len(spawn_point_s_c2)):
+            ego_vehicle2 = self.action_type.vehicle_class(road, road.network.get_lane(("a", "b", 1)).position(
+                spawn_point_s_c2.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
+            self.controlled_vehicles.append(ego_vehicle2)
+            road.vehicles.append(ego_vehicle2)
+
+        """spawn the rest CAV on the merging road"""
+        for _ in range(len(spawn_point_m_c)):
+            ego_vehicle = self.action_type.vehicle_class(road, road.network.get_lane(("j", "k", 0)).position(
+                spawn_point_m_c.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
+            self.controlled_vehicles.append(ego_vehicle)
+            road.vehicles.append(ego_vehicle)
+
+
+
+
+
         """spawn the PV"""
         road.priority_vehicle = \
             priority_vehicles_type(road, road.network.get_lane(spawn_lane_pv).position(
@@ -375,27 +404,6 @@ class MergeMultilanePriorityEnv(AbstractEnv):
                     spawn_point_m_h.pop(0) + loc_noise.pop(0), 0),
                                     speed=initial_speed.pop(0)))
             
-
-        """spawn the CAV on the straight road first"""
-        for _ in range(len(spawn_point_s_c1)):
-            ego_vehicle1 = self.action_type.vehicle_class(road, road.network.get_lane(("a", "b", 0)).position(
-                spawn_point_s_c1.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
-            self.controlled_vehicles.append(ego_vehicle1)
-            road.vehicles.append(ego_vehicle1)
-
-        for _ in range(len(spawn_point_s_c2)):
-            ego_vehicle2 = self.action_type.vehicle_class(road, road.network.get_lane(("a", "b", 1)).position(
-                spawn_point_s_c2.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
-            self.controlled_vehicles.append(ego_vehicle2)
-            road.vehicles.append(ego_vehicle2)
-
-        """spawn the rest CAV on the merging road"""
-        for _ in range(len(spawn_point_m_c)):
-            ego_vehicle = self.action_type.vehicle_class(road, road.network.get_lane(("j", "k", 0)).position(
-                spawn_point_m_c.pop(0) + loc_noise.pop(0), 0), speed=initial_speed.pop(0))
-            self.controlled_vehicles.append(ego_vehicle)
-            road.vehicles.append(ego_vehicle)
-
     def terminate(self):
         return
 
