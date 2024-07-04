@@ -294,8 +294,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         num_PV = 1
 
         # smaller numbers spawn later.
-        spawn_points_s1 = [12*i for i in range(1, 5+1)]
-        spawn_points_s2 = [(sp-6) for sp in spawn_points_s1]
+        spawn_points_s1 = [14*i for i in range(1, 5+1)]
+        spawn_points_s2 = [(sp - 6 + np.random.choice([-1,0,1], 1)[0]) for sp in spawn_points_s1]
         spawn_points_m = [sp for sp in spawn_points_s1]
         """Spawn points for PV"""
         # for now, PV always spawn on straight road.
@@ -346,8 +346,8 @@ class MergeMultilanePriorityEnv(AbstractEnv):
         spawn_point_m_h = list(spawn_point_m_h)
 
         # initial speed with noise and location noise
-        initial_speed = np.random.rand(num_CAV + num_HDV + num_PV) * 2 + 25  # range from [25, 27]
-        loc_noise = np.random.rand(num_CAV + num_HDV + num_PV) * 3 - 1.5  # range from [-1.5, 1.5]
+        initial_speed = [27 for _ in range(num_CAV + num_HDV + num_PV)] # range from [25, 27]
+        loc_noise = [0 for _ in range(num_CAV + num_HDV + num_PV)] # range from [-1.5, 1.5]
         initial_speed = list(initial_speed)
         loc_noise = list(loc_noise)
 
