@@ -63,7 +63,7 @@ class BaseModel(object):
             for step in range(0, 1_000):
                 # ALGO LOGIC: action logic
                 with torch.no_grad():
-                    action = 0 # overloads action to always be cruising
+                    action = self._act(next_obs)
 
                 # TRY NOT TO MODIFY: execute the game and log data.
                 next_obs, reward, next_done, info = env.step(action)

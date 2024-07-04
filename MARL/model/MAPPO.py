@@ -228,7 +228,7 @@ class MAPPO(BaseModel):
 
     def _act(self, obs: Tensor) -> np.ndarray:
         action, _, _, _ = self.network.get_action_and_value(obs)
-        return action.cpu().numpy()
+        return [0 for _ in range(obs.shape[0])]
     
     def save_model(self, model_dir: str, global_episode: int):
         file_path = model_dir + 'checkpoint-{:d}.pt'.format(global_episode)
