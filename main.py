@@ -79,7 +79,7 @@ def train(args):
     env_eval = gym.make('merge-multilane-priority-multi-agent-v0')
     env_eval = init_env(env_eval, config, is_eval_env=True)
 
-    config.env.state_dim = config.env.N * env_train.observation_space[0].shape[1]
+    config.env.state_dim = config.env.N * len(obs_feature_type_to_list(config.env.obs_feature_type))
     config.env.action_dim = env_train.action_dim
     if 'attention' in config.model:
         config.model.attention.seq_len = config.env.N
