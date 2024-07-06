@@ -21,6 +21,12 @@ env: # Environment specific arguments
   # num_PV: 1 # num_HDV excludes the priority vehicle count
 
   # For ablation studies
-  N: 2 # number of vehicles the CAVs sees (including itself, and priority vehicle slot)
-  # TODO: test 2,4, (6 has been done already)
+  obs_feature_type: 4
+  # 0: ['presence', 'priority', 'x', 'y', 'vx', 'vy'] (normal)
+  # 1: [                        'x', 'y', 'vx', 'vy'] (no presense or priority)
+  # 2: ['presence', 'priority',           'vx', 'vy'] (no position)
+  # 3: ['presence', 'priority', 'x', 'y'            ] (no velocity)
+  # 4: ['presence', 'priority', 'x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'] (add angles)
+  # Check function in train_utils named `obs_feature_type_to_list`
+
 

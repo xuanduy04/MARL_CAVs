@@ -14,7 +14,7 @@ from shutil import copy
 from tqdm.auto import tqdm
 
 from MARL.utils.train_utils import DEFAULT_BASE_DIR
-from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std
+from MARL.utils.train_utils import init_env, set_seed, init_dir, extract_data, reward_mean_std, obs_feature_type_to_list
 from MARL.utils.model_utils import init_model, supported_models, verify_consistancy
 from config import import_config
 
@@ -30,12 +30,17 @@ def train(args):
         config.model.curriculum_episodes = 0
     except Exception:
         pass
+    try:
+        config.env.N = 6 # auto set to 6 for this ablation
+    except Exception:
+        pass
 
     assert config.model.curriculum_episodes == 0
     assert config.env.N >= 1
 
     # create an experiment folder
     N_ = f"_N{config.env.N}" if config.env.N != 6 else ""
+    Xtype_ = f"_Xtype{config.env.obs_feature_type}" if config.env.obs_feature_type != 0 else ""
     eps_ = f"_eps{config.model.train_episodes}" if config.model.train_episodes != 1000 else ""
     pte_ = f"_p{config.model.patience}" if 'patience' in config.model else ""
     try:
@@ -49,7 +54,7 @@ def train(args):
     run_date = datetime.now().strftime("%b_%d_%H_%M_%S")
 
     env_name = f'({config.env.num_CAV},{config.env.num_HDV}){eps_}'
-    alg_name = f'{args.algorithm}{drop_}{pte_}{warmup_}' + N_
+    alg_name = f'{args.algorithm}{drop_}{pte_}{warmup_}' + N_ + Xtype_
     run_name = f'{env_name}-{alg_name}-{config.seed}-{run_date}'
     output_dir = args.base_dir + run_name
     dirs = init_dir(output_dir)
@@ -78,10 +83,20 @@ def train(args):
     config.env.action_dim = env_train.action_dim
     if 'attention' in config.model:
         config.model.attention.seq_len = config.env.N
-        config.model.attention.d_model = env_train.observation_space[0].shape[1]
+        config.model.attention.d_model = len(obs_feature_type_to_list(config.env.obs_feature_type))
+        config.model.attention.num_heads = config.model.attention.d_model // 2
+        assert config.model.attention.num_heads * 2 == config.model.attention.d_model, \
+            "obs feature list should be divisible by 2"
+
     print(f'Env has {config.env.num_CAV} CAVs, {config.env.num_HDV} HDVs and 1 PV')
+
     if config.env.N != 6:
         print(f'Testing with N={config.env.N}, state_dim becomes {config.env.state_dim}')
+    if config.env.obs_feature_type != 0:
+        obs_feature_list = obs_feature_type_to_list(config.env.obs_feature_type)
+        print(f'Testing with features type {config.env.obs_feature_type}: {obs_feature_list}')
+        if 'attention' in config.model:
+            print(f'Num_heads={config.model.attention.num_heads}')
 
     # init model
     model = init_model(model_name=args.algorithm, config=config)

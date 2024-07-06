@@ -47,7 +47,7 @@ model:
 
   # --- Attention module arguments ---
   attention:
-    num_heads: 3
+    # num_heads: 3 # automatically set in this ablation
     dropout_p: 0.1
 
   patience: 0.09

@@ -37,6 +37,7 @@ def init_env(env: AbstractEnv, config: Config, is_eval_env: bool = False) -> Abs
 
     # for ablation study
     env.config['observation']['observation_config']['vehicles_count'] = econfig.N
+    env.config['observation']['observation_config']['features'] = obs_feature_type_to_list(econfig.obs_feature_type)
     # config.update({
     #         "action": {
     #             "type": "MultiAgentAction",
@@ -57,6 +58,17 @@ def init_env(env: AbstractEnv, config: Config, is_eval_env: bool = False) -> Abs
     #     })
     return env
 
+def obs_feature_type_to_list(obs_feature_type: int) -> list:
+    feature_sets = {
+        0: ['presence', 'priority', 'x', 'y', 'vx', 'vy'],
+        1: [                        'x', 'y', 'vx', 'vy'],
+        2: ['presence', 'priority',           'vx', 'vy'],
+        3: ['presence', 'priority', 'x', 'y'            ],
+        4: ['presence', 'priority', 'x', 'y', 'vx', 'vy', 'cos_h', 'sin_h']
+    }
+    if obs_feature_type not in feature_sets:
+        raise ValueError(f'Invalid obs_feature_type. Got {obs_feature_type}, expected {list(feature_sets.keys())}')
+    return feature_sets[obs_feature_type]
 
 def set_seed(seed: int):
     random.seed(seed)
