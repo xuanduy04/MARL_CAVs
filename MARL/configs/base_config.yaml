@@ -16,8 +16,8 @@ env: # Environment specific arguments
   LANE_CHANGE_COST: 0.5
 
   # Vehicle count
-  num_CAV: 4
-  num_HDV: 4
+  num_CAV: 6
+  num_HDV: 6
   # num_PV: 1 # num_HDV excludes the priority vehicle count
 
   # For ablation studies
