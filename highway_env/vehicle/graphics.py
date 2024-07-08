@@ -148,7 +148,7 @@ class VehicleGraphics(object):
         elif vehicle.crashed:
             color = cls.RED
         elif isinstance(vehicle, PriorityIDMVehicle):
-            color = cls.YELLOW
+            color = cls.EGO_COLOR # change to EGO_COLOR for drawing
         elif isinstance(vehicle, IDMVehicle):
             color = cls.GREEN
         elif isinstance(vehicle, MDPVehicle):

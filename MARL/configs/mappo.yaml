@@ -11,6 +11,9 @@ model:
   test_seeds:
     - 100
     - 150
+    - 200
+    - 250
+    - 300
   # List of seeds for evaluation
 
   # --- Algorithm specific arguments ---
