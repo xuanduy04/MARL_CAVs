@@ -118,10 +118,10 @@ class AbstractEnv(gym.Env):
             "policy_frequency": 1,  # [Hz]
             "other_vehicles_type": "highway_env.vehicle.behavior.IDMVehicle",
             "priority_vehicles_type": "highway_env.vehicle.behavior.PriorityIDMVehicle",
-            "screen_width": 600,  # [px]
-            "screen_height": 150,  # [px]
+            "screen_width": 600*4,  # [px]
+            "screen_height": 150*4,  # [px]
             "centering_position": [0.3, 0.5],
-            "scaling": 5.5,
+            "scaling": 5.5*4,
             "show_trajectories": False,
             "render_agent": True,
             "safety_guarantee": False,
