@@ -15,7 +15,7 @@ All the MARL algorithms are extended from the single-agent RL with parameter sha
 - install the requirements: `pip install -r requirements.txt`
 
 ## Usage
-run `main.py --algorithm mappo_lsa`
+run `main.py --algorithm mappo_lsa` (algorithm names in all lowercase)
 
 ## Demo
 [video demo](https://drive.google.com/file/d/1fW8IFT_w5RL2l4s64auoZi0USMcls0_D/view?usp=sharing)
