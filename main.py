@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore", message="Please also save or load the state of
 
 
 def train(args):
-    verify_consistancy(args.algorithm)
+    # verify_consistancy(args.algorithm)
     config, config_files = import_config(args.algorithm)
     # update missing configs
     config.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -32,11 +32,11 @@ def train(args):
         pass
 
     # create an experiment folder
-    eps_ = f"_eps{config.model.train_episodes}" if config.model.train_episodes != 1000 else ""
+    eps_ = f"_eps{config.model.train_episodes}"
     curri_ = f"_cu{config.model.curriculum_episodes}" if config.model.curriculum_episodes > 0 else ""
     pte_ = f"_p{config.model.patience}" if 'patience' in config.model else ""
     try:
-        drop_ = f"_d{config.model.attention.dropout_p}" if config.model.attention.dropout_p != 0.3 else ""
+        drop_ = f"_d{config.model.attention.dropout_p}"
     except Exception:
         drop_ = ""
     try:
