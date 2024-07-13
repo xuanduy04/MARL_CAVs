@@ -145,8 +145,8 @@ def parse_args():
                         choices=['train', 'evaluate'],
                         default='train',
                         help="whether to train or evaluate")
-    # parser.add_argument('--log-to-stdout', type=bool, required=False,
-    #                     default=True)
+    parser.add_argument('--log-to-stdout', type=bool, required=False,
+                        default=True)
     # parser.add_argument('--model-dir', type=str, required=False,
     #                     default='',
     #                     help="pretrained model path")
