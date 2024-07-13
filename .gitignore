@@ -12,10 +12,3 @@ highway_env/envs/common/__pycache__/
 highway_env/road/__pycache__/
 highway_env/vehicle/__pycache__/
 .gitignore
-Run_lists.xlsx
-.~lock.Run_lists.xlsx#
-MARL/common/replay_buffer.py
-Fig1_final.png
-Fig1_img.png
-Fig1.pptx
-Screenshot from 2024-07-04 19-37-56.png
